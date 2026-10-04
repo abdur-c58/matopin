@@ -6,8 +6,8 @@ import { Dialog, Tabs } from "radix-ui";
 import { Check, Download, Eye, FileText, Pencil, Search, Trash2, Volume2, X } from "lucide-react";
 import { toast } from "sonner";
 import { PLAYBACK_SPEEDS } from "@/lib/prefs";
-import { useZige } from "@/lib/use-zige";
-import { type Card, cardMatches } from "@/lib/zige";
+import { useDeckEditor } from "@/lib/use-deck-editor";
+import { type Card, cardMatches } from "@/lib/cards";
 import { CardList, EditTools } from "./card-list";
 import { CardView } from "./card-view";
 import { useDeckCheck } from "./deck-check";
@@ -48,7 +48,7 @@ function useLeaveGuard(active: boolean, onLeave: (href: string) => void) {
 
 export function DeckEditor({ scope }: { scope: string }) {
   const { fluency: profileFluency, prefs, setPrefs } = useProfile();
-  const z = useZige(scope, profileFluency, prefs.playbackSpeed);
+  const z = useDeckEditor(scope, profileFluency, prefs.playbackSpeed);
   const summary = useDeckSummary();
   const readOnly = summary?.role === "follower";
   const changeSpeed = (playbackSpeed: number) =>

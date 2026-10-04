@@ -178,7 +178,7 @@ function hash(s: string): string {
   for (const ch of s) h = ((h << 5) + h + ch.codePointAt(0)!) >>> 0;
   return h.toString(16);
 }
-export const clipName = (text: string) => `zige_${hash(text)}.mp3`;
+export const clipName = (text: string) => `matopin_${hash(text)}.mp3`;
 const ALIASES: Record<string, CardField> = {
   term: "term", hanzi: "term", chinese: "term", word: "term", front: "term", japanese: "term", kanji: "term", expression: "term", vocab: "term",
   reading: "reading", pinyin: "reading", kana: "reading", furigana: "reading", yomi: "reading",

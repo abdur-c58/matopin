@@ -5,7 +5,7 @@ import { LoaderCircle, MessageSquareText, Volume2 } from "lucide-react";
 import { useListen, type ListenPart } from "@/lib/audio";
 import { dataKey } from "@/lib/profiles";
 import { DEFAULT_LANG, type Lang } from "@/lib/lang";
-import { CARD_KIND_LABELS, deckLanguage, exampleSpoken, normalizeCard, wordSpoken, type Card, type Notetype } from "@/lib/zige";
+import { CARD_KIND_LABELS, deckLanguage, exampleSpoken, normalizeCard, wordSpoken, type Card, type Notetype } from "@/lib/cards";
 import { toast } from "sonner";
 import { answer, buildSession, DEFAULT_REVIEW, loadStore, previews, saveStore, tagLeech, type QueueItem, type ReviewSettings, type Session, type Store } from "@/lib/srs";
 import { formatCountdown, type Rating } from "@/lib/fsrs";

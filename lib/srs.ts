@@ -1,7 +1,7 @@
 import { dataKey } from "./profiles";
 import { queuePush } from "./sync";
 import { splitTags } from "./ai";
-import { type Card, type Notetype } from "./zige";
+import { type Card, type Notetype } from "./cards";
 import {
   DAY, formatInterval, intervalDays, memoryFromSm2, minimumReviewFuzzInterval, nextMemory, withFuzz, fuzzBounds,
   type FsrsState, type Memory, type Rating,

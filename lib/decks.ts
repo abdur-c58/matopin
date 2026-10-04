@@ -2,7 +2,7 @@ import { dataKey } from "./profiles";
 import { isDeckRole, isVisibility, type DeckMeta } from "./social";
 import { buildSession, loadStore, reviewable } from "./srs";
 import { DEFAULT_LANG, LANG_INFO, type Lang } from "./lang";
-import { DEFAULT_SETTINGS, deckLanguage, normalizeCard, type Card, type Notetype, type Settings } from "./zige";
+import { DEFAULT_SETTINGS, deckLanguage, normalizeCard, type Card, type Notetype, type Settings } from "./cards";
 
 export type DeckSummary = DeckMeta & {
   id: string;
@@ -29,11 +29,11 @@ export function readMeta(scope: string): DeckMeta {
 export function writeMeta(scope: string, meta: DeckMeta) {
   localStorage.setItem(dataKey(scope, "meta"), JSON.stringify(meta));
 }
-const indexKey = (profile: string) => `zige:${profile}:decks`;
+const indexKey = (profile: string) => `matopin:${profile}:decks`;
 
 export const deckScope = (profile: string, deckId: string) => `${profile}:${deckId}`;
 
-export const DECKS_CHANGED = "zige:decks-changed";
+export const DECKS_CHANGED = "matopin:decks-changed";
 export function notifyDecks() {
   if (typeof window !== "undefined") window.dispatchEvent(new Event(DECKS_CHANGED));
 }

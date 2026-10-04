@@ -7,7 +7,7 @@ import { speak } from "@/lib/ai-client";
 import { audioError, playBlob } from "@/lib/audio";
 import { cleanNotes, segmentNotes, type Note, type NoteWord } from "@/lib/bot-notes";
 import { hasHanChar, hasKana, isKanaOnly, LANG_INFO } from "@/lib/lang";
-import { rubyPieces, toneOf } from "@/lib/zige";
+import { rubyPieces, toneOf } from "@/lib/cards";
 import { FlashcardMaker } from "./flashcard-maker";
 import { Pinyin } from "./preview";
 import { useProfile } from "./profiles";

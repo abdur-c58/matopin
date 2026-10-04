@@ -6,7 +6,7 @@ import { Check, ChevronRight, Flame, GraduationCap, LogOut, Pencil, Settings, Us
 import { toast } from "sonner";
 import { dayKey } from "@/lib/srs";
 import { entriesOf, groupByDay, streaks } from "@/lib/stats";
-import { FLUENCY_LABELS, FLUENCY_LEVELS, type Fluency } from "@/lib/zige";
+import { FLUENCY_LABELS, FLUENCY_LEVELS, type Fluency } from "@/lib/cards";
 import { Avatar } from "./avatar";
 import { ProgressBar } from "./charts";
 import { RailTip } from "./rail-tip";

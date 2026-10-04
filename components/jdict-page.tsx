@@ -10,7 +10,7 @@ import {
   kanaKey, kanjiVgUrl, MAX_QUERY, shortMeaningJa,
 } from "@/lib/jdict";
 import { furiganaPieces, hasHanChar, type RubyPiece } from "@/lib/lang";
-import { type Card, newCard, normalizeCard } from "@/lib/zige";
+import { type Card, newCard, normalizeCard } from "@/lib/cards";
 import { CreditCard, errorOf, Home, isDesktop, Problem, resultKeys, ResultsSkeleton, SearchBox, SpeakButton, TAB_CLASS, useDictRecent, useDictSearch } from "./dictionary-page";
 import { FlashcardMaker } from "./flashcard-maker";
 import { HandwritingPad, RiceGrid } from "./handwriting-pad";

@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { speak } from "./ai-client";
-import type { Spoken } from "./zige";
+import type { Spoken } from "./cards";
 
 export type ListenPart = "word" | "example";
 

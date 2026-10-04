@@ -1,7 +1,7 @@
 "use client";
 import { Pencil } from "lucide-react";
 import { splitTags } from "@/lib/ai";
-import { CARD_KIND_LABELS, type Card, type Clips, dialogueTurns, hasExample, isConversation, target, toneOf } from "@/lib/zige";
+import { CARD_KIND_LABELS, type Card, type Clips, dialogueTurns, hasExample, isConversation, target, toneOf } from "@/lib/cards";
 import { hasKana } from "@/lib/lang";
 import { useCardLang } from "./lang-context";
 import { Pinyin } from "./preview";

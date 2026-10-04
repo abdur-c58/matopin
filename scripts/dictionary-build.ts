@@ -1,5 +1,5 @@
 /**
- * Turns the downloaded open datasets into rows for the zige_dict_* tables (supabase/003_dictionary.sql).
+ * Turns the downloaded open datasets into rows for the matopin_dict_* tables (supabase/003_dictionary.sql).
  * Used by scripts/import-dictionary.mts and scripts/test-dictionary.mts.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";

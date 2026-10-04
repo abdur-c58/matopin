@@ -67,7 +67,7 @@ export async function askBot(token: string, withProfile: string, messageId: numb
   const key = process.env.OPENAI_API_KEY?.trim();
   if (!key) throw new StoreError("Bao needs OPENAI_API_KEY in .env.local.", 500);
   const model = process.env.OPENAI_BOT_MODEL?.trim() || process.env.OPENAI_MODEL?.trim() || DEFAULT_OPENAI_MODEL;
-  const ctx = await rpc<Context>("zige_chat_ai_context", { p_token: token, p_profile: withProfile, p_message: messageId });
+  const ctx = await rpc<Context>("matopin_chat_ai_context", { p_token: token, p_profile: withProfile, p_message: messageId });
   const question = stripAsk(ctx.question);
   const asker = ctx.messages.at(-1)?.from ?? "Someone";
   const compacting = ctx.messages.length > COMPACT_AFTER;
@@ -106,10 +106,10 @@ export async function askBot(token: string, withProfile: string, messageId: numb
     p_memory: memory, p_memory_upto: memory != null ? older.at(-1)?.id ?? ctx.memoryUpto : ctx.memoryUpto, p_viewer: ctx.viewer,
   };
   try {
-    return await rpc("zige_chat_ai_reply", { ...save, p_notes: notes }, { admin: true });
+    return await rpc("matopin_chat_ai_reply", { ...save, p_notes: notes }, { admin: true });
   } catch (e) {
     // Before supabase/008_bot_reply_notes.sql the function has no p_notes; the reply still saves, without notes.
-    if (!(e instanceof Error) || !/missing the app tables|zige_chat_ai_reply/i.test(e.message)) throw e;
-    return rpc("zige_chat_ai_reply", save, { admin: true });
+    if (!(e instanceof Error) || !/missing the app tables|matopin_chat_ai_reply/i.test(e.message)) throw e;
+    return rpc("matopin_chat_ai_reply", save, { admin: true });
   }
 }

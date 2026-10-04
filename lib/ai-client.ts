@@ -1,7 +1,7 @@
 import { type CardDraft, type CardIssue, type Translation, type WordMatch } from "./ai";
 import type { Lang } from "./lang";
 import { voiceFor, type Voice } from "./voice";
-import type { Card, CardKind, Fluency } from "./zige";
+import type { Card, CardKind, Fluency } from "./cards";
 
 async function readError(res: Response, fallback: string): Promise<string> {
   const data = (await res.json().catch(() => null)) as { error?: string } | null;

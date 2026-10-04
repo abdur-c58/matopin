@@ -6,13 +6,13 @@ import { Camera, Check, LoaderCircle, LogOut, Settings2, Trash2, Upload, X } fro
 import { toast } from "sonner";
 import { AVATAR_ACCEPT, AVATAR_COLORS, DEFAULT_AVATAR_COLOR, loadAvatarSource, renderAvatar, type AvatarColor, type AvatarCrop, type AvatarSource } from "@/lib/avatar";
 import { APP_NAME } from "@/lib/brand";
-import { clearLocal } from "@/lib/profiles";
+import { adoptOldKeys, clearLocal } from "@/lib/profiles";
 import { signInError } from "@/lib/sign-in-errors";
 import { store, type ProfileInfo } from "@/lib/store-client";
 import { DEFAULT_PREFS, type Prefs } from "@/lib/prefs";
 import { flushPending, pullDecks, startSync } from "@/lib/sync";
 import { applyAccent, applySecond, DEFAULT_ACCENT, DEFAULT_SECOND } from "@/lib/theme";
-import { FLUENCY_LABELS, FLUENCY_LEVELS, type Fluency } from "@/lib/zige";
+import { FLUENCY_LABELS, FLUENCY_LEVELS, type Fluency } from "@/lib/cards";
 import { Avatar } from "./avatar";
 import { GoogleMark } from "./google-mark";
 import { AvatarCropper } from "./avatar-cropper";
@@ -77,6 +77,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
 
   const load = useCallback(async () => {
     setError("");
+    adoptOldKeys();
     try {
       const data = await store<{ me: ProfileInfo | null }>("me");
       if (data.me) await open(data.me);

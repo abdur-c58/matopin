@@ -12,7 +12,7 @@ const GROUPS: Record<number, string> = {
 };
 /** Newer emoji draw as empty boxes on many devices. */
 const MAX_VERSION = 15;
-const RECENT_KEY = "zige:recent-emoji";
+const RECENT_KEY = "matopin:recent-emoji";
 const MAX_RECENT = 16;
 
 /** The dataset spells some emoji with a trailing variation selector, so they're matched to the quick-pick spelling to keep one chip per emoji. */

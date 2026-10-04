@@ -8,7 +8,7 @@ import { notifyDecks } from "./decks";
 import { detectLanguage, isLang, LANG_INFO, type Lang } from "./lang";
 import { dataKey } from "./profiles";
 import { onRemoteChange, queuePush } from "./sync";
-import { type Card, type CardField, type CardKind, type Clips, DEFAULT_SETTINGS, type Fluency, isFluency, isPinyin, type Settings, buildExport, clipName, exampleSpoken, newCard, normalizeCard, spokenTexts, toCsv, wordSpoken } from "./zige";
+import { type Card, type CardField, type CardKind, type Clips, DEFAULT_SETTINGS, type Fluency, isFluency, isPinyin, type Settings, buildExport, clipName, exampleSpoken, newCard, normalizeCard, spokenTexts, toCsv, wordSpoken } from "./cards";
 
 function download(name: string, data: Blob | string, type = "text/plain") {
   const url = URL.createObjectURL(data instanceof Blob ? data : new Blob([data], { type }));
@@ -29,7 +29,7 @@ function loadTags(scope: string): string[] {
 type CardsUpdate = Card[] | ((cards: Card[]) => Card[]);
 export type CardFix = { id: string; field: CardField; before: string; value: string };
 
-export function useZige(scope: string, profileFluency: Fluency, speed = 1) {
+export function useDeckEditor(scope: string, profileFluency: Fluency, speed = 1) {
   const [saved, setSaved] = useState<Card[]>(() => [newCard()]);
   const [draft, setDraft] = useState<Card[] | null>(null);
   const editingRef = useRef(false);

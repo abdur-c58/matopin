@@ -3,7 +3,7 @@ import { uniqueTags } from "./ai";
 import { DAY, memoryFromSm2, type Rating } from "./fsrs";
 import { DEFAULT_REVIEW, dayKey, MAX_ANSWER_MS, recomputeMemory, type RevlogEntry, type Schedule, type Side, type Store } from "./srs";
 import { detectLanguage, hasCjk, hasKana, isKanaOnly, type Lang, parseBracketFurigana } from "./lang";
-import { looksLikePinyin, newCard, normalizeCard, type Card, type CardField, type CardKind, type Notetype } from "./zige";
+import { looksLikePinyin, newCard, normalizeCard, type Card, type CardField, type CardKind, type Notetype } from "./cards";
 
 export type AnkiNotetype = { id: number; name: string; fields: string[]; templates: number };
 export type AnkiNote = { id: number; type: number; tags: string; fields: string[] };

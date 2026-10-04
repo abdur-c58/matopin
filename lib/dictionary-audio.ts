@@ -156,7 +156,7 @@ async function remember(key: string, found: Found | null): Promise<Row> {
     await upload(path, found.bytes, found.type === "audio/mp3" ? "audio/mpeg" : found.type);
   }
   const row = { key, path, source: found?.source ?? null, author: found?.author ?? null, license: found?.license ?? null, origin: found?.origin ?? null };
-  await rpc("zige_dict_audio_put", { p_key: key, p_path: path, p_source: row.source, p_author: row.author, p_license: row.license, p_origin: row.origin }, { admin: true });
+  await rpc("matopin_dict_audio_put", { p_key: key, p_path: path, p_source: row.source, p_author: row.author, p_license: row.license, p_origin: row.origin }, { admin: true });
   return { ...row, created_at: new Date().toISOString() };
 }
 
@@ -273,7 +273,7 @@ export async function pronounceJa({ text, reading, sentence }: { text: string; r
 }
 
 async function rowGetter(keys: string[]) {
-  const known = new Map((await rpc<Row[]>("zige_dict_audio_get", { p_keys: keys }, { admin: true })).map((r) => [r.key, r]));
+  const known = new Map((await rpc<Row[]>("matopin_dict_audio_get", { p_keys: keys }, { admin: true })).map((r) => [r.key, r]));
   return async (key: string): Promise<Row | null> => {
     const row = known.get(key);
     if (row && (row.path || Date.now() - Date.parse(row.created_at) < RETRY_MISS_MS)) return row;

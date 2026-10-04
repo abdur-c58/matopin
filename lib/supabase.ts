@@ -1,5 +1,5 @@
 /**
- * Server-only Supabase access to the zige_* functions in supabase/schema.sql. Everything uses the publishable key
+ * Server-only Supabase access to the matopin_* functions in supabase/schema.sql. Everything uses the publishable key
  * except `admin` calls, which use the secret key for the few functions only the server may run, such as sign-in.
  */
 

@@ -7,7 +7,7 @@ import { sanitizeDraft, type CardDraft, type WordMatch } from "@/lib/ai";
 import { formatRows } from "@/lib/ai-client";
 import { ANKI_ACCEPT, guessRoles, isAnkiFile, noteToCard, readAnkiPackage } from "@/lib/anki";
 import { LANG_INFO, type Lang } from "@/lib/lang";
-import { CARD_KIND_LABELS, type CardField, CSV_COLUMNS, csvColumns, type Card, type CardKind, type Fluency, isTablePaste, newCard, readCsvTable } from "@/lib/zige";
+import { CARD_KIND_LABELS, type CardField, CSV_COLUMNS, csvColumns, type Card, type CardKind, type Fluency, isTablePaste, newCard, readCsvTable } from "@/lib/cards";
 import { useCardLang } from "./lang-context";
 import { Button } from "./ui";
 import { WordLookup } from "./word-lookup";

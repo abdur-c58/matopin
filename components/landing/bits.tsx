@@ -2,7 +2,7 @@
 import { createContext, useContext } from "react";
 import Link from "next/link";
 import { ArrowRight, LoaderCircle } from "lucide-react";
-import { toneOf } from "@/lib/zige";
+import { toneOf } from "@/lib/cards";
 import { GoogleMark } from "../google-mark";
 import { Magnetic } from "./motion";
 

@@ -11,7 +11,7 @@ import { addDeck, deckScope } from "@/lib/decks";
 import { dataKey } from "@/lib/profiles";
 import { appendCards, pushNow } from "@/lib/sync";
 import { hasCjk, LANG_INFO, type Lang, textLang } from "@/lib/lang";
-import { CARD_KIND_LABELS, CARD_KINDS, DEFAULT_SETTINGS, deckLanguage, hasExample, newCard, normalizeCard, spokenTexts, type Card, type CardField, type Fluency, type Settings, type Spoken } from "@/lib/zige";
+import { CARD_KIND_LABELS, CARD_KINDS, DEFAULT_SETTINGS, deckLanguage, hasExample, newCard, normalizeCard, spokenTexts, type Card, type CardField, type Fluency, type Settings, type Spoken } from "@/lib/cards";
 import { useDecks } from "./decks-context";
 import { useActiveLang } from "./lang-context";
 import { useProfile } from "./profiles";

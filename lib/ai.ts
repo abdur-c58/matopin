@@ -1,5 +1,5 @@
 import { DEFAULT_LANG, isKanaOnly, LANG_INFO, type Lang } from "./lang";
-import { CARD_KINDS, type Card, type CardField, type CardKind, type Fluency, hasExample, hasTone, isCardKind, isConversation } from "./zige";
+import { CARD_KINDS, type Card, type CardField, type CardKind, type Fluency, hasExample, hasTone, isCardKind, isConversation } from "./cards";
 
 export type WordMatch = { hanzi: string; pinyin: string; meaning: string; kind?: CardKind };
 export type CardDraft = Record<CardField, string>;

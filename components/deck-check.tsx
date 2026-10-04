@@ -5,9 +5,9 @@ import { ArrowRight, Check, LoaderCircle, SpellCheck } from "lucide-react";
 import { toast } from "sonner";
 import { CHECK_BATCH } from "@/lib/ai";
 import { checkCards } from "@/lib/ai-client";
-import type { CardFix } from "@/lib/use-zige";
+import type { CardFix } from "@/lib/use-deck-editor";
 import { LANG_INFO, type Lang } from "@/lib/lang";
-import { type Card, type CardField, fieldLabels } from "@/lib/zige";
+import { type Card, type CardField, fieldLabels } from "@/lib/cards";
 import { Button } from "./ui";
 
 const HANZI_FIELDS = new Set<CardField>(["term", "example"]);

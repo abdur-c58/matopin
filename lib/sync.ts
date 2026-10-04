@@ -11,7 +11,7 @@ import { store, StoreRequestError, type RemoteDeck } from "./store-client";
 
 export type Part = "deck" | "srs" | "tags";
 
-export const REMOTE_CHANGED = "zige:remote-changed";
+export const REMOTE_CHANGED = "matopin:remote-changed";
 export type RemoteChange = { scopes: string[] };
 
 const pending = new Map<string, ReturnType<typeof setTimeout>>();

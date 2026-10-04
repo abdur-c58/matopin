@@ -1,6 +1,6 @@
 /**
  * Downloads JMdict, KANJIDIC2 (via jmdict-simplified) and Tatoeba's Japanese sentences (cached in .dict-cache/),
- * builds the Japanese dictionary and uploads it to Supabase through zige_jdict_import with the secret key.
+ * builds the Japanese dictionary and uploads it to Supabase through matopin_jdict_import with the secret key.
  * Run supabase/006_japanese_dictionary.sql first.
  *
  *   npm run jdict:import            uses the cached downloads
@@ -28,7 +28,7 @@ async function main(): Promise<number> {
   const data = await build((m) => console.log(m));
 
   try {
-    await rpc("zige_jdict_status", {}, { admin: true });
+    await rpc("matopin_jdict_status", {}, { admin: true });
   } catch (e) {
     const missing = e instanceof Error && e.message.startsWith("Supabase is missing");
     console.error(missing ? "\nRun supabase/006_japanese_dictionary.sql in the Supabase SQL editor first." : `\nCouldn't reach Supabase: ${e instanceof Error ? e.message : e}`);
@@ -36,18 +36,18 @@ async function main(): Promise<number> {
   }
 
   console.log("\nUploading to Supabase…");
-  await withRetry(() => rpc("zige_jdict_reset", {}, { admin: true }));
+  await withRetry(() => rpc("matopin_jdict_reset", {}, { admin: true }));
   for (const table of ["entries", "forms", "kanji", "sentences", "examples"] as const) {
     const rows = data[table];
     const size = BATCH[table];
     for (let i = 0; i < rows.length; i += size) {
-      await withRetry(() => rpc("zige_jdict_import", { p_table: table, p_rows: rows.slice(i, i + size) }, { admin: true }));
+      await withRetry(() => rpc("matopin_jdict_import", { p_table: table, p_rows: rows.slice(i, i + size) }, { admin: true }));
       process.stdout.write(`\r  ${table}: ${Math.min(i + size, rows.length)} / ${rows.length}`);
     }
     process.stdout.write("\n");
   }
   const meta = Object.entries(data.meta).map(([key, value]) => ({ key, value }));
-  await withRetry(() => rpc("zige_jdict_import", { p_table: "meta", p_rows: meta }, { admin: true }));
+  await withRetry(() => rpc("matopin_jdict_import", { p_table: "meta", p_rows: meta }, { admin: true }));
   console.log(`\nDone in ${Math.round((Date.now() - started) / 1000)}s.`);
   return 0;
 }

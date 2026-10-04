@@ -12,7 +12,7 @@ import { CARD_AUDIO_BUCKET, cardClipPath, voiceCardLine } from "../lib/card-audi
 import { publicObjectExists } from "../lib/storage";
 import { detectLanguage } from "../lib/lang";
 import { rpc } from "../lib/supabase";
-import { type Card, normalizeCard, type Spoken, spokenTexts } from "../lib/zige";
+import { type Card, normalizeCard, type Spoken, spokenTexts } from "../lib/cards";
 
 const args = process.argv.slice(2);
 const flag = (name: string) => args.includes(`--${name}`);
@@ -30,7 +30,7 @@ const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 async function main(): Promise<number> {
   let decks: DeckRow[];
   try {
-    decks = await rpc<DeckRow[]>("zige_all_deck_cards", {}, { admin: true });
+    decks = await rpc<DeckRow[]>("matopin_all_deck_cards", {}, { admin: true });
   } catch (e) {
     console.error(/missing the app tables/i.test(message(e)) ? "Run supabase/005_card_audio.sql in the Supabase SQL editor first." : message(e));
     return 1;

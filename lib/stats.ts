@@ -1,6 +1,6 @@
 import { deckScope, listDeckIds, readSaved } from "./decks";
 import { buildSession, dayKey, loadStore, reviewable, sidesFor, type RevlogEntry, type Session, type Store } from "./srs";
-import { normalizeCard, type Card, type Notetype } from "./zige";
+import { normalizeCard, type Card, type Notetype } from "./cards";
 
 export type DeckData = {
   id: string;

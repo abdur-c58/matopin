@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import type { Person, ProfileView } from "@/lib/social";
 import { store } from "@/lib/store-client";
 import { entriesOf, formatDuration, studyMs } from "@/lib/stats";
-import { FLUENCY_LABELS } from "@/lib/zige";
+import { FLUENCY_LABELS } from "@/lib/cards";
 import { Avatar } from "./avatar";
 import { ProfileButton, useProfile } from "./profiles";
 import { ThemePanel } from "./theme-picker";

@@ -6,7 +6,7 @@ import { checkBatch } from "@/lib/card-check";
 import { kanaKey } from "@/lib/jdict";
 import { DEFAULT_LANG, hasCjk, isLang, type Lang } from "@/lib/lang";
 import { DEFAULT_OPENAI_MODEL, generateJson } from "@/lib/openai";
-import { type Card, DEFAULT_FLUENCY, isCardKind, isFluency } from "@/lib/zige";
+import { type Card, DEFAULT_FLUENCY, isCardKind, isFluency } from "@/lib/cards";
 
 export const runtime = "nodejs";
 

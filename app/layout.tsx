@@ -3,6 +3,7 @@ import { Noto_Sans_JP, Noto_Sans_SC, Urbanist } from "next/font/google";
 import localFont from "next/font/local";
 import { GeistMono } from "geist/font/mono";
 import { Toaster } from "sonner";
+import { Analytics } from "@vercel/analytics/next";
 import { TitleTips } from "@/components/title-tips";
 import { APP_NAME } from "@/lib/brand";
 import "./globals.css";
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Toaster theme="dark" position="bottom-right" toastOptions={{ classNames: { toast: "!rounded-2xl !border-line !bg-surface !text-ink !shadow-pop" } }} />
         {children}
         <TitleTips />
+        <Analytics />
       </body>
     </html>
   );

@@ -11,7 +11,7 @@ import { DictError, isAbort, loadEntry, loadExamples, loadPronunciation, type Pr
 import type { Lang } from "@/lib/lang";
 import { AUDIO_CREDITS, CEDICT_NOTE, HANDWRITING_CREDITS, STROKE_CREDITS, TATOEBA_NOTE, UNICODE_LICENSE, UNIHAN_NOTE } from "@/lib/dictionary-credits";
 import { MAX_DICT_RECENT } from "@/lib/prefs";
-import { type Card, newCard, normalizeCard } from "@/lib/zige";
+import { type Card, newCard, normalizeCard } from "@/lib/cards";
 import { FlashcardMaker } from "./flashcard-maker";
 import { HandwritingPad, RiceGrid } from "./handwriting-pad";
 import { PanelFrame } from "./panel-frame";

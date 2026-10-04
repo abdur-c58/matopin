@@ -3,7 +3,7 @@ import { useRef } from "react";
 import { Dialog } from "radix-ui";
 import { LoaderCircle, Search, X } from "lucide-react";
 import type { WordMatch } from "@/lib/ai";
-import { isPinyin, looksLikePinyin } from "@/lib/zige";
+import { isPinyin, looksLikePinyin } from "@/lib/cards";
 import { useCardLang } from "./lang-context";
 import { Button } from "./ui";
 

@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ChevronDown, LoaderCircle, Mic, Plus, Search, Sparkles, Trash2, WandSparkles } from "lucide-react";
 import type { WordMatch } from "@/lib/ai";
 import { LANG_INFO, type Lang } from "@/lib/lang";
-import { CARD_KIND_LABELS, CARD_KINDS, type Card, type CardField, type CardKind, type Clips, hasExample, target, toneOf } from "@/lib/zige";
+import { CARD_KIND_LABELS, CARD_KINDS, type Card, type CardField, type CardKind, type Clips, hasExample, target, toneOf } from "@/lib/cards";
 import { stripe } from "./card-view";
 import { useCardLang } from "./lang-context";
 import { Button } from "./ui";

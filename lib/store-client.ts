@@ -1,7 +1,7 @@
 import type { AvatarColor, AvatarCrop } from "./avatar";
 import type { Prefs } from "./prefs";
 import type { DeckMeta } from "./social";
-import type { Fluency } from "./zige";
+import type { Fluency } from "./cards";
 
 export type ProfileInfo = { id: string; name: string; email: string | null; fluency: Fluency; prefs: Prefs; avatar: string | null; avatarCrop: AvatarCrop | null; color: AvatarColor; bio: string };
 export type RemoteDeck = DeckMeta & { id: string; deck: unknown; srs: unknown; tags: unknown; version: number };

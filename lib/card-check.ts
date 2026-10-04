@@ -6,7 +6,7 @@ import { dictionary } from "./dictionary-route";
 import { jaReadingIssues } from "./jdict-check";
 import { DEFAULT_LANG, type Lang } from "./lang";
 import { generateJson } from "./openai";
-import type { CardKind } from "./zige";
+import type { CardKind } from "./cards";
 
 /** 一 and 不 change tone with what follows, so either spelling is right. */
 const SANDHI = new Set(["一", "不"]);

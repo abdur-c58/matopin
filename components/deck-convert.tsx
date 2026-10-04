@@ -9,7 +9,7 @@ import { convertCards } from "@/lib/ai-client";
 import { addDeck, deckScope, readSaved, type DeckSummary } from "@/lib/decks";
 import { LANG_INFO, LANGS, type Lang } from "@/lib/lang";
 import { pushNow } from "@/lib/sync";
-import { type Card, fluencyLabels, isFluency, newCard, normalizeCard } from "@/lib/zige";
+import { type Card, fluencyLabels, isFluency, newCard, normalizeCard } from "@/lib/cards";
 import { ProgressBar } from "./charts";
 import { useProfile } from "./profiles";
 import { Button } from "./ui";

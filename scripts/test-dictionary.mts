@@ -61,10 +61,10 @@ await db.exec(readFileSync("supabase/003_dictionary.sql", "utf8"));
 const started = Date.now();
 for (const [table, rows] of [["entries", data.entries], ["chars", data.chars], ["sentences", data.sentences]] as const) {
   for (let i = 0; i < rows.length; i += 2000) {
-    await db.query("select zige_dict_import($1, $2::jsonb)", [table, JSON.stringify(rows.slice(i, i + 2000))]);
+    await db.query("select matopin_dict_import($1, $2::jsonb)", [table, JSON.stringify(rows.slice(i, i + 2000))]);
   }
 }
-await db.query("select zige_dict_import('meta', $1::jsonb)", [JSON.stringify(Object.entries(data.meta).map(([key, value]) => ({ key, value })))]);
+await db.query("select matopin_dict_import('meta', $1::jsonb)", [JSON.stringify(Object.entries(data.meta).map(([key, value]) => ({ key, value })))]);
 console.log(`  loaded in ${((Date.now() - started) / 1000).toFixed(1)}s`);
 
 const call: DictCall = async <T,>(fn: string, args: Record<string, unknown>) => {

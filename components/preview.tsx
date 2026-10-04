@@ -2,7 +2,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { LoaderCircle, MessageSquareText, Volume2 } from "lucide-react";
 import { hasKana, LANG_INFO } from "@/lib/lang";
-import { CARD_KIND_LABELS, type Card, dialogueTurns, exampleLines, exampleSpoken, hasExample, isConversation, rubyPieces, toneOf, wordSpoken } from "@/lib/zige";
+import { CARD_KIND_LABELS, type Card, dialogueTurns, exampleLines, exampleSpoken, hasExample, isConversation, rubyPieces, toneOf, wordSpoken } from "@/lib/cards";
 import { useCardLang } from "./lang-context";
 import { Button } from "./ui";
 

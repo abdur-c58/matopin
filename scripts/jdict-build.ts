@@ -1,5 +1,5 @@
 /**
- * Turns the downloaded open datasets into rows for the zige_jdict_* tables (supabase/006_japanese_dictionary.sql).
+ * Turns the downloaded open datasets into rows for the matopin_jdict_* tables (supabase/006_japanese_dictionary.sql).
  * Used by scripts/import-jdict.mts.
  *
  * - jmdict-simplified (github.com/scriptin/jmdict-simplified): JMdict with its examples, and KANJIDIC2, as JSON.

@@ -7,7 +7,7 @@ import { BookA, BookOpen, CalendarDays, ChartColumn, House, Layers, LogOut, Menu
 import { APP_NAME } from "@/lib/brand";
 import { useChatBadge } from "@/lib/chat-client";
 import { LANG_INFO, type Lang } from "@/lib/lang";
-import { cardMatches } from "@/lib/zige";
+import { cardMatches } from "@/lib/cards";
 import { DecksProvider, useDecks } from "./decks-context";
 import { useActiveLang } from "./lang-context";
 import { LanguageMenu, RailLanguageSwitcher } from "./language-switcher";

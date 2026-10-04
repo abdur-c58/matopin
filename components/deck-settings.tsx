@@ -8,10 +8,10 @@ import {
   type EasyDay, type ReviewSettings, type Store,
 } from "@/lib/srs";
 import { onRemoteChange } from "@/lib/sync";
-import { useZige } from "@/lib/use-zige";
+import { useDeckEditor } from "@/lib/use-deck-editor";
 import { ROLE_LABELS } from "@/lib/social";
 import { LANG_INFO, LANGS, type Lang } from "@/lib/lang";
-import { FLUENCY_LEVELS, fluencyLabels, type Fluency } from "@/lib/zige";
+import { FLUENCY_LEVELS, fluencyLabels, type Fluency } from "@/lib/cards";
 import { DeckSharing } from "./deck-sharing";
 import { useDecks } from "./decks-context";
 import { useProfile } from "./profiles";
@@ -77,7 +77,7 @@ const EASY_OPTIONS: { value: EasyDay; label: string }[] = [{ value: 1, label: "N
 export function DeckSettings({ deckId, scope }: { deckId: string; scope: string }) {
   const { fluency: profileFluency } = useProfile();
   const { decks, requestDelete } = useDecks();
-  const z = useZige(scope, profileFluency);
+  const z = useDeckEditor(scope, profileFluency);
   const [stored, setStored] = useState<Store | null>(null);
   const [opts, setOpts] = useState<ReviewSettings>(DEFAULT_REVIEW);
   const [, setVersion] = useState(0);

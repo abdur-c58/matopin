@@ -1,5 +1,5 @@
 /**
- * Server-only Japanese dictionary service. Works out what kind of query it is, calls the zige_jdict_* functions
+ * Server-only Japanese dictionary service. Works out what kind of query it is, calls the matopin_jdict_* functions
  * (supabase/006_japanese_dictionary.sql) and turns their rows into the shared model in lib/jdict.ts.
  */
 import { Cache, type DictCall } from "./dictionary-server";
@@ -31,7 +31,7 @@ export function createJDictionary(call: DictCall) {
 
   const lookup = async (forms: string[]) => {
     if (!forms.length) return new Map<string, JDictSummary[]>();
-    const rows = await call<{ form: string; entries: JDictSummary[] }[]>("zige_jdict_lookup", { p_forms: forms.slice(0, 4000) });
+    const rows = await call<{ form: string; entries: JDictSummary[] }[]>("matopin_jdict_lookup", { p_forms: forms.slice(0, 4000) });
     return new Map(rows.map((r) => [r.form, r.entries]));
   };
 
@@ -87,7 +87,7 @@ export function createJDictionary(call: DictCall) {
 
   async function searchJapanese(text: string): Promise<JDictGroup[]> {
     const key = kanaKey(text.replace(/\s+/g, ""));
-    const results = await call<JDictSummary[]>("zige_jdict_search", { p_query: key, p_limit: LIMIT });
+    const results = await call<JDictSummary[]>("matopin_jdict_search", { p_query: key, p_limit: LIMIT });
     const exact = results.some((r) => writings(r).includes(key));
     const groups: JDictGroup[] = [];
     if (!exact) {
@@ -108,8 +108,8 @@ export function createJDictionary(call: DictCall) {
     const compact = text.replace(/\s+/g, "");
     const written = [...new Set([text, compact, text.toLowerCase(), compact.toLowerCase(), text.toUpperCase(), compact.toUpperCase()])];
     const [ro, en, forms, asWritten] = await Promise.all([
-      kana ? call<JDictSummary[]>("zige_jdict_search", { p_query: kana, p_limit: LIMIT }) : Promise.resolve([]),
-      call<JDictSummary[]>("zige_jdict_search_english", { p_key: key, p_query: text, p_limit: LIMIT }),
+      kana ? call<JDictSummary[]>("matopin_jdict_search", { p_query: kana, p_limit: LIMIT }) : Promise.resolve([]),
+      call<JDictSummary[]>("matopin_jdict_search_english", { p_key: key, p_query: text, p_limit: LIMIT }),
       kana ? dictionaryForms(kana) : Promise.resolve([]),
       lookup(written),
     ]);
@@ -135,7 +135,7 @@ export function createJDictionary(call: DictCall) {
     entry(id: number): Promise<JDictEntry | null> {
       if (!Number.isInteger(id) || id <= 0) return Promise.resolve(null);
       return entries.get(String(id), async () => {
-        const raw = await call<RawEntry | null>("zige_jdict_entry", { p_id: id });
+        const raw = await call<RawEntry | null>("matopin_jdict_entry", { p_id: id });
         if (!raw) return null;
         const kanji = raw.kanji.map(({ ch, ...k }) => ({ character: ch, ...k }));
         return { ...raw, kanji, sources: ["jmdict", ...(kanji.length ? (["kanjidic", "kanjivg"] as const) : [])] };
@@ -150,7 +150,7 @@ export function createJDictionary(call: DictCall) {
         const e = found.entry;
         // Kana-only words are matched whole and only when long enough not to turn up inside other words.
         const exact = [e.headword, ...e.forms].filter((w) => /[\u3400-\u9fff\uf900-\ufaff々]/.test(w) || [...w].length >= 2);
-        const raw = await call<{ examples: RawExample[]; hasMore: boolean }>("zige_jdict_examples", {
+        const raw = await call<{ examples: RawExample[]; hasMore: boolean }>("matopin_jdict_examples", {
           p_id: id, p_exact: exact, p_patterns: sentencePatterns(e), p_limit: limit, p_offset: offset,
         });
         return {
@@ -170,7 +170,7 @@ export function createJDictionary(call: DictCall) {
     /** Exact matches for words as written, for checking cards. */
     lookup: (words: string[]) => lookup(words.map(kanaKey)),
 
-    status: () => call<Record<string, string>>("zige_jdict_status", {}),
+    status: () => call<Record<string, string>>("matopin_jdict_status", {}),
   };
   return self;
 }

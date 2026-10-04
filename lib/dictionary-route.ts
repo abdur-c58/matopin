@@ -27,7 +27,7 @@ export async function dictionaryRoute<T>(run: () => Promise<T>, empty: (body: T)
     // The data only changes on re-import, so the browser may reuse real answers for a while.
     return Response.json(body, { headers: { "Cache-Control": empty(body) ? "no-store" : "private, max-age=600" } });
   } catch (e) {
-    // A missing zige_dict_* function means 003_dictionary.sql hasn't been run.
+    // A missing matopin_dict_* function means 003_dictionary.sql hasn't been run.
     if (e instanceof DictionaryNotImported || (e instanceof StoreError && e.message.startsWith("Supabase is missing"))) {
       return Response.json({ error: notImported, code: "not_imported" }, { status: 503 });
     }
