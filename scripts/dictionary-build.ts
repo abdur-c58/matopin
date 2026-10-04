@@ -1,5 +1,5 @@
 /**
- * Turns the downloaded open datasets into rows for the matopin_dict_* tables (supabase/003_dictionary.sql).
+ * Turns the downloaded open datasets into the Mandarin dictionary files the app reads from R2 (lib/dictionary-files.ts).
  * Used by scripts/import-dictionary.mts and scripts/test-dictionary.mts.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -8,6 +8,7 @@ import { gunzipSync } from "node:zlib";
 import JSZip from "jszip";
 import Bunzip from "seek-bzip";
 import { displayPinyin, glossKeys, isHan, pinyinKey } from "../lib/dictionary";
+import type { ZhSentence, ZhWords } from "../lib/dictionary-files";
 
 export const CACHE_DIR = ".dict-cache";
 
@@ -339,5 +340,20 @@ export async function build(log: (msg: string) => void = console.log): Promise<B
       cedict_date: date, entries: String(entries.length), sentences: String(sentences.length), chars: String(chars.length),
       imported_at: new Date().toISOString(),
     },
+  };
+}
+
+/** The built rows as the two files in R2. def_keys and english are rebuilt from the definitions on load. */
+export function pack(data: Built): { words: ZhWords; sentences: ZhSentence[] } {
+  return {
+    words: {
+      entries: data.entries.map((e) => ({
+        id: e.id, simplified: e.simplified, traditional: e.traditional, pinyin: e.pinyin, pinyin_numeric: e.pinyin_numeric, py_key: e.py_key,
+        definitions: e.definitions, classifiers: e.classifiers, freq: e.freq, proper: e.proper, variant: e.variant,
+      })),
+      chars: data.chars,
+      meta: data.meta,
+    },
+    sentences: data.sentences,
   };
 }

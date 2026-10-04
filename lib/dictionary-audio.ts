@@ -1,7 +1,7 @@
 /**
  * Dictionary pronunciation from open libraries of human recordings. Nothing is preloaded: the first time anyone plays
- * something, the server fetches it, stores it in the public dict-audio bucket in Supabase, and from then on everyone
- * gets that copy. See supabase/004_dictionary_audio.sql.
+ * something, the server fetches it, stores it in the dict-audio folder of the R2 bucket, and from then on everyone
+ * gets that copy. What was found for each lookup is recorded in Supabase (supabase/004_dictionary_audio.sql).
  *
  * - audio-cmn (github.com/hugolpz/audio-cmn, CC BY-SA): every toned syllable, and ~8,000 HSK words and characters.
  * - Lingua Libre on Wikimedia Commons (CC BY-SA 4.0): words recorded by volunteers.
@@ -17,13 +17,13 @@ import { hanOnly, hasHanChars } from "./dictionary";
 import { dictionarySpeed, fishSpeak } from "./fish";
 import { hasCjk, hasKana } from "./lang";
 import { voiceFor } from "./voice";
-import { publicObjectUrl, uploadObject } from "./storage";
+import { openObject, uploadObject } from "./storage";
 import { rpc, StoreError } from "./supabase";
 
 const UA = { "User-Agent": "Matopin/1.0 (Mandarin and Japanese learning app; dictionary pronunciation)" };
 const AUDIO_CMN = "https://raw.githubusercontent.com/hugolpz/audio-cmn/master/64k";
 const COMMONS_API = "https://commons.wikimedia.org/w/api.php";
-const BUCKET = "dict-audio";
+const FOLDER = "dict-audio";
 /** A lookup that found nothing is tried again after this long, in case the library has grown. */
 const RETRY_MISS_MS = 30 * 24 * 60 * 60 * 1000;
 const MAX_SYLLABLES = 40;
@@ -143,8 +143,8 @@ export async function findRecording(key: string): Promise<Found | null> {
 
 // Storage -----------------------------------------------------------------------------------------------------------
 
-export const publicClipUrl = (path: string) => publicObjectUrl(BUCKET, path);
-const upload = (path: string, bytes: ArrayBuffer, type: string) => uploadObject(BUCKET, path, bytes, type, AUDIO_NOT_SET_UP);
+export const openClip = (path: string) => openObject(FOLDER, path);
+const upload = (path: string, bytes: ArrayBuffer, type: string) => uploadObject(FOLDER, path, bytes, type);
 
 const EXT: Record<string, string> = { "audio/mpeg": "mp3", "audio/mp3": "mp3", "audio/wav": "wav", "audio/x-wav": "wav", "audio/wave": "wav", "audio/ogg": "ogg" };
 

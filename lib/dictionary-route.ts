@@ -1,13 +1,15 @@
-/** Shared plumbing for the /api/dictionary routes: the Supabase-backed service, sign-in check and error replies. */
+/** Shared plumbing for the /api/dictionary routes: the R2-backed service, sign-in check and error replies. */
 import { auth } from "@/auth";
+import type { ZhSentence, ZhWords } from "./dictionary-files";
+import { createZhCall, DictionaryNotImported, r2Source } from "./dictionary-memory";
 import { createDictionary } from "./dictionary-server";
-import { rpc, StoreError } from "./supabase";
+import { StoreError } from "./supabase";
 
-export const dictionary = createDictionary((fn, args) => rpc(fn, args));
+export const dictionary = createDictionary(createZhCall(r2Source<ZhWords, ZhSentence[]>("zh")));
 
-export class DictionaryNotImported extends Error {}
+export { DictionaryNotImported };
 
-const NOT_IMPORTED = "The dictionary data hasn't been imported yet. Run supabase/003_dictionary.sql, then npm run dict:import.";
+const NOT_IMPORTED = "The dictionary data hasn't been imported yet. Run npm run dict:import.";
 
 let importedAt = 0;
 /** Whether the import has run; remembered once true so empty searches don't keep asking. */
@@ -27,10 +29,7 @@ export async function dictionaryRoute<T>(run: () => Promise<T>, empty: (body: T)
     // The data only changes on re-import, so the browser may reuse real answers for a while.
     return Response.json(body, { headers: { "Cache-Control": empty(body) ? "no-store" : "private, max-age=600" } });
   } catch (e) {
-    // A missing matopin_dict_* function means 003_dictionary.sql hasn't been run.
-    if (e instanceof DictionaryNotImported || (e instanceof StoreError && e.message.startsWith("Supabase is missing"))) {
-      return Response.json({ error: notImported, code: "not_imported" }, { status: 503 });
-    }
+    if (e instanceof DictionaryNotImported) return Response.json({ error: notImported, code: "not_imported" }, { status: 503 });
     const status = e instanceof StoreError ? e.status : 500;
     return Response.json({ error: "The dictionary couldn't be reached. Try again in a moment." }, { status: status >= 500 ? 502 : status });
   }

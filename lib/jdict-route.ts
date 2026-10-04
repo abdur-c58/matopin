@@ -1,12 +1,13 @@
-/** The Supabase-backed Japanese dictionary for the /api/jdict routes. */
+/** The R2-backed Japanese dictionary for the /api/jdict routes. */
+import type { JaSentence, JaWords } from "./dictionary-files";
+import { createJaCall, r2Source } from "./dictionary-memory";
 import { DictionaryNotImported, dictionaryRoute } from "./dictionary-route";
 import { createJDictionary } from "./jdict-server";
-import { rpc } from "./supabase";
 
-export const jdict = createJDictionary((fn, args) => rpc(fn, args));
+export const jdict = createJDictionary(createJaCall(r2Source<JaWords, JaSentence[]>("ja")));
 export { DictionaryNotImported };
 
-export const JDICT_NOT_IMPORTED = "The Japanese dictionary hasn't been imported yet. Run supabase/006_japanese_dictionary.sql, then npm run jdict:import.";
+export const JDICT_NOT_IMPORTED = "The Japanese dictionary hasn't been imported yet. Run npm run jdict:import.";
 
 let importedAt = 0;
 export async function isJdictImported(): Promise<boolean> {

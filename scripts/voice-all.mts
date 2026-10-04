@@ -1,6 +1,6 @@
 /**
  * Re-voices every card in every deck with Fish Audio: each term, and each line of each example in the deck language's voices,
- * replacing the stored clips in the card-audio bucket. Needs supabase/005_card_audio.sql.
+ * replacing the stored clips in the card-audio folder of the R2 bucket. Needs supabase/005_card_audio.sql.
  *
  *   npm run voice:all                       regenerate everything
  *   npm run voice:all -- --missing          only lines that have no clip yet
@@ -8,8 +8,8 @@
  *   npm run voice:all -- --dry-run          count the lines without calling Fish Audio
  *   npm run voice:all -- --concurrency=4    clips generated at once (default 2)
  */
-import { CARD_AUDIO_BUCKET, cardClipPath, voiceCardLine } from "../lib/card-audio";
-import { publicObjectExists } from "../lib/storage";
+import { CARD_AUDIO_FOLDER, cardClipPath, voiceCardLine } from "../lib/card-audio";
+import { objectExists } from "../lib/storage";
 import { detectLanguage } from "../lib/lang";
 import { rpc } from "../lib/supabase";
 import { type Card, normalizeCard, type Spoken, spokenTexts } from "../lib/cards";
@@ -53,7 +53,7 @@ async function main(): Promise<number> {
 
   let todo = [...lines.entries()];
   if (missingOnly) {
-    const present = await Promise.all(todo.map(([path]) => publicObjectExists(CARD_AUDIO_BUCKET, path).catch(() => false)));
+    const present = await Promise.all(todo.map(([path]) => objectExists(CARD_AUDIO_FOLDER, path).catch(() => false)));
     todo = todo.filter((_, i) => !present[i]);
     console.log(`${lines.size - todo.length} already stored, ${todo.length} missing.`);
   }

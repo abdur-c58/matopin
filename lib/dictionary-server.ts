@@ -1,7 +1,7 @@
 /**
- * Server-only dictionary service. Works out what kind of query it is, calls the matopin_dict_* functions
- * (supabase/003_dictionary.sql) and turns their rows into the shared model in lib/dictionary.ts.
- * `call` is injectable so scripts/test-dictionary.mts can run the same code against a local Postgres.
+ * Server-only dictionary service. Works out what kind of query it is, runs the lookups (lib/dictionary-memory.ts)
+ * and turns their rows into the shared model in lib/dictionary.ts.
+ * `call` is injectable so scripts/test-dictionary.mts can run the same code on freshly built data.
  */
 import {
   type DictCharacter, type DictEntry, type DictExample, type DictExamples, type DictGroup, type DictSearch, type DictSummary,
@@ -66,11 +66,11 @@ export function createDictionary(call: DictCall) {
 
   async function searchHanzi(text: string): Promise<DictGroup[]> {
     const han = hanOnly(text);
-    const results = await call<DictSummary[]>("matopin_dict_search_hanzi", { p_query: han, p_limit: LIMIT });
+    const results = await call<DictSummary[]>("search_hanzi", { p_query: han, p_limit: LIMIT });
     const groups: DictGroup[] = [];
     const exact = results.some((r) => r.simplified === han || r.traditional === han);
     if (!exact && [...han].length > 1) {
-      const pieces = await call<{ text: string; entries: DictSummary[] }[]>("matopin_dict_segment", { p_text: han });
+      const pieces = await call<{ text: string; entries: DictSummary[] }[]>("segment", { p_text: han });
       const words = pieces.filter((p) => p.entries.length);
       if (words.length > 1 || (words.length === 1 && !results.length)) {
         const seen = new Set<number>();
@@ -86,13 +86,13 @@ export function createDictionary(call: DictCall) {
     const pinyin = parsePinyin(text);
     const key = englishKey(text);
     const [py, en] = await Promise.all([
-      pinyin ? call<DictSummary[]>("matopin_dict_search_pinyin", { p_pattern: pinyin.pattern, p_prefix: pinyin.prefix, p_limit: LIMIT }) : Promise.resolve([]),
+      pinyin ? call<DictSummary[]>("search_pinyin", { p_pattern: pinyin.pattern, p_prefix: pinyin.prefix, p_limit: LIMIT }) : Promise.resolve([]),
       // Tone marks or numbers mean it's certainly pinyin, so English is skipped.
-      pinyin?.toned ? Promise.resolve([]) : call<DictSummary[]>("matopin_dict_search_english", { p_key: key, p_query: text, p_limit: LIMIT }),
+      pinyin?.toned ? Promise.resolve([]) : call<DictSummary[]>("search_english", { p_key: key, p_query: text, p_limit: LIMIT }),
     ]);
     let pyGroup: DictGroup | null = py.length ? { kind: "pinyin", label: "Pinyin", results: py } : null;
     if (!pyGroup && pinyin && pinyin.parts.length > 1) {
-      const words = await call<DictSummary[]>("matopin_dict_segment_pinyin", { p_parts: pinyin.parts });
+      const words = await call<DictSummary[]>("segment_pinyin", { p_parts: pinyin.parts });
       if (words.length > 1) pyGroup = { kind: "phrase", label: "Words in this phrase", results: words };
     }
     const enGroup: DictGroup | null = en.length ? { kind: "english", label: "English", results: en } : null;
@@ -113,7 +113,7 @@ export function createDictionary(call: DictCall) {
     entry(id: number): Promise<DictEntry | null> {
       if (!Number.isInteger(id) || id <= 0) return Promise.resolve(null);
       return entries.get(String(id), async () => {
-        const raw = await call<RawEntry | null>("matopin_dict_entry", { p_id: id });
+        const raw = await call<RawEntry | null>("entry", { p_id: id });
         if (!raw) return null;
         const characters = raw.characters.map(character);
         return { ...raw, characters, sources: ["cc-cedict", ...(characters.some((c) => c.sources.includes("unihan")) ? ["unihan" as const] : [])] };
@@ -124,7 +124,7 @@ export function createDictionary(call: DictCall) {
       const w = hanOnly(normalizeQuery(word));
       if (!w) return Promise.resolve({ examples: [], hasMore: false });
       return examples.get(`${w}:${offset}:${limit}`, async () => {
-        const raw = await call<{ examples: RawExample[]; hasMore: boolean }>("matopin_dict_examples", { p_word: w, p_limit: limit, p_offset: offset });
+        const raw = await call<{ examples: RawExample[]; hasMore: boolean }>("examples", { p_word: w, p_limit: limit, p_offset: offset });
         return {
           hasMore: raw.hasMore,
           examples: raw.examples.map((e) => ({
@@ -135,7 +135,7 @@ export function createDictionary(call: DictCall) {
       }, (r) => r.examples.length > 0);
     },
 
-    status: () => call<Record<string, string>>("matopin_dict_status", {}),
+    status: () => call<Record<string, string>>("status", {}),
   };
 }
 

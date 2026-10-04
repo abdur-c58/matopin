@@ -1,15 +1,14 @@
 /**
- * Dictionary tests. Unit tests for the pinyin helpers, then the real migration (supabase/003_dictionary.sql) and the
- * full imported data in an in-memory Postgres (PGlite), queried through the same service the API routes use.
+ * Dictionary tests. Unit tests for the pinyin helpers, then the full built data packed the way the import uploads it,
+ * queried through the same in-memory lookups and service the API routes use.
  *
  *   npm run test:dict
  */
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { PGlite } from "@electric-sql/pglite";
 import { displayPinyin, glossKeys, markPinyinText, parsePinyin, spacedPinyin, syllablesOf } from "../lib/dictionary";
-import { createDictionary, type DictCall } from "../lib/dictionary-server";
-import { build, download } from "./dictionary-build";
+import { createZhCall } from "../lib/dictionary-memory";
+import { createDictionary } from "../lib/dictionary-server";
+import { build, download, pack } from "./dictionary-build";
 
 let failed = 0;
 async function test(name: string, run: () => unknown) {
@@ -52,27 +51,15 @@ await test("normalizes English glosses", () => {
 
 console.log("\nBuilding the dataset");
 await download();
-const data = await build((m) => console.log(`  ${m}`));
+const packed = pack(await build((m) => console.log(`  ${m}`)));
+// A JSON round trip, so the lookups see exactly what they'd read back from R2.
+const words = JSON.parse(JSON.stringify(packed.words));
+const sentences = JSON.parse(JSON.stringify(packed.sentences));
 
-console.log("\nLoading it into PGlite");
-const db = new PGlite();
-await db.exec("create role anon; create role authenticated; create role service_role;");
-await db.exec(readFileSync("supabase/003_dictionary.sql", "utf8"));
+const dict = createDictionary(createZhCall({ words: async () => words, sentences: async () => sentences }));
 const started = Date.now();
-for (const [table, rows] of [["entries", data.entries], ["chars", data.chars], ["sentences", data.sentences]] as const) {
-  for (let i = 0; i < rows.length; i += 2000) {
-    await db.query("select matopin_dict_import($1, $2::jsonb)", [table, JSON.stringify(rows.slice(i, i + 2000))]);
-  }
-}
-await db.query("select matopin_dict_import('meta', $1::jsonb)", [JSON.stringify(Object.entries(data.meta).map(([key, value]) => ({ key, value })))]);
-console.log(`  loaded in ${((Date.now() - started) / 1000).toFixed(1)}s`);
-
-const call: DictCall = async <T,>(fn: string, args: Record<string, unknown>) => {
-  const keys = Object.keys(args);
-  const res = await db.query<{ r: T }>(`select ${fn}(${keys.map((k, i) => `${k} => $${i + 1}`).join(", ")}) as r`, keys.map((k) => args[k]));
-  return res.rows[0].r;
-};
-const dict = createDictionary(call);
+await dict.status();
+console.log(`\nIndexed in ${((Date.now() - started) / 1000).toFixed(1)}s`);
 const top = async (q: string) => (await dict.search(q)).groups.flatMap((g) => g.results.map((r) => r.simplified));
 const firstGroup = async (q: string) => (await dict.search(q)).groups[0];
 
@@ -173,5 +160,4 @@ await test("书 has Tatoeba examples with pinyin and English", async () => {
 });
 
 console.log(failed ? `\n${failed} failed` : "\nAll passed");
-await db.close();
 process.exit(failed ? 1 : 0);

@@ -1,5 +1,5 @@
 /**
- * Turns the downloaded open datasets into rows for the matopin_jdict_* tables (supabase/006_japanese_dictionary.sql).
+ * Turns the downloaded open datasets into the Japanese dictionary files the app reads from R2 (lib/dictionary-files.ts).
  * Used by scripts/import-jdict.mts.
  *
  * - jmdict-simplified (github.com/scriptin/jmdict-simplified): JMdict with its examples, and KANJIDIC2, as JSON.
@@ -10,6 +10,7 @@ import { join } from "node:path";
 import JSZip from "jszip";
 import Bunzip from "seek-bzip";
 import { glossKeys } from "../lib/dictionary";
+import type { JaSentence, JaWords } from "../lib/dictionary-files";
 import { type JDictSummary, type JForm, type JReading, type JSense, kanaKey } from "../lib/jdict";
 import { CACHE_DIR, CRUDE_ENGLISH } from "./dictionary-build";
 
@@ -284,5 +285,30 @@ export async function build(log: (msg: string) => void = console.log): Promise<J
       jmdict_date: jmdict.dictDate, jmdict_version: jmdict.version, entries: String(entries.length),
       sentences: String(sentences.size), kanji: String(kanji.length), imported_at: new Date().toISOString(),
     },
+  };
+}
+
+/** Leaves out the keys whose value is an empty list. */
+const dropEmpty = <T extends object>(o: T): T => Object.fromEntries(Object.entries(o).filter(([, v]) => !(Array.isArray(v) && !v.length))) as T;
+
+/** The built rows as the two files in R2. The summary, def_keys and english are rebuilt from the entry on load. */
+export function pack(data: JBuilt): { words: JaWords; sentences: JaSentence[] } {
+  const forms = [...data.forms].sort((a, b) => (a.form < b.form ? -1 : a.form > b.form ? 1 : a.entry_id - b.entry_id));
+  const examples: Record<string, number[]> = {};
+  for (const x of data.examples) (examples[x.entry_id] ??= []).push(x.sentence_id);
+  return {
+    words: {
+      entries: data.entries.map((e) => ({
+        id: e.id, headword: e.headword, reading: e.reading, common: e.common, freq: e.freq, pos_codes: e.pos_codes,
+        kanji: e.kanji.map(dropEmpty), kana: e.kana.map(dropEmpty), senses: e.senses.map(dropEmpty),
+        ...dropEmpty({ forms: e.summary.forms, readings: e.summary.readings }),
+      })),
+      forms: forms.map((f) => f.form),
+      formIds: forms.map((f) => f.entry_id),
+      kanji: data.kanji,
+      examples,
+      meta: data.meta,
+    },
+    sentences: data.sentences.map(({ id, japanese, furigana, english }) => ({ id, japanese, furigana, english })),
   };
 }
