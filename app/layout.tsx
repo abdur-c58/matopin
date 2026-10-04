@@ -3,8 +3,6 @@ import { Noto_Sans_JP, Noto_Sans_SC, Urbanist } from "next/font/google";
 import localFont from "next/font/local";
 import { GeistMono } from "geist/font/mono";
 import { Toaster } from "sonner";
-import { AppShell } from "@/components/app-shell";
-import { ProfileProvider } from "@/components/profiles";
 import { TitleTips } from "@/components/title-tips";
 import { APP_NAME } from "@/lib/brand";
 import "./globals.css";
@@ -35,7 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${urbanist.variable} ${pinyin.variable} ${notoSc.variable} ${notoJp.variable} ${GeistMono.variable}`}>
       <body>
         <Toaster theme="dark" position="bottom-right" toastOptions={{ classNames: { toast: "!rounded-2xl !border-line !bg-surface !text-ink !shadow-pop" } }} />
-        <ProfileProvider><AppShell>{children}</AppShell></ProfileProvider>
+        {children}
         <TitleTips />
       </body>
     </html>

@@ -29,7 +29,7 @@ export const deckLinks = (id: string) => [
 type Tip = Record<Lang, [string, string]>;
 
 const NAV: { href: string; label: string; tip: Tip; icon: typeof House; panel?: PanelKind }[] = [
-  { href: "/", label: "Dashboard", tip: { zh: ["首页", "shǒuyè"], ja: ["ホーム", "hōmu"] }, icon: House },
+  { href: "/app", label: "Dashboard", tip: { zh: ["首页", "shǒuyè"], ja: ["ホーム", "hōmu"] }, icon: House },
   { href: "/decks", label: "Decks", tip: { zh: ["卡组", "kǎzǔ"], ja: ["デッキ", "dekki"] }, icon: Layers },
   { href: "/dictionary", label: "Dictionary", tip: { zh: ["词典", "cídiǎn"], ja: ["辞書", "jisho"] }, icon: BookA, panel: "dictionary" },
   { href: "/social", label: "Social", tip: { zh: ["社交", "shèjiāo"], ja: ["交流", "kōryū"] }, icon: Users },
@@ -43,7 +43,7 @@ const LOG_OUT: Tip = { zh: ["退出", "tuìchū"], ja: ["ログアウト", "rogu
 const SOCIAL_PAGES = ["/u/", "/join/"];
 const isActive = (pathname: string, href: string) => {
   const path = SOCIAL_PAGES.some((p) => pathname.startsWith(p)) ? "/social" : pathname;
-  return href === "/" ? path === "/" : path === href || path.startsWith(`${href}/`);
+  return path === href || path.startsWith(`${href}/`);
 };
 
 function NavBadge({ href, className }: { href: string; className: string }) {
@@ -97,7 +97,7 @@ function Rail() {
   return (
     <aside className="fixed inset-y-3 left-3 z-30 hidden w-[72px] flex-col items-center py-2 md:flex">
       <RailLanguageSwitcher>
-        <Link href="/" aria-label={`${APP_NAME} dashboard, learning ${LANG_INFO[lang].name}`} className="rounded-xl transition hover:scale-105 hover:brightness-110 active:scale-95">
+        <Link href="/app" aria-label={`${APP_NAME} dashboard, learning ${LANG_INFO[lang].name}`} className="rounded-xl transition hover:scale-105 hover:brightness-110 active:scale-95">
           <LogoMark className="size-10" active={lang} />
         </Link>
       </RailLanguageSwitcher>
@@ -174,7 +174,7 @@ function MobileBar() {
           <Dialog.Content className="fixed inset-y-0 left-0 z-50 flex w-[min(18rem,85vw)] flex-col border-r border-line bg-surface p-4 shadow-pop data-[state=open]:animate-slide" aria-describedby={undefined}>
             <Dialog.Title className="sr-only">Menu</Dialog.Title>
             <Dialog.Close className="icon-btn absolute top-4 right-3" aria-label="Close menu"><X className="size-4" /></Dialog.Close>
-            <Link href="/" onClick={() => setOpen(false)} className="flex items-center gap-2.5 transition hover:opacity-80">
+            <Link href="/app" onClick={() => setOpen(false)} className="flex items-center gap-2.5 transition hover:opacity-80">
               <LogoMark className="size-9" active={lang} /><span className="text-base font-bold">{APP_NAME}</span>
             </Link>
             <LanguageMenu onPicked={() => setOpen(false)} />
@@ -197,7 +197,7 @@ function MobileBar() {
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
-      <Link href="/" className="flex min-w-0 items-center gap-2 transition hover:opacity-80">
+      <Link href="/app" className="flex min-w-0 items-center gap-2 transition hover:opacity-80">
         <LogoMark className="size-7" active={lang} />
         <span className="truncate text-sm font-bold">{current?.label ?? APP_NAME}</span>
       </Link>
@@ -287,7 +287,7 @@ function TopBar() {
   const { create, filter } = useDecks();
   const { lang } = useActiveLang();
   const key = Object.keys(TITLES).find((k) => isActive(pathname, k));
-  const [title, subtitle] = pathname === "/" ? [`Hello, ${name}!`, "Ready for today’s challenge?"]
+  const [title, subtitle] = pathname === "/app" ? [`Hello, ${name}!`, "Ready for today’s challenge?"]
     : isActive(pathname, "/decks") ? ["Your decks", filter === "all" ? "Every deck in this profile, in both languages" : `Every ${LANG_INFO[filter].name} deck in this profile`]
     : isActive(pathname, "/dictionary") ? ["Dictionary", lang === "ja" ? "Look up kanji, kana, romaji or English" : "Look up characters, pinyin or English"]
     : pathname.startsWith("/u/") ? ["Profile", "Decks they share and the people they follow"]
