@@ -1,0 +1,20 @@
+---
+description: New Supabase SQL goes in numbered files; never rewrite existing SQL files
+alwaysApply: true
+---
+
+# SQL changes are numbered files
+
+`supabase/schema.sql` is the baseline the user has already run. Never edit or replace it, or any numbered file after it.
+
+Every new SQL change goes in the next numbered file in `supabase/`, padded to three digits with a short name:
+
+```
+supabase/schema.sql          baseline, leave as is
+supabase/001_chat_reads.sql  first change
+supabase/002_deck_limits.sql next change
+```
+
+- Each file holds only that change: `alter table`, `create or replace function`, new grants/revokes. Don't copy the whole schema.
+- Make it safe to run on top of everything before it (`if not exists`, `create or replace`, `drop ... if exists`).
+- Tell the user the file name to run in the Supabase SQL editor.

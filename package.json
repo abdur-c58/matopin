@@ -1,0 +1,47 @@
+{
+  "name": "matopin",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "dict:import": "tsx --env-file=.env.local scripts/import-dictionary.mts",
+    "jdict:import": "tsx --env-file=.env.local scripts/import-jdict.mts",
+    "voice:all": "tsx --env-file=.env.local scripts/voice-all.mts",
+    "test:dict": "tsx scripts/test-dictionary.mts",
+    "test:dict-audio": "tsx scripts/test-dictionary-audio.mts"
+  },
+  "dependencies": {
+    "emojibase-data": "^17.0.0",
+    "geist": "^1.7.2",
+    "hanzi-writer": "^3.7.3",
+    "jszip": "^3.10.2",
+    "lucide-react": "^1.49.0",
+    "motion": "^13.4.6",
+    "next": "16.3.8",
+    "next-auth": "^5.0.0-beta.32",
+    "papaparse": "^5.7.0",
+    "radix-ui": "^1.6.7",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "sonner": "^2.0.8",
+    "wanakana": "^5.3.1"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^24.19.1",
+    "@types/papaparse": "^5.5.2",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "emojibase": "^17.0.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.8",
+    "seek-bzip": "^2.0.0",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.15",
+    "typescript": "^5"
+  }
+}

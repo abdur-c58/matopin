@@ -1,0 +1,178 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-pinyin), var(--font-urbanist), var(--font-noto-sc), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-hanzi: var(--font-noto-sc), "PingFang SC", "Microsoft YaHei", sans-serif;
+
+  --color-porcelain: #121212;
+  --color-surface: #1f1f1f;
+  --color-raised: #2a2a2a;
+  --color-ink: #f4f4f2;
+  --color-night: #131313;
+  --color-muted: #8d8d8a;
+  --color-line: #2f2f2f;
+  --color-volt-50: color-mix(in srgb, var(--accent) 9%, transparent);
+  --color-volt-100: color-mix(in srgb, var(--accent) 20%, transparent);
+  --color-volt-500: var(--accent);
+  --color-volt-600: var(--accent);
+  --color-volt-700: color-mix(in srgb, var(--accent) 70%, white);
+  --color-volt-800: color-mix(in srgb, var(--accent) 50%, #1a1a1a);
+  --color-volt-900: color-mix(in srgb, var(--accent) 34%, #1a1a1a);
+  --color-on-volt: var(--on-accent);
+  --color-second-300: color-mix(in srgb, var(--second) 60%, white);
+  --color-second-500: var(--second);
+  --color-second-600: color-mix(in srgb, var(--second) 85%, black);
+  --color-on-second: var(--on-second);
+  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.03) inset;
+  --shadow-pop: 0 24px 60px -12px rgb(0 0 0 / 0.7);
+
+  --animate-pop: pop 0.16s ease-out;
+  --animate-fade: fade 0.16s ease-out;
+  --animate-slide: slide 0.2s ease-out;
+  --animate-tip: tip 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.25);
+  --animate-tip-out: tip-out 0.12s ease-in forwards;
+  @keyframes tip { from { opacity: 0; transform: translateX(-8px) scale(0.92); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+  @keyframes tip-out { to { opacity: 0; transform: translateX(-4px) scale(0.96); } }
+  --animate-sprout: sprout 0.34s cubic-bezier(0.2, 0.9, 0.3, 1.35) both;
+  --animate-panel: panel 0.24s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+  @keyframes sprout { from { opacity: 0; transform: translateX(-34px) scale(0.3); } to { opacity: 1; transform: none; } }
+  @keyframes panel { from { opacity: 0; transform: translateY(18px) scale(0.96); } to { opacity: 1; transform: none; } }
+  @keyframes slide { from { transform: translateX(-100%); } to { transform: none; } }
+  @keyframes pop { from { opacity: 0; transform: translateY(-4px) scale(0.97); } to { opacity: 1; transform: none; } }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+}
+
+@theme static {
+  --color-tone-1: #ff5f61;
+  --color-tone-2: #ffad42;
+  --color-tone-3: #46d68c;
+  --color-tone-4: #7b93ff;
+  --color-tone-5: #9ba3b2;
+}
+
+@layer base {
+  :root { --accent: #d7f25a; --on-accent: #131313; --second: #ff9a3c; --on-second: #131313; }
+  html { color-scheme: dark; }
+  /* Nothing on the page should ever scroll it sideways; clip (unlike hidden) keeps sticky headers working. */
+  html, body { overflow-x: clip; }
+  /* Keeps things scrolled into view clear of the fixed mobile top bar. */
+  @media (width < 48rem) { html { scroll-padding-top: 4rem; } }
+  body { @apply bg-porcelain font-sans text-ink antialiased; }
+  /* Japanese written in ordinary text (not font-hanzi) also gets Japanese glyph shapes. */
+  :where(:lang(ja)) { font-family: var(--font-pinyin), var(--font-urbanist), var(--font-noto-jp), ui-sans-serif, system-ui, sans-serif; }
+  :focus-visible { @apply outline-2 outline-offset-2 outline-volt-500; }
+  ::selection { @apply bg-volt-100; }
+  button:not(:disabled), [role="button"]:not([aria-disabled="true"]), [role="tab"], [role="radio"], [role="menuitem"], [role="menuitemradio"], [role="option"], label:has(> input[type="checkbox"]), summary { cursor: pointer; }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--color-ink) 16%, transparent) padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background-color: color-mix(in srgb, var(--color-ink) 30%, transparent); }
+  ::-webkit-scrollbar-thumb:active { background-color: var(--color-volt-500); }
+  ::-webkit-scrollbar-corner { background: transparent; }
+
+  @supports not selector(::-webkit-scrollbar) {
+    * { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--color-ink) 20%, transparent) transparent; }
+  }
+}
+
+@layer components {
+  .btn { @apply inline-flex h-10 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold whitespace-nowrap transition duration-150 select-none active:scale-[0.97] disabled:pointer-events-none disabled:opacity-45; }
+  .btn-primary { @apply bg-volt-600 text-on-volt hover:bg-volt-700; }
+  .btn-second { @apply bg-second-500 text-on-second hover:bg-second-600; }
+  .btn-secondary { @apply border border-line bg-raised text-ink hover:border-ink/20 hover:bg-raised/70; }
+  .btn-ghost { @apply text-muted hover:bg-raised hover:text-ink; }
+  .btn-shard {
+    @apply relative isolate overflow-hidden border border-line bg-linear-to-r from-raised to-raised text-ink transition-all duration-300 ease-in-out;
+    @apply hover:scale-105 hover:border-volt-500 hover:from-volt-900 hover:to-volt-800 hover:text-zinc-100 hover:shadow-md active:scale-[0.98];
+  }
+  .btn-shard::after {
+    content: "";
+    @apply pointer-events-none absolute inset-0 -z-10 w-[200%] -translate-x-full bg-linear-to-r from-transparent via-volt-500/30 to-transparent transition-transform duration-500 ease-in-out;
+  }
+  .btn-shard:hover::after { @apply translate-x-0; }
+  .btn-shard-second { @apply border-second-500 from-second-500 to-second-500 text-on-second hover:border-second-300 hover:from-second-500 hover:to-second-600 hover:text-on-second; }
+  .btn-shard-second::after { @apply via-on-second/20; }
+  .btn-shard.icon-btn { @apply border-transparent from-transparent to-transparent text-muted transition-all duration-300 hover:scale-110 hover:border-volt-500 hover:from-volt-900 hover:to-volt-800 hover:text-zinc-100; }
+  .btn-danger { @apply bg-tone-1 text-white hover:bg-tone-1/90; }
+  .btn-danger-outline { @apply border border-tone-1/40 text-tone-1 hover:bg-tone-1/10; }
+  .icon-btn { @apply inline-grid size-9 place-items-center rounded-full text-muted transition duration-150 hover:bg-raised hover:text-ink active:scale-90 disabled:opacity-40; }
+  .field { @apply h-10 w-full rounded-xl border border-line bg-porcelain px-3 text-sm text-ink transition duration-150 outline-none placeholder:text-muted/70 hover:border-ink/20 focus:border-volt-500/70 focus:ring-4 focus:ring-volt-500/10 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-line; }
+  .label { @apply mb-1.5 block text-xs font-medium text-muted; }
+  .surface { @apply rounded-3xl border border-line/60 bg-surface shadow-card; }
+  .chip { @apply inline-flex h-8 items-center rounded-full border border-line px-3.5 text-xs font-semibold text-muted transition hover:text-ink; }
+  .chip-on { @apply border-volt-500 bg-volt-500 text-on-volt hover:border-volt-700 hover:bg-volt-700 hover:text-on-volt; }
+  .overlay { @apply fixed inset-0 z-40 bg-black/60 backdrop-blur-[2px] data-[state=open]:animate-fade; }
+  .popup { @apply z-50 rounded-3xl border border-line bg-surface shadow-pop data-[state=open]:animate-pop; }
+}
+
+/* Japanese text gets Japanese glyph shapes (Chinese fonts draw kanji like 直 or 骨 differently). Outside the
+   layers so it wins over the font-hanzi utility. */
+.font-hanzi:lang(ja), rt:lang(ja) { font-family: var(--font-noto-jp), "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif; }
+
+/* Characters and their readings highlight separately: a drag selects the characters, unless it starts on a reading
+   (the selection menu sets data-pick then), in which case it selects only the readings. */
+[data-ruby] :is([data-reading], rt) { user-select: none; }
+[data-ruby][data-pick="reading"] { user-select: none; }
+[data-ruby][data-pick="reading"] :is([data-reading], rt) { user-select: text; }
+
+/* Title tooltips (components/title-tips.tsx): the box springs in from its element and glides between elements. */
+.title-tip {
+  position: fixed; top: 0; left: 0; z-index: 1000; pointer-events: none;
+  transition: transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.title-tip > span {
+  transform-origin: 50% 100%;
+  transition: opacity 0.12s ease-out, transform 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.35), filter 0.12s ease-out;
+}
+.title-tip[data-side="bottom"] > span { transform-origin: 50% 0; }
+.title-tip[data-state="closed"] > span {
+  opacity: 0; filter: blur(2px); transform: translateY(4px) scale(0.92);
+  transition-duration: 0.1s; transition-timing-function: ease-in;
+}
+.title-tip[data-side="bottom"][data-state="closed"] > span { transform: translateY(-4px) scale(0.92); }
+@media (prefers-reduced-motion: reduce) {
+  .title-tip, .title-tip > span { transition: opacity 0.1s linear; }
+  .title-tip[data-state="closed"] > span { transform: none; filter: none; }
+}
+
+/* Bao (components/chat-thread.tsx): its face blinks now and then and glances around while it thinks; its typing
+   bubble lights the logo's tiles in a loop beside shimmering text. */
+.bot-eyes, .bot-glance { transform-box: view-box; transform-origin: 16px 13.7px; }
+.bot-eyes { animation: bot-blink 4.8s infinite; }
+.bot-face[data-thinking] .bot-glance { animation: bot-glance 2.6s ease-in-out infinite; }
+@keyframes bot-blink { 0%, 93%, 100% { transform: none; } 96% { transform: scaleY(0.12); } }
+@keyframes bot-glance { 0%, 100% { transform: none; } 22%, 40% { transform: translate(-1.8px, -0.8px); } 62%, 80% { transform: translate(1.8px, -0.8px); } }
+.bot-tile { animation: bot-tile 1s ease-in-out infinite; }
+@keyframes bot-tile { 0%, 100% { opacity: 0.25; transform: scale(0.8); } 25% { opacity: 1; transform: scale(1.05); background-color: var(--color-volt-500); } }
+.bot-shimmer {
+  color: transparent; background-clip: text;
+  background-image: linear-gradient(100deg, var(--color-second-300) 35%, #fff 50%, var(--color-second-300) 65%);
+  background-size: 250% 100%; animation: bot-shimmer 1.8s linear infinite;
+}
+@keyframes bot-shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .bot-eyes, .bot-face[data-thinking] .bot-glance, .bot-shimmer { animation: none; }
+  .bot-shimmer { color: var(--color-second-300); }
+  .bot-tile { animation-duration: 3s; }
+}
+
+/* Page changes: the old page lifts away quickly, the new one settles in. The sidebar and everything outside the
+   page swap without fading, and clicks pass through while the animation runs. */
+::view-transition { pointer-events: none; }
+::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+::view-transition-group(.page-in), ::view-transition-group(.page-out) { animation: none; }
+::view-transition-old(.page-out) { animation: 140ms ease-in both page-out; }
+::view-transition-new(.page-in) { animation: 260ms cubic-bezier(0.2, 0.8, 0.3, 1) 90ms both page-in; }
+@keyframes page-out { to { opacity: 0; transform: translateY(-6px); filter: blur(3px); } }
+@keyframes page-in { from { opacity: 0; transform: translateY(10px); filter: blur(3px); } }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(.page-out), ::view-transition-new(.page-in) { animation-duration: 120ms; animation-delay: 0s; }
+  @keyframes page-out { to { opacity: 0; } }
+  @keyframes page-in { from { opacity: 0; } }
+}
