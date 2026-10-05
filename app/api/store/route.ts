@@ -36,6 +36,7 @@ const deck = (row: DeckRow) => ({
 const str = (v: unknown) => (typeof v === "string" ? v : "");
 const int = (v: unknown) => (typeof v === "number" && Number.isSafeInteger(v) ? v : null);
 const uuid = (v: unknown) => (typeof v === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v) ? v : null);
+const ids = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string").slice(0, 40) : []);
 
 /**
  * Google sign-in (auth.ts) says who is asking; the matopin_* functions want their own login token. The token is kept
@@ -84,6 +85,7 @@ export async function POST(req: Request) {
 }
 
 async function handle(body: Body, token: string) {
+  const group = uuid(body.group);
   switch (body.action) {
     case "me": {
       const me = await rpc<ProfileRow[]>("matopin_me", { p_token: token });
@@ -155,21 +157,41 @@ async function handle(body: Body, token: string) {
       return Response.json({ ok: true });
     case "chatBadge":
       return Response.json({ unread: await rpc<number>("matopin_chat_badge", { p_token: token }) });
-    case "chatThread":
-      return Response.json(await rpc("matopin_chat_thread", { p_token: token, p_profile: str(body.with), p_after: int(body.after), p_before: int(body.before), p_since: int(body.since) }));
+    case "chatThread": {
+      const page = { p_token: token, p_after: int(body.after), p_before: int(body.before), p_since: int(body.since) };
+      if (group) return Response.json(await rpc("matopin_group_thread", { ...page, p_chat: group }));
+      return Response.json(await rpc("matopin_chat_thread", { ...page, p_profile: str(body.with) }));
+    }
     case "chatSend": {
       const kind = body.kind === "deck" ? "deck" : "text";
-      return Response.json(await rpc("matopin_chat_send", { p_token: token, p_profile: str(body.with), p_kind: kind, p_body: str(body.body), p_deck: kind === "deck" ? uuid(body.deck) : null, p_reply: int(body.replyTo) }));
+      const msg = { p_token: token, p_kind: kind, p_body: str(body.body), p_deck: kind === "deck" ? uuid(body.deck) : null, p_reply: int(body.replyTo) };
+      if (group) return Response.json(await rpc("matopin_group_send", { ...msg, p_chat: group }));
+      return Response.json(await rpc("matopin_chat_send", { ...msg, p_profile: str(body.with) }));
     }
     case "chatRespond":
     case "chatSetAi":
+      if (group) {
+        if (body.action === "chatSetAi") return Response.json({ chat: await rpc("matopin_group_set_ai", { p_token: token, p_chat: group, p_on: body.on === true }) });
+        return Response.json({ chat: await rpc("matopin_group_respond", { p_token: token, p_chat: group, p_accept: body.accept === true }) });
+      }
       if (str(body.with) === BOT_ID) return Response.json({ error: "The chat with Bao is always on." }, { status: 400 });
       if (body.action === "chatSetAi") return Response.json({ chat: await rpc("matopin_chat_set_ai", { p_token: token, p_profile: str(body.with), p_on: body.on === true }) });
       return Response.json({ chat: await rpc("matopin_chat_respond", { p_token: token, p_profile: str(body.with), p_accept: body.accept === true }) });
     case "chatReact":
       return Response.json({ reactions: await rpc("matopin_chat_react", { p_token: token, p_message: int(body.message), p_emoji: str(body.emoji), p_on: body.on === true }) });
     case "chatAsk":
-      return Response.json({ message: await askBot(token, str(body.with), int(body.message), isLang(body.lang) ? body.lang : undefined) });
+      return Response.json({ message: await askBot(token, group ? { group } : { with: str(body.with) }, int(body.message), isLang(body.lang) ? body.lang : undefined) });
+    case "groupCreate":
+      return Response.json(await rpc("matopin_group_create", { p_token: token, p_name: str(body.name), p_members: ids(body.members) }));
+    case "groupAdd":
+      return Response.json({ group: await rpc("matopin_group_add", { p_token: token, p_chat: group, p_members: ids(body.members) }) });
+    case "groupRemove":
+      return Response.json({ group: await rpc("matopin_group_remove", { p_token: token, p_chat: group, p_member: str(body.member) }) });
+    case "groupRename":
+      return Response.json({ group: await rpc("matopin_group_rename", { p_token: token, p_chat: group, p_name: str(body.name) }) });
+    case "groupLeave":
+      await rpc("matopin_group_leave", { p_token: token, p_chat: group });
+      return Response.json({ ok: true });
     default:
       return Response.json({ error: "Unknown action." }, { status: 400 });
   }

@@ -63,11 +63,13 @@ async function remember(key: string, model: string, memory: string, older: Conte
 }
 
 /** Answers an @ask message, or any message in the chat with Bao, and saves the reply. Off-topic requests only ever get a one-line brush-off. */
-export async function askBot(token: string, withProfile: string, messageId: number | null, mode?: Lang) {
+export async function askBot(token: string, chat: { with: string } | { group: string }, messageId: number | null, mode?: Lang) {
   const key = process.env.OPENAI_API_KEY?.trim();
   if (!key) throw new StoreError("Bao needs OPENAI_API_KEY in .env.local.", 500);
   const model = process.env.OPENAI_BOT_MODEL?.trim() || process.env.OPENAI_MODEL?.trim() || DEFAULT_OPENAI_MODEL;
-  const ctx = await rpc<Context>("matopin_chat_ai_context", { p_token: token, p_profile: withProfile, p_message: messageId });
+  const ctx = "group" in chat
+    ? await rpc<Context>("matopin_group_ai_context", { p_token: token, p_chat: chat.group, p_message: messageId })
+    : await rpc<Context>("matopin_chat_ai_context", { p_token: token, p_profile: chat.with, p_message: messageId });
   const question = stripAsk(ctx.question);
   const asker = ctx.messages.at(-1)?.from ?? "Someone";
   const compacting = ctx.messages.length > COMPACT_AFTER;

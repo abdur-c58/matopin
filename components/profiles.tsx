@@ -1,6 +1,7 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { signIn, signOut } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import { Dialog } from "radix-ui";
 import { Camera, Check, LoaderCircle, LogOut, Settings2, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
@@ -45,11 +46,18 @@ export function useProfile() {
   return value;
 }
 
+/** False on the few pages a visitor can open without signing in, where there's no profile to use. */
+export const useSignedIn = () => useContext(Ctx) !== null;
+
+/** Pages a visitor who isn't signed in can look at, read-only. */
+const GUEST_PAGES = ["/u/"];
+
 function message(e: unknown, fallback: string) {
   return e instanceof Error ? e.message : fallback;
 }
 
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const [me, setMe] = useState<ProfileInfo | null>(null);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState("");
@@ -135,7 +143,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
-  if (!me) return <SignIn />;
+  if (!me) return GUEST_PAGES.some((p) => pathname.startsWith(p)) ? children : <SignIn />;
 
   const value: ProfileContext = { profile: me.id, name: me.name, email: me.email ?? null, fluency: me.fluency, leave, avatar: me.avatar ?? null, avatarCrop: me.avatarCrop ?? null, color: me.color ?? DEFAULT_AVATAR_COLOR, bio: me.bio ?? "", updateProfile, setFluency, prefs: me.prefs ?? DEFAULT_PREFS, setPrefs };
   return <Ctx.Provider key={me.id} value={value}>{children}</Ctx.Provider>;
@@ -146,17 +154,11 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
  * itself has nothing to show a visitor, so it sends them to the landing page instead.
  */
 function SignIn() {
-  const [busy, setBusy] = useState(false);
   const [error] = useState(() => signInError(new URLSearchParams(window.location.search).get("error")));
   const home = window.location.pathname === "/app";
   useEffect(() => {
     if (home) window.location.replace("/");
   }, [home]);
-
-  async function start() {
-    setBusy(true);
-    await signIn("google", { redirectTo: window.location.href });
-  }
 
   if (home) return null;
   return (
@@ -169,11 +171,23 @@ function SignIn() {
         <h1 className="mt-4 text-xl font-semibold">Sign in</h1>
         <p className="mt-1 text-sm text-muted">Your decks and review progress are saved to your account and follow you to every device.</p>
         {error && <p className="mt-4 text-sm text-tone-1" role="alert">{error}</p>}
-        <Button variant="primary" className="mt-5 w-full" disabled={busy} onClick={() => void start()}>
-          {busy ? <LoaderCircle className="size-4 animate-spin" /> : <GoogleMark className="size-4" />}Continue with Google
-        </Button>
+        <GoogleSignIn className="mt-5 w-full" />
       </section>
     </div>
+  );
+}
+
+/** Signs in with Google and comes back to the page it was pressed on. */
+export function GoogleSignIn({ className = "", label = "Continue with Google" }: { className?: string; label?: string }) {
+  const [busy, setBusy] = useState(false);
+  async function start() {
+    setBusy(true);
+    await signIn("google", { redirectTo: window.location.href });
+  }
+  return (
+    <Button variant="primary" className={className} disabled={busy} onClick={() => void start()}>
+      {busy ? <LoaderCircle className="size-4 animate-spin" /> : <GoogleMark className="size-4" />}{label}
+    </Button>
   );
 }
 

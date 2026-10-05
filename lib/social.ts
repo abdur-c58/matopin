@@ -44,4 +44,10 @@ export type Sharing = { visibility: Visibility; inviteCode: string | null; membe
 export type ChatLink = { myStatus: "accepted" | "pending" | "declined"; theirStatus: "accepted" | "pending" | "declined" };
 export type ProfileView = { person: Person; decks: SharedDeck[]; followers: Person[]; following: Person[]; chat: ChatLink | null };
 
+/** What a visitor who isn't signed in sees of a profile. */
+export type PublicProfile = {
+  person: Omit<Person, "isFollowing" | "followsYou">;
+  decks: { id: string; name: string; language: string | null; cards: number; followers: number; updatedAt: string }[];
+};
+
 export const inviteUrl = (code: string) => `${window.location.origin}/join/${code}`;

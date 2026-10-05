@@ -73,11 +73,33 @@ async function fontsFor(text: string, lang?: string | null): Promise<Font[]> {
 }
 
 /** A profile picture cut to its square and turned into a PNG, which next/og can draw (it can't read WebP). */
-async function avatarSrc(avatar: string | null, crop: AvatarCrop | null, size: number): Promise<string | null> {
-  const m = avatar?.match(/^data:image\/(?:png|jpeg|webp|gif);base64,(.+)$/);
-  if (!m) return null;
+/** Google account pictures, fetched only from Google's own image hosts and asked for at the size we draw. */
+async function remoteAvatar(avatar: string, size: number): Promise<Buffer | null> {
+  let url: URL;
   try {
-    let img = sharp(Buffer.from(m[1], "base64"), { animated: false });
+    url = new URL(avatar);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "https:" || !/(^|\.)googleusercontent\.com$/.test(url.hostname)) return null;
+  url.pathname = url.pathname.replace(/=[\w-]*$/, "") + `=s${size}-c`;
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(4000), redirect: "error" });
+    if (!res.ok || !res.headers.get("content-type")?.startsWith("image/")) return null;
+    const buf = Buffer.from(await res.arrayBuffer());
+    return buf.length <= 5_000_000 ? buf : null;
+  } catch {
+    return null;
+  }
+}
+
+async function avatarSrc(avatar: string | null, crop: AvatarCrop | null, size: number): Promise<string | null> {
+  if (!avatar) return null;
+  const m = avatar.match(/^data:image\/(?:png|jpeg|webp|gif);base64,(.+)$/);
+  const input = m ? Buffer.from(m[1], "base64") : await remoteAvatar(avatar, size);
+  if (!input) return null;
+  try {
+    let img = sharp(input, { animated: false });
     const square = cleanCrop(crop);
     if (square) {
       const { width = 0, height = 0 } = await img.metadata();

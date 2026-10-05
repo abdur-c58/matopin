@@ -3,16 +3,22 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CalendarDays, Layers, LoaderCircle, MessageCircle, MessageCircleOff, Pencil, Users } from "lucide-react";
 import { toast } from "sonner";
-import type { ChatLink, Person, ProfileView } from "@/lib/social";
+import type { ChatLink, Person, ProfileView, PublicProfile } from "@/lib/social";
 import { store } from "@/lib/store-client";
 import { PersonAvatar } from "./avatar";
-import { ProfileDialog, useProfile } from "./profiles";
+import { GuestProfile } from "./guest-profile";
+import { ProfileDialog, useProfile, useSignedIn } from "./profiles";
 import { DeckTile, errorText, FollowButton, PersonRow } from "./social";
 import { Chips, Panel } from "./ui";
 
 type Tab = "decks" | "followers" | "following";
 
-export function ProfilePage({ id }: { id: string }) {
+/** `guest` is what the server found for a visitor who isn't signed in; null if the profile doesn't exist. */
+export function ProfilePage({ id, guest }: { id: string; guest: PublicProfile | null }) {
+  return useSignedIn() ? <MemberProfile id={id} /> : <GuestProfile view={guest} />;
+}
+
+function MemberProfile({ id }: { id: string }) {
   const { profile, name, avatar, avatarCrop, color, bio } = useProfile();
   const self = id === profile;
   const [view, setView] = useState<ProfileView | null>(null);

@@ -1,7 +1,7 @@
 "use client";
 import { Fragment, useRef, useState } from "react";
-import { Dialog } from "radix-ui";
-import { ChevronDown, LoaderCircle, Plus, Search, SpellCheck, Trash2, Upload, X } from "lucide-react";
+import { Dialog, Popover } from "radix-ui";
+import { ChevronDown, CircleHelp, ListPlus, LoaderCircle, Plus, Search, SpellCheck, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { sanitizeDraft, type CardDraft, type WordMatch } from "@/lib/ai";
 import { formatRows } from "@/lib/ai-client";
@@ -81,6 +81,34 @@ function placeRows(current: Row[], text: string, atRow: number, atCol: number): 
   return next;
 }
 
+/** A popover rather than a tooltip, so a tap opens it on touch screens too. */
+function FormatHelp({ lang }: { lang: Lang }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Popover.Root open={open} onOpenChange={setOpen}>
+      <Popover.Trigger
+        aria-label="What does Format do?"
+        className="grid size-8 place-items-center rounded-full text-muted transition hover:bg-volt-50 hover:text-ink"
+        onPointerEnter={(e) => { if (e.pointerType === "mouse") setOpen(true); }}
+        onPointerLeave={(e) => { if (e.pointerType === "mouse") setOpen(false); }}
+      >
+        <CircleHelp className="size-4" />
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content
+          side="top"
+          sideOffset={6}
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          className="z-50 max-w-72 rounded-xl border border-line bg-surface px-3 py-2 text-xs leading-relaxed text-ink shadow-pop"
+        >
+          Format uses AI to check each row. It fixes the {lang === "ja" ? "reading" : "pinyin and tones"}, fills in the {lang === "ja" ? "word" : "hanzi"}, and adds a meaning, an example, notes, and tags where they are blank. You review every change before anything is added.
+          <Popover.Arrow className="fill-surface" />
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
+  );
+}
+
 function fieldLabel(header: string) {
   return header.replaceAll("_", " ");
 }
@@ -99,15 +127,12 @@ export function ImportPanel({ fluency, simplified, onImport, onLookup }: {
   const [lookupId, setLookupId] = useState<string | null>(null);
   const [matches, setMatches] = useState<WordMatch[] | null>(null);
   const [looking, setLooking] = useState(false);
-  const [searchingAll, setSearchingAll] = useState("");
   const [readingAnki, setReadingAnki] = useState(false);
   const [clues, setClues] = useState<Record<string, string>>({});
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const lang = useCardLang();
-  const info = LANG_INFO[lang];
   const headers = csvColumns(lang).map((col) => col.header);
   const hints = placeholders(lang);
-  const readingName = info.readingLabel.toLowerCase();
   const hasPinyin = (row: Row) => usableRow(row, lang);
   const columns = simplified ? MAIN_COLUMNS : ALL_COLUMNS;
   const lookupRef = useRef<string | null>(null);
@@ -121,16 +146,18 @@ export function ImportPanel({ fluency, simplified, onImport, onLookup }: {
   const unfilled = rows.filter((row) => needsWord(row, lang)).length;
   const skipped = rows.filter((row) => row.cells.some((cell) => cell.trim()) && !hasPinyin(row)).length;
 
-  const commit = () => {
-    if (!review) return;
-    const chosen = review.map((item) => (item.useOriginal ? rowCard(item.original, item.originalKind) : rowCard(item.corrected, item.kind)));
-    if (!chosen.length) return;
+  const add = (cards: Card[]) => {
+    if (!cards.length) return;
     setImporting(true);
-    void Promise.resolve(onImport(chosen)).then((ok) => {
+    void Promise.resolve(onImport(cards)).then((ok) => {
       if (!ok) return;
       setReview(null);
       setRows([emptyRow()]);
     }).finally(() => setImporting(false));
+  };
+
+  const commit = () => {
+    if (review) add(review.map((item) => (item.useOriginal ? rowCard(item.original, item.originalKind) : rowCard(item.corrected, item.kind))));
   };
 
   const format = async () => {
@@ -178,39 +205,6 @@ export function ImportPanel({ fluency, simplified, onImport, onLookup }: {
     setLookupId(null);
     setLooking(false);
     setMatches(null);
-  };
-
-  const searchAll = async () => {
-    const targets = rows.filter((row) => needsWord(row, lang) && (row.cells[PINYIN]?.trim() || row.cells[MEANING]?.trim()));
-    if (!targets.length) {
-      toast(ready
-        ? `Every ${readingName} already has a word. Use a row's magnifying glass to change one.`
-        : lang === "ja" ? "Enter a reading first, in kana or romaji." : "Enter a pinyin first. Tone marks are optional.");
-      return;
-    }
-    setSearchingAll(`Searching 1 of ${targets.length}`);
-    let filled = 0;
-    try {
-      for (const [i, row] of targets.entries()) {
-        setSearchingAll(`Searching ${i + 1} of ${targets.length}`);
-        const found = await onLookup(rowCard(row.cells, row.kind), clues[row.id] ?? "");
-        if (!found) break;
-        const top = found[0];
-        if (!top) continue;
-        filled++;
-        setRows((current) => current.map((item) => {
-          if (item.id !== row.id) return item;
-          const cells = [...item.cells];
-          cells[PINYIN] = top.pinyin;
-          cells[MEANING] = top.meaning;
-          cells[HANZI] = top.hanzi;
-          return { ...item, cells, kind: top.kind ?? item.kind };
-        }));
-      }
-      if (filled) toast.success(`Filled ${filled} ${filled === 1 ? "row" : "rows"}. Use a row's magnifying glass if a word is wrong.`);
-    } finally {
-      setSearchingAll("");
-    }
   };
 
   const applyMatch = (rowId: string, match: WordMatch) => {
@@ -263,13 +257,19 @@ export function ImportPanel({ fluency, simplified, onImport, onLookup }: {
 
   return (
     <div className="surface p-5" ref={root}>
-      <p className="text-sm text-muted">
-        Column order is <code className="rounded bg-volt-50 px-1.5 py-0.5 font-mono text-xs text-volt-700">{headers.join(", ")}</code>.{" "}
-        {lang === "ja"
-          ? "Each row needs a reading (kana or romaji) or the word itself. Meaning is optional. Search all fills each reading with the most likely word."
-          : "Pinyin is required. Meaning is optional. Search all fills each pinyin with the most likely word."}{" "}
-        If a row is wrong, use its magnifying glass and an optional clue to pick another. An example can be one sentence, or two speakers on their own lines starting with A： and B：. Enter adds a row, except inside an example, where it starts the next line. Upload file takes CSV, TSV, or an Anki .apkg.
-      </p>
+      {simplified ? (
+        <p className="text-sm text-muted">
+          {lang === "ja" ? "Type one word per row, in kana, romaji, or kanji." : "Type one pinyin per row. A meaning is optional."}
+        </p>
+      ) : (
+        <p className="text-sm text-muted">
+          Column order is <code className="rounded bg-volt-50 px-1.5 py-0.5 font-mono text-xs text-volt-700">{headers.join(", ")}</code>.{" "}
+          {lang === "ja"
+            ? "Each row needs a reading (kana or romaji) or the word itself. Meaning is optional."
+            : "Pinyin is required. Meaning is optional."}{" "}
+          If a row is wrong, use its magnifying glass and an optional clue to pick another. An example can be one sentence, or two speakers on their own lines starting with A： and B：. Enter adds a row, except inside an example, where it starts the next line. Upload file takes CSV, TSV, or an Anki .apkg.
+        </p>
+      )}
       <div
         className="mt-4 overflow-x-auto rounded-xl border border-line"
         onPaste={(e) => {
@@ -331,7 +331,7 @@ export function ImportPanel({ fluency, simplified, onImport, onLookup }: {
                         <div className="flex items-start">
                           {input(c)}
                           {c === MEANING && (
-                            <button type="button" className="icon-btn mr-1 size-8 shrink-0 self-center" aria-label={`Find words for row ${r + 1}`} disabled={(looking && lookupId === row.id) || Boolean(searchingAll)} onClick={() => void search(row)}>
+                            <button type="button" className="icon-btn mr-1 size-8 shrink-0 self-center" aria-label={`Find words for row ${r + 1}`} disabled={looking && lookupId === row.id} onClick={() => void search(row)}>
                               {looking && lookupId === row.id ? <LoaderCircle className="size-4 animate-spin" /> : <Search className="size-4" />}
                             </button>
                           )}
@@ -383,8 +383,13 @@ export function ImportPanel({ fluency, simplified, onImport, onLookup }: {
           : <>{ready} {ready === 1 ? "row has" : "rows have"} pinyin{unfilled ? ` · ${unfilled} still need a word` : ""}{skipped ? ` · ${skipped} skipped without pinyin` : ""}.</>}
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
-        <Button variant="primary" disabled={!ready || Boolean(formatting) || Boolean(searchingAll)} onClick={() => void searchAll()}><Search className="size-4" />{searchingAll || "Search all"}</Button>
-        <Button disabled={!ready || Boolean(formatting) || Boolean(searchingAll)} onClick={() => void format()}><SpellCheck className="size-4" />{formatting || "Format"}</Button>
+        <span className="inline-flex items-center gap-0.5">
+          <Button variant="primary" disabled={!ready || Boolean(formatting) || importing} onClick={() => void format()}><SpellCheck className="size-4" />{formatting || "Format"}</Button>
+          <FormatHelp lang={lang} />
+        </span>
+        <Button disabled={!ready || Boolean(formatting) || importing} onClick={() => add(rows.filter(hasPinyin).map((row) => rowCard(row.cells, row.kind)))}>
+          {importing && !review ? <LoaderCircle className="size-4 animate-spin" /> : <ListPlus className="size-4" />}Add without formatting
+        </Button>
         <Button variant="ghost" onClick={() => { setRows((current) => [...current, emptyRow()]); focusCell(rows.length, 0); }}><Plus className="size-4" />Add row</Button>
         <Button variant="ghost" disabled={readingAnki} onClick={() => file.current?.click()}>
           {readingAnki ? <LoaderCircle className="size-4 animate-spin" /> : <Upload className="size-4" />}{readingAnki ? "Reading Anki deck…" : "Upload file"}

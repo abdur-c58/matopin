@@ -1,16 +1,20 @@
 "use client";
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Dialog, DropdownMenu, Popover } from "radix-ui";
 import {
-  ArrowLeft, BookOpen, Check, CheckCheck, CornerUpLeft, Eye, EyeOff, Globe, Layers, LoaderCircle, Lock, MessageCircleOff,
-  MoreHorizontal, Plus, RotateCw, Search, SendHorizontal, Sparkles, Trash2, UserRound, X,
+  ArrowLeft, BookOpen, Check, CheckCheck, CornerUpLeft, Eye, EyeOff, Globe, Layers, LoaderCircle, Lock, LogOut, MessageCircleOff,
+  MoreHorizontal, Plus, RotateCw, Search, SendHorizontal, Sparkles, Trash2, UserRound, Users, X,
 } from "lucide-react";
 import { toast } from "sonner";
-import { BOT_NAME, isAsk, MAX_MESSAGE, previewText, type ChatDeck, type ChatState, type Message, type Reaction, type Thread } from "@/lib/chat";
+import {
+  BOT_NAME, groupIdOf, groupTitle, isAsk, MAX_MESSAGE, noticeSubjectId, noticeText, previewText,
+  type ChatDeck, type ChatState, type GroupInfo, type GroupThread, type Message, type Reaction, type Thread,
+} from "@/lib/chat";
 import { dayLabel, refreshChatBadge } from "@/lib/chat-client";
 import { deckScope, notifyDecks, readMeta, writeMeta, type DeckSummary } from "@/lib/decks";
-import type { Person, Visibility } from "@/lib/social";
+import type { Person, PersonRef, Visibility } from "@/lib/social";
 import { hasCjk, LANG_INFO, type Lang } from "@/lib/lang";
 import { store } from "@/lib/store-client";
 import { PersonAvatar } from "./avatar";
@@ -18,6 +22,7 @@ import { NotedBody } from "./bot-notes";
 import { useDecks } from "./decks-context";
 import { ReactionPicker } from "./emoji-picker";
 import { FlashcardMaker } from "./flashcard-maker";
+import { GroupAvatar, GroupInfoDialog } from "./group-chat";
 import { useBotMode } from "./lang-context";
 import { useProfile } from "./profiles";
 import { DeckPreviewDialog, errorText, plural, VisibilityBadge } from "./social";
@@ -111,8 +116,10 @@ type RowProps = {
   m: Local;
   mine: boolean;
   grouped: boolean;
-  /** The other person. Missing in the chat with Bao. */
-  person?: Person;
+  /** Everyone else in the chat, by id. Missing in the chat with Bao. */
+  people?: Map<string, PersonRef>;
+  /** Puts the sender's name over their messages, for groups. */
+  showName?: boolean;
   active: boolean;
   highlight: boolean;
   receipt: string | null;
@@ -127,16 +134,18 @@ type RowProps = {
   onFlashcards?: () => void;
 };
 
-export function MessageRow({ m, mine, grouped, person, active, highlight, receipt, onActive, onReply, onReact, onJump, onOpenDeck, onRetry, onDiscard, onFlashcards }: RowProps) {
+export function MessageRow({ m, mine, grouped, people, showName = false, active, highlight, receipt, onActive, onReply, onReact, onJump, onOpenDeck, onRetry, onDiscard, onFlashcards }: RowProps) {
   const { profile } = useProfile();
   const bot = m.kind === "ai";
-  const who = (id: string | null) => (id === profile ? "You" : id == null ? BOT_NAME : person?.name ?? "Someone");
+  const who = (id: string | null) => (id === profile ? "You" : id == null ? BOT_NAME : people?.get(id)?.name ?? (id === m.senderId ? m.senderName : null) ?? "Someone");
+  const sender = m.senderId ? people?.get(m.senderId) : undefined;
 
   if (m.kind === "system") {
+    const subject = noticeSubjectId(m.body) === profile ? "you" : m.subjectName;
     return (
       <div className="my-3 flex justify-center px-4">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-raised px-3 py-1 text-xs text-muted">
-          <Sparkles className="size-3 text-second-300" />{who(m.senderId)} {m.body === "ai_on" ? "let Bao read this chat" : "removed Bao and cleared its memory"}
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-raised px-3 py-1 text-center text-xs text-muted">
+          {m.body.startsWith("ai_") ? <Sparkles className="size-3 shrink-0 text-second-300" /> : <Users className="size-3 shrink-0" />}{noticeText(m.body, who(m.senderId), subject)}
         </span>
       </div>
     );
@@ -150,9 +159,14 @@ export function MessageRow({ m, mine, grouped, person, active, highlight, receip
 
   return (
     <div id={`msg-${m.id}`} className={`group flex items-end gap-2 px-3 md:px-5 ${mine ? "flex-row-reverse" : ""} ${grouped ? "mt-0.5" : "mt-3"}`}>
-      {!mine && <div className="w-8 shrink-0">{!grouped && (bot ? <BotAvatar /> : person && <PersonAvatar person={person} className="size-8 text-xs" />)}</div>}
+      {!mine && (
+        <div className="w-8 shrink-0">
+          {!grouped && (bot ? <BotAvatar /> : <PersonAvatar person={sender ?? { name: m.senderName ?? "?", avatar: null, color: "azure" }} className="size-8 text-xs" />)}
+        </div>
+      )}
       <div className={`flex max-w-[min(34rem,78%)] min-w-0 flex-col ${mine ? "items-end" : "items-start"}`}>
         {!grouped && bot && <span className="mb-1 ml-1 flex items-center gap-1 text-[11px] font-semibold text-second-300">{BOT_NAME}</span>}
+        {!grouped && !bot && !mine && showName && <span className="mb-1 ml-1 text-[11px] font-semibold text-muted">{who(m.senderId)}</span>}
         {m.replyTo && (
           <>
             <span className={`mb-1 flex items-center gap-1 px-2 text-[11px] text-muted ${mine ? "flex-row-reverse" : ""}`}>
@@ -201,7 +215,7 @@ export function MessageRow({ m, mine, grouped, person, active, highlight, receip
         ) : m.local === "sending" ? (
           <p className="mt-1 text-[11px] text-muted">Sending…</p>
         ) : receipt && (
-          <p className="mt-1 flex items-center gap-1 text-[11px] text-muted">{receipt === "Seen" ? <CheckCheck className="size-3 text-volt-500" /> : <Check className="size-3" />}{receipt}</p>
+          <p className="mt-1 flex items-center gap-1 text-[11px] text-muted">{receipt.startsWith("Seen") ? <CheckCheck className="size-3 text-volt-500" /> : <Check className="size-3" />}{receipt}</p>
         )}
       </div>
       {!m.local && (
@@ -293,7 +307,7 @@ function PrivateDeckAlert({ deck, name, busy, onShare, onCancel }: { deck: DeckS
   );
 }
 
-function AllowBotDialog({ open, name, busy, onAllow, onClose }: { open: boolean; name: string; busy: boolean; onAllow: () => void; onClose: () => void }) {
+function AllowBotDialog({ open, name, group, busy, onAllow, onClose }: { open: boolean; name: string; group: boolean; busy: boolean; onAllow: () => void; onClose: () => void }) {
   return (
     <Dialog.Root open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
       <Dialog.Portal>
@@ -306,7 +320,9 @@ function AllowBotDialog({ open, name, busy, onAllow, onClose }: { open: boolean;
             <li className="flex gap-2.5"><Eye className="mt-0.5 size-4 shrink-0 text-second-300" />It reads this chat’s recent messages each time someone types @ask, which takes up its context.</li>
             <li className="flex gap-2.5"><Layers className="mt-0.5 size-4 shrink-0 text-second-300" />It saves a short summary of older messages as this chat’s memory, so it doesn’t re-read everything (and use more tokens) each time.</li>
             <li className="flex gap-2.5"><Sparkles className="mt-0.5 size-4 shrink-0 text-second-300" />It only answers questions about Chinese, or about how you’re feeling.</li>
-            <li className="flex gap-2.5"><UserRound className="mt-0.5 size-4 shrink-0 text-second-300" />{name} will see that you added it. Either of you can remove it, which also erases its memory.</li>
+            <li className="flex gap-2.5"><UserRound className="mt-0.5 size-4 shrink-0 text-second-300" />{group
+              ? "Everyone in the group will see that you added it. Anyone in it can remove it, which also erases its memory."
+              : `${name} will see that you added it. Either of you can remove it, which also erases its memory.`}</li>
           </ul>
           <div className="mt-6 flex justify-end gap-2">
             <Dialog.Close className="btn btn-ghost" disabled={busy}>Not now</Dialog.Close>
@@ -318,11 +334,20 @@ function AllowBotDialog({ open, name, busy, onAllow, onClose }: { open: boolean;
   );
 }
 
-/** One chat: the messages, replies and reactions, sending decks, and @ask for Bao. */
+/** What the store actions need to find a chat: the other person's id, or the group's. */
+const targetOf = (id: string) => {
+  const group = groupIdOf(id);
+  return group ? { group } : { with: id };
+};
+
+/** One chat with a person or a group: the messages, replies and reactions, sending decks, and @ask for Bao. */
 export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) {
   const { profile, name: myName, avatar, avatarCrop, color } = useProfile();
   const { mode: botMode } = useBotMode();
-  const [thread, setThread] = useState<{ person: Person; chat: ChatState | null } | null>(null);
+  const router = useRouter();
+  const target = targetOf(id);
+  const [thread, setThread] = useState<{ person: Person | null; group: GroupInfo | null; chat: ChatState | null } | null>(null);
+  const [info, setInfo] = useState(false);
   const [messages, setMessages] = useState<Local[]>([]);
   const [hasMore, setHasMore] = useState(false);
   const [loadingEarlier, setLoadingEarlier] = useState(false);
@@ -360,16 +385,17 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
       const after = polled.current;
       const since = first.current;
       try {
-        const data = await store<Thread>("chatThread", initial ? { with: id } : { with: id, after, since: since || null });
+        const data = await store<Thread | GroupThread>("chatThread", initial ? targetOf(id) : { ...targetOf(id), after, since: since || null });
         if (!live) return;
         polled.current = Math.max(after, ...data.messages.map((m) => m.id));
-        setThread({ person: data.person, chat: data.chat });
+        setThread({ person: "person" in data ? data.person : null, group: "group" in data ? data.group : null, chat: data.chat });
         const fresh = !initial && data.reactionsFrom != null ? { from: data.reactionsFrom, to: after, reactions: new Map(data.reactions.map((r) => [r.id, r.reactions])) } : undefined;
         setMessages((list) => upsert(list, data.messages, fresh));
         if (initial) setHasMore(data.hasMore);
         if (initial || data.messages.some((m) => m.senderId !== profile)) void refreshChatBadge();
       } catch (e) {
         if (live && initial) setError(errorText(e, "Couldn’t open this chat."));
+        else if (live && groupIdOf(id) && errorText(e, "") === "Chat not found") setError("You’re no longer in this group.");
       } finally {
         loading = false;
       }
@@ -412,10 +438,24 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
   }
   if (!thread) return <p className="grid flex-1 place-items-center text-sm text-muted">Loading chat…</p>;
 
-  const { person, chat } = thread;
+  const { person, group, chat } = thread;
+  const others = group ? group.members.filter((m) => m.id !== profile) : [];
+  const joinedOthers = others.filter((m) => m.status === "accepted");
+  const title = person ? person.name : groupTitle(group?.name ?? null, others);
+  const people = new Map<string, PersonRef>(person ? [[person.id, person]] : others.map((m) => [m.id, m]));
   const setChat = (next: ChatState) => setThread((t) => t && { ...t, chat: next });
-  const bothAccepted = chat?.myStatus === "accepted" && chat.theirStatus === "accepted";
-  const canSend = !chat || (chat.myStatus === "accepted" && chat.theirStatus !== "declined");
+  const bothAccepted = group ? chat?.myStatus === "accepted" : chat?.myStatus === "accepted" && chat.theirStatus === "accepted";
+  const canSend = group ? chat?.myStatus === "accepted" : !chat || (chat.myStatus === "accepted" && chat.theirStatus !== "declined");
+  const receiptFor = (messageId: number) => {
+    if (!chat) return null;
+    if (!group) return chat.theirLastRead >= messageId ? "Seen" : "Sent";
+    const seen = joinedOthers.filter((m) => m.lastRead >= messageId).length;
+    return seen === 0 ? "Sent" : seen === joinedOthers.length ? "Seen by everyone" : `Seen by ${seen}`;
+  };
+  const left = () => {
+    if (onBack) onBack();
+    else router.push("/chat");
+  };
   const lastMine = [...messages].reverse().find((m) => m.id > 0 && m.senderId === profile && m.kind !== "system");
   const askMatch = /(?:^|\s)@(\w*)$/.exec(text.slice(0, caret));
   const suggestAsk = askMatch != null && "ask".startsWith(askMatch[1].toLowerCase()) && askMatch[1].toLowerCase() !== "ask";
@@ -424,7 +464,7 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
   async function ask(messageId: number) {
     setAsking((a) => [...a, messageId]);
     try {
-      const { message } = await store<{ message: Message }>("chatAsk", { with: id, message: messageId, lang: botMode });
+      const { message } = await store<{ message: Message }>("chatAsk", { ...target, message: messageId, lang: botMode });
       setMessages((list) => upsert(list, [message]));
     } catch (e) {
       toast.error(errorText(e, "Bao couldn’t answer."), { action: { label: "Try again", onClick: () => void ask(messageId) } });
@@ -448,7 +488,7 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
     setReplyTo(null);
     try {
       const res = await store<{ message: Message; chat: ChatState }>("chatSend", {
-        with: id, kind: payload.kind, replyTo: payload.replyTo,
+        ...target, kind: payload.kind, replyTo: payload.replyTo,
         ...(payload.kind === "text" ? { body: payload.body } : { deck: payload.deck.id }),
       });
       setMessages((list) => upsert(list.filter((m) => m.id !== temp.id), [res.message]));
@@ -469,7 +509,7 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
     if (!body || !canSend) return;
     if (body.length > MAX_MESSAGE) return void toast.error(`Messages can be up to ${MAX_MESSAGE} characters.`);
     if (isAsk(body) && !chat?.aiEnabled) {
-      if (!bothAccepted) return void toast.error(`Bao can join once ${person.name} has accepted your chat.`);
+      if (!bothAccepted) return void toast.error(group ? "Join the group first." : `Bao can join once ${title} has accepted your chat.`);
       setConfirmAi(true);
       return;
     }
@@ -480,7 +520,7 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
   async function allowBot() {
     setBusy("ai");
     try {
-      const res = await store<{ chat: ChatState }>("chatSetAi", { with: id, on: true });
+      const res = await store<{ chat: ChatState }>("chatSetAi", { ...target, on: true });
       setChat(res.chat);
       setConfirmAi(false);
       const body = text.trim();
@@ -495,7 +535,7 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
 
   async function setBot(on: boolean) {
     try {
-      setChat((await store<{ chat: ChatState }>("chatSetAi", { with: id, on })).chat);
+      setChat((await store<{ chat: ChatState }>("chatSetAi", { ...target, on })).chat);
       toast.success(on ? "Bao can read this chat now." : "Bao left and forgot this chat.");
     } catch (e) {
       toast.error(errorText(e, "Couldn’t change Bao."));
@@ -505,9 +545,14 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
   async function respond(accept: boolean) {
     setBusy(accept ? "accept" : "decline");
     try {
-      setChat((await store<{ chat: ChatState }>("chatRespond", { with: id, accept })).chat);
+      const res = await store<{ chat: ChatState | null }>("chatRespond", { ...target, accept });
       void refreshChatBadge();
-      if (!accept) toast.success(`Messages from ${person.name} are off. Turn them back on from their profile or here.`);
+      if (!res.chat) {
+        toast.success(`You declined ${title}.`);
+        return left();
+      }
+      setChat(res.chat);
+      if (!accept) toast.success(`Messages from ${title} are off. Turn them back on from their profile or here.`);
     } catch (e) {
       toast.error(errorText(e, "Couldn’t update this chat."));
     } finally {
@@ -516,7 +561,7 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
   }
 
   async function react(m: Local, emoji: string) {
-    if (!bothAccepted) return void toast.error(chat?.myStatus === "pending" ? "Accept the request to react." : "You can react once the chat is accepted.");
+    if (!bothAccepted) return void toast.error(group ? "Join the group to react." : chat?.myStatus === "pending" ? "Accept the request to react." : "You can react once the chat is accepted.");
     const before = m.reactions;
     const on = !before.find((r) => r.emoji === emoji)?.by.includes(profile);
     const optimistic = on
@@ -538,7 +583,7 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
     restore.current = el ? el.scrollHeight - el.scrollTop : null;
     setLoadingEarlier(true);
     try {
-      const data = await store<Thread>("chatThread", { with: id, before: first.current });
+      const data = await store<Thread | GroupThread>("chatThread", { ...target, before: first.current });
       setMessages((list) => upsert(list, data.messages));
       setHasMore(data.hasMore);
     } catch (e) {
@@ -602,8 +647,18 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
     if (e.key === "Escape") { if (replyTo) setReplyTo(null); else if (privateDeck) setPrivateDeck(null); }
   };
 
-  const replyName = (m: Local) => (m.senderId === profile ? "yourself" : m.senderId == null ? BOT_NAME : person.name);
-  const status = chat?.aiEnabled ? "Bao is in this chat" : !chat ? "New chat" : chat.theirStatus === "pending" ? "Request sent" : chat.myStatus === "pending" ? "Wants to message you" : person.followsYou ? "Follows you" : "Mandarin learner";
+  const replyName = (m: Local) => (m.senderId === profile ? "yourself" : m.senderId == null ? BOT_NAME : people.get(m.senderId)?.name ?? m.senderName ?? "someone");
+  const status = chat?.aiEnabled ? "Bao is in this chat"
+    : group ? (chat?.myStatus === "pending" ? "Invited you" : `${group.members.length} people`)
+    : !chat ? "New chat" : chat.theirStatus === "pending" ? "Request sent" : chat.myStatus === "pending" ? "Wants to message you" : person?.followsYou ? "Follows you" : "Language learner";
+  const headerClass = "flex min-w-0 items-center gap-3 rounded-full pr-3 text-left transition hover:bg-raised/60";
+  const headerFace = group ? <GroupAvatar members={others} className="size-10" /> : person && <PersonAvatar person={person} className="size-10 text-sm" />;
+  const headerLabel = (
+    <span className="min-w-0">
+      <span className="block truncate font-semibold">{title}</span>
+      <span className={`flex items-center gap-1 truncate text-xs ${chat?.aiEnabled ? "text-second-300" : "text-muted"}`}>{chat?.aiEnabled && <Sparkles className="size-3" />}{status}</span>
+    </span>
+  );
 
   return (
     <>
@@ -611,29 +666,31 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
         {onBack
           ? <button type="button" className="icon-btn" aria-label="Back to chats" onClick={onBack}><ArrowLeft className="size-5" /></button>
           : <Link href="/chat" className="icon-btn md:hidden" aria-label="Back to chats"><ArrowLeft className="size-5" /></Link>}
-        <Link href={`/u/${person.id}`} className="flex min-w-0 items-center gap-3 rounded-full pr-3 transition hover:bg-raised/60">
-          <PersonAvatar person={person} className="size-10 text-sm" />
-          <span className="min-w-0">
-            <span className="block truncate font-semibold">{person.name}</span>
-            <span className={`flex items-center gap-1 truncate text-xs ${chat?.aiEnabled ? "text-second-300" : "text-muted"}`}>{chat?.aiEnabled && <Sparkles className="size-3" />}{status}</span>
-          </span>
-        </Link>
+        {person
+          ? <Link href={`/u/${person.id}`} className={headerClass}>{headerFace}{headerLabel}</Link>
+          : <button type="button" className={headerClass} onClick={() => setInfo(true)}>{headerFace}{headerLabel}</button>}
         <DropdownMenu.Root>
           <DropdownMenu.Trigger className="icon-btn ml-auto" aria-label="Chat options"><MoreHorizontal className="size-5" /></DropdownMenu.Trigger>
           <DropdownMenu.Portal>
             <DropdownMenu.Content align="end" sideOffset={8} collisionPadding={12} className="popup w-64 p-1.5">
-              <DropdownMenu.Item asChild className="flex h-10 cursor-pointer items-center gap-3 rounded-xl px-3 text-sm outline-none data-[highlighted]:bg-raised">
-                <Link href={`/u/${person.id}`}><UserRound className="size-4 text-muted" />View profile</Link>
-              </DropdownMenu.Item>
+              {person ? (
+                <DropdownMenu.Item asChild className="flex h-10 cursor-pointer items-center gap-3 rounded-xl px-3 text-sm outline-none data-[highlighted]:bg-raised">
+                  <Link href={`/u/${person.id}`}><UserRound className="size-4 text-muted" />View profile</Link>
+                </DropdownMenu.Item>
+              ) : (
+                <DropdownMenu.Item className="flex h-10 cursor-pointer items-center gap-3 rounded-xl px-3 text-sm outline-none data-[highlighted]:bg-raised" onSelect={() => setInfo(true)}>
+                  <Users className="size-4 text-muted" />Members and settings
+                </DropdownMenu.Item>
+              )}
               {chat && bothAccepted && (
                 <DropdownMenu.Item className="flex h-10 cursor-pointer items-center gap-3 rounded-xl px-3 text-sm outline-none data-[highlighted]:bg-raised" onSelect={() => (chat.aiEnabled ? void setBot(false) : setConfirmAi(true))}>
                   <Sparkles className="size-4 text-second-300" />{chat.aiEnabled ? "Remove Bao" : "Add Bao"}
                 </DropdownMenu.Item>
               )}
-              {chat && chat.myStatus !== "pending" && (
+              {person && chat && chat.myStatus !== "pending" && (
                 <DropdownMenu.Item className={`flex h-10 cursor-pointer items-center gap-3 rounded-xl px-3 text-sm outline-none ${chat.myStatus === "declined" ? "data-[highlighted]:bg-raised" : "text-tone-1 data-[highlighted]:bg-tone-1/10"}`}
                   onSelect={() => void respond(chat.myStatus === "declined")}>
-                  <MessageCircleOff className="size-4" />{chat.myStatus === "declined" ? "Turn messages back on" : `Turn off messages from ${person.name}`}
+                  <MessageCircleOff className="size-4" />{chat.myStatus === "declined" ? "Turn messages back on" : `Turn off messages from ${title}`}
                 </DropdownMenu.Item>
               )}
             </DropdownMenu.Content>
@@ -649,7 +706,7 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
             </button>
           </div>
         )}
-        {messages.length === 0 && (
+        {messages.length === 0 && person && (
           <div className="grid h-full place-items-center p-6 text-center">
             <div>
               <PersonAvatar person={person} className="mx-auto size-20 text-3xl" />
@@ -667,9 +724,9 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
             <Fragment key={m.id}>
               {newDay && <div className="mt-5 mb-2 text-center text-[11px] font-semibold tracking-wide text-muted uppercase">{dayLabel(m.createdAt)}</div>}
               <MessageRow
-                m={m} mine={m.senderId === profile && m.kind !== "ai"} grouped={grouped} person={person}
+                m={m} mine={m.senderId === profile && m.kind !== "ai"} grouped={grouped} people={people} showName={group != null}
                 active={active === m.id} highlight={highlight === m.id}
-                receipt={m.id === lastMine?.id && chat ? (chat.theirLastRead >= m.id ? "Seen" : "Sent") : null}
+                receipt={m.id === lastMine?.id ? receiptFor(m.id) : null}
                 onActive={() => setActive((a) => (a === m.id ? null : m.id))}
                 onReply={() => { setReplyTo(m); setActive(null); input.current?.focus(); }}
                 onReact={(emoji) => void react(m, emoji)}
@@ -686,9 +743,22 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
       </div>
 
       <footer className="border-t border-line p-2.5 md:p-3">
-        {chat?.myStatus === "pending" ? (
+        {chat?.myStatus === "pending" && group ? (
           <div className="rounded-3xl bg-raised/60 p-4 text-center">
-            <p className="font-semibold">{person.name} wants to message you</p>
+            <p className="font-semibold">You’ve been added to {title}</p>
+            <p className="mt-1 text-sm text-muted">Join to send messages. If you decline, you leave the group.</p>
+            <div className="mt-3 flex justify-center gap-2">
+              <button type="button" className="btn btn-danger-outline" disabled={busy != null} onClick={() => void respond(false)}>
+                {busy === "decline" ? <LoaderCircle className="size-4 animate-spin" /> : <LogOut className="size-4" />}Decline
+              </button>
+              <button type="button" className="btn btn-primary" disabled={busy != null} onClick={() => void respond(true)}>
+                {busy === "accept" ? <LoaderCircle className="size-4 animate-spin" /> : <Check className="size-4" />}Join
+              </button>
+            </div>
+          </div>
+        ) : chat?.myStatus === "pending" ? (
+          <div className="rounded-3xl bg-raised/60 p-4 text-center">
+            <p className="font-semibold">{title} wants to message you</p>
             <p className="mt-1 text-sm text-muted">Accept to reply. If you turn messages off, they can’t message you until you turn them back on from their profile.</p>
             <div className="mt-3 flex justify-center gap-2">
               <button type="button" className="btn btn-danger-outline" disabled={busy != null} onClick={() => void respond(false)}>
@@ -701,17 +771,17 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
           </div>
         ) : chat?.myStatus === "declined" ? (
           <div className="flex flex-wrap items-center justify-center gap-3 rounded-3xl bg-raised/60 p-4 text-center text-sm">
-            <span className="text-muted">You turned off messages from {person.name}.</span>
+            <span className="text-muted">You turned off messages from {title}.</span>
             <button type="button" className="btn btn-secondary h-9" disabled={busy != null} onClick={() => void respond(true)}>
               {busy === "accept" && <LoaderCircle className="size-4 animate-spin" />}Turn messages back on
             </button>
           </div>
         ) : chat?.theirStatus === "declined" ? (
-          <p className="rounded-3xl bg-raised/60 p-4 text-center text-sm text-muted">{person.name} isn’t accepting messages from you right now.</p>
+          <p className="rounded-3xl bg-raised/60 p-4 text-center text-sm text-muted">{title} isn’t accepting messages from you right now.</p>
         ) : (
           <>
-            {chat?.theirStatus === "pending" && <p className="mb-2 px-2 text-xs text-muted">Waiting for {person.name} to accept your request. You can send a few more messages until then.</p>}
-            {privateDeck && <PrivateDeckAlert deck={privateDeck} name={person.name} busy={sharing} onShare={(v) => void shareAndSend(v)} onCancel={() => setPrivateDeck(null)} />}
+            {chat?.theirStatus === "pending" && <p className="mb-2 px-2 text-xs text-muted">Waiting for {title} to accept your request. You can send a few more messages until then.</p>}
+            {privateDeck && <PrivateDeckAlert deck={privateDeck} name={group ? "People in this group" : title} busy={sharing} onShare={(v) => void shareAndSend(v)} onCancel={() => setPrivateDeck(null)} />}
             {replyTo && (
               <ReplyBar name={replyName(replyTo)} onCancel={() => setReplyTo(null)}
                 preview={previewText({ kind: replyTo.kind, body: replyTo.body, deckName: replyTo.deck && !replyTo.deck.unavailable ? replyTo.deck.name : null })} />
@@ -730,8 +800,8 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
               <DeckPicker onPick={pickDeck} disabled={!canSend} />
               <button type="button" className={`icon-btn shrink-0 ${asksBot ? "text-second-300" : ""}`} aria-label="Ask Bao" title="Ask Bao (@ask)" onClick={insertAsk}><Sparkles className="size-[18px]" /></button>
               <textarea
-                ref={input} rows={1} value={text} maxLength={MAX_MESSAGE + 200} aria-label={`Message ${person.name}`}
-                placeholder={asksBot ? "Ask Bao about Chinese…" : `Message ${person.name}`}
+                ref={input} rows={1} value={text} maxLength={MAX_MESSAGE + 200} aria-label={`Message ${title}`}
+                placeholder={asksBot ? "Ask Bao about Chinese…" : `Message ${title}`}
                 className="max-h-40 min-h-9 flex-1 resize-none bg-transparent px-1 py-2 text-[15px] leading-snug outline-none placeholder:text-muted/80"
                 onChange={(e) => { setText(e.target.value); setCaret(e.target.selectionStart); }}
                 onSelect={(e) => setCaret(e.currentTarget.selectionStart)}
@@ -746,8 +816,9 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
         )}
       </footer>
 
-      <AllowBotDialog open={confirmAi} name={person.name} busy={busy === "ai"} onClose={() => setConfirmAi(false)}
+      <AllowBotDialog open={confirmAi} name={title} group={group != null} busy={busy === "ai"} onClose={() => setConfirmAi(false)}
         onAllow={() => (text.trim() ? void allowBot() : void setBot(true).then(() => setConfirmAi(false)))} />
+      {group && <GroupInfoDialog group={group} open={info} onOpenChange={setInfo} onGroup={(next) => setThread((t) => t && { ...t, group: next })} onLeft={left} />}
       <FlashcardMaker text={cardsFrom} onClose={() => setCardsFrom(null)} />
       <DeckPreviewDialog deckId={previewDeck} onClose={() => setPreviewDeck(null)}
         onFollowed={(deckId) => setMessages((list) => list.map((m) => (m.deck && !m.deck.unavailable && m.deck.id === deckId ? { ...m, deck: { ...m.deck, role: "follower" } } : m)))} />

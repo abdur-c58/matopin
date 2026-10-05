@@ -16,7 +16,7 @@ import { AccountMenu } from "./account-menu";
 import { type PanelKind, QuickPanelsProvider, useOpenPanel } from "./quick-panels";
 import { RailTip, RailTipProvider } from "./rail-tip";
 import { SelectionMenu } from "./selection-menu";
-import { useProfile } from "./profiles";
+import { GoogleSignIn, useProfile, useSignedIn } from "./profiles";
 import { useProfileData } from "./use-stats";
 
 export const deckLinks = (id: string) => [
@@ -321,7 +321,25 @@ function PageTransition({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** For a visitor who isn't signed in: the brand and a way to sign in, none of the app. */
+function GuestShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-dvh">
+      <header className="sticky top-0 z-30 border-b border-line bg-porcelain/90 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-4 md:px-8">
+          <Link href="/" className="flex items-center gap-2.5 transition hover:opacity-80">
+            <LogoMark className="size-9" /><span className="text-lg font-bold">{APP_NAME}</span>
+          </Link>
+          <GoogleSignIn className="ml-auto h-10" label="Sign in" />
+        </div>
+      </header>
+      <div className="mx-auto max-w-5xl">{children}</div>
+    </div>
+  );
+}
+
 export function AppShell({ children }: { children: React.ReactNode }) {
+  if (!useSignedIn()) return <GuestShell>{children}</GuestShell>;
   return (
     <DecksProvider>
       <QuickPanelsProvider>

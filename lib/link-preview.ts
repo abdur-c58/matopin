@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import type { AvatarColor, AvatarCrop } from "./avatar";
 import { APP_NAME } from "./brand";
 import { isLang, LANG_INFO } from "./lang";
+import type { PublicProfile } from "./social";
 import { rpc } from "./supabase";
 
 export const OG_SIZE = { width: 1200, height: 630 };
@@ -35,6 +36,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Null when it doesn't exist, isn't shared, or the preview functions aren't installed yet. */
 export const profilePreview = (id: string) => (/^[\w-]{1,64}$/.test(id) ? rpc<ProfilePreview | null>("matopin_preview_profile", { p_id: id }).catch(() => null) : Promise.resolve(null));
+export const publicProfile = (id: string) => (/^[\w-]{1,64}$/.test(id) ? rpc<PublicProfile | null>("matopin_public_profile", { p_id: id }).catch(() => null) : Promise.resolve(null));
 export const deckPreview = (id: string) => (UUID.test(id) ? rpc<DeckPreview | null>("matopin_preview_deck", { p_id: id }).catch(() => null) : Promise.resolve(null));
 export const invitePreview = (code: string) => (/^[0-9a-f]{8,64}$/i.test(code) ? rpc<DeckPreview | null>("matopin_preview_invite", { p_code: code }).catch(() => null) : Promise.resolve(null));
 
@@ -42,6 +44,9 @@ export const plural = (n: number, word: string) => `${n.toLocaleString("en-US")}
 export const deckLanguage = (d: DeckPreview) => (isLang(d.language) ? LANG_INFO[d.language].name : null);
 
 /** A short version tag for an image URL, so apps that cache previews by URL pick up a changed name or picture. */
+/** Bump when the images are drawn differently, so apps drop previews they cached under the old URL. */
+const IMAGE_REVISION = 2;
+
 function version(data: unknown): string {
   let h = 5381;
   for (const ch of JSON.stringify(data)) h = (h * 33) ^ ch.charCodeAt(0);
@@ -50,7 +55,7 @@ function version(data: unknown): string {
 
 /** Every tag a preview needs. Metadata objects replace their parent's rather than merging, so each is complete. */
 export function preview({ title, description, path, image, alt, data }: { title: string; description: string; path: string; image: string; alt: string; data?: unknown }): Metadata {
-  const url = data === undefined ? image : `${image}?v=${version(data)}`;
+  const url = data === undefined ? image : `${image}?v=${version([IMAGE_REVISION, data])}`;
   const images = [{ url, width: OG_SIZE.width, height: OG_SIZE.height, alt, type: "image/png" }];
   return {
     title: { absolute: title },

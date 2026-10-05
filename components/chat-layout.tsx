@@ -3,14 +3,15 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSelectedLayoutSegment } from "next/navigation";
 import { Dialog } from "radix-ui";
-import { ChevronDown, Inbox, MessageCircle, MessageCirclePlus, MessagesSquare, Search, Sparkles, X } from "lucide-react";
-import { BOT_ID, BOT_NAME, previewText, type BotSummary, type ChatSummary } from "@/lib/chat";
+import { ChevronDown, Inbox, MessageCircle, MessageCirclePlus, MessagesSquare, Search, Sparkles, Users, X } from "lucide-react";
+import { BOT_ID, BOT_NAME, groupRoute, groupTitle, previewText, type BotSummary, type ChatSummary } from "@/lib/chat";
 import { shortTime } from "@/lib/chat-client";
 import type { Person } from "@/lib/social";
 import { store } from "@/lib/store-client";
 import { PersonAvatar } from "./avatar";
 import { BotThread } from "./bot-thread";
 import { BotAvatar, ChatThread } from "./chat-thread";
+import { GroupAvatar, NewGroupForm } from "./group-chat";
 import { PanelFrame } from "./panel-frame";
 import { useProfile } from "./profiles";
 import { errorText } from "./social";
@@ -27,21 +28,33 @@ function RowLink({ id, active, onPick, className, children }: { id: string; acti
     : <Link href={`/chat/${id}`} aria-current={active ? "page" : undefined} className={cls}>{children}</Link>;
 }
 
+export const chatRouteId = (chat: ChatSummary) => (chat.group ? groupRoute(chat.group.id) : chat.person?.id ?? "");
+
+function lastLine(chat: ChatSummary, profile: string) {
+  const last = chat.last;
+  if (!last) return "";
+  const mine = last.senderId === profile;
+  if (last.kind === "system") return previewText(last, mine ? "You" : last.senderName ?? undefined);
+  const who = mine ? "You: " : last.senderId == null && last.kind === "ai" ? "Bao: " : chat.group && last.senderName ? `${last.senderName}: ` : "";
+  return `${who}${previewText(last)}`;
+}
+
 function ChatRow({ chat, active, onPick }: { chat: ChatSummary; active: boolean; onPick: OnPick }) {
   const { profile } = useProfile();
-  const mine = chat.last?.senderId === profile;
-  const last = chat.last ? `${mine && chat.last.kind !== "system" ? "You: " : chat.last.senderId == null && chat.last.kind === "ai" ? "Bao: " : ""}${previewText(chat.last)}` : "";
-  const note = chat.myStatus === "declined" ? "Messages off" : chat.theirStatus === "pending" ? "Request sent" : chat.theirStatus === "declined" ? "Not accepting messages" : null;
+  const last = lastLine(chat, profile);
+  const note = chat.myStatus === "pending" && chat.group ? "Added you to the group"
+    : chat.myStatus === "declined" ? "Messages off" : chat.theirStatus === "pending" ? "Request sent" : chat.theirStatus === "declined" ? "Not accepting messages" : null;
+  const title = chat.group ? groupTitle(chat.group.name, chat.group.members, chat.group.memberCount - 1) : chat.person?.name ?? "Someone";
   return (
     <li>
-      <RowLink id={chat.person.id} active={active} onPick={onPick} className={active ? "bg-volt-50 ring-1 ring-volt-500/30" : "hover:bg-raised"}>
+      <RowLink id={chatRouteId(chat)} active={active} onPick={onPick} className={active ? "bg-volt-50 ring-1 ring-volt-500/30" : "hover:bg-raised"}>
         <span className="relative shrink-0">
-          <PersonAvatar person={chat.person} className="size-11 text-base" />
+          {chat.group ? <GroupAvatar members={chat.group.members} /> : chat.person && <PersonAvatar person={chat.person} className="size-11 text-base" />}
           {chat.aiEnabled && <span className="absolute -right-1 -bottom-1 grid size-5 place-items-center rounded-full border-2 border-surface bg-second-500 text-on-second" title="Bao is in this chat"><Sparkles className="size-2.5" /></span>}
         </span>
         <span className="min-w-0 flex-1">
           <span className="flex items-baseline gap-2">
-            <span className={`truncate ${chat.unread ? "font-bold" : "font-semibold"}`}>{chat.person.name}</span>
+            <span className={`truncate ${chat.unread ? "font-bold" : "font-semibold"}`}>{title}</span>
             {chat.last && <span className="ml-auto shrink-0 text-[11px] text-muted">{shortTime(chat.last.createdAt)}</span>}
           </span>
           <span className="flex items-center gap-2">
@@ -78,32 +91,45 @@ function BotRow({ bot, active, onPick }: { bot: BotSummary | null; active: boole
 
 function NewChat({ onPick }: { onPick?: OnPick }) {
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<"chat" | "group">("chat");
   const [people, setPeople] = useState<Person[] | null>(null);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const router = useRouter();
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || mode !== "chat") return;
     let live = true;
     store<{ people: Person[] }>("social").then(
       (data) => { if (live) setPeople(data.people); },
       (e: unknown) => { if (live) setError(errorText(e, "Couldn't load people.")); },
     );
     return () => { live = false; };
-  }, [open]);
+  }, [open, mode]);
 
+  const go = (route: string) => { setOpen(false); if (onPick) onPick(route); else router.push(`/chat/${route}`); };
   const q = query.trim().toLowerCase();
   const shown = (people ?? []).filter((p) => !q || p.name.toLowerCase().includes(q));
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
+    <Dialog.Root open={open} onOpenChange={(next) => { setOpen(next); if (!next) setMode("chat"); }}>
       <Dialog.Trigger className="icon-btn" aria-label="New chat" title="New chat"><MessageCirclePlus className="size-[18px]" /></Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="overlay" />
-        <Dialog.Content className="popup fixed top-1/2 left-1/2 flex max-h-[min(34rem,calc(100dvh-1.5rem))] w-[min(26rem,calc(100vw-1.5rem))] -translate-x-1/2 -translate-y-1/2 flex-col p-5">
+        <Dialog.Content className="popup fixed top-1/2 left-1/2 flex h-[min(36rem,calc(100dvh-1.5rem))] w-[min(26rem,calc(100vw-1.5rem))] -translate-x-1/2 -translate-y-1/2 flex-col p-5">
           <Dialog.Close className="icon-btn absolute top-4 right-4" aria-label="Close"><X className="size-4" /></Dialog.Close>
-          <Dialog.Title className="pr-10 text-lg font-semibold">New chat</Dialog.Title>
-          <Dialog.Description className="mt-1 text-sm text-muted">Your first message is sent as a request. They can reply once they accept it.</Dialog.Description>
+          <Dialog.Title className="pr-10 text-lg font-semibold">{mode === "chat" ? "New chat" : "New group"}</Dialog.Title>
+          <Dialog.Description className="mt-1 text-sm text-muted">
+            {mode === "chat" ? "Your first message is sent as a request. They can reply once they accept it." : "Everyone you add gets an invite in their message requests and joins when they accept."}
+          </Dialog.Description>
+          <div className="mt-4 grid shrink-0 grid-cols-2 gap-1 rounded-full bg-raised p-1" role="tablist" aria-label="Chat type">
+            {(["chat", "group"] as const).map((m) => (
+              <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => setMode(m)}
+                className={`flex h-8 items-center justify-center gap-1.5 rounded-full text-sm font-semibold transition ${mode === m ? "bg-surface text-ink shadow-pop" : "text-muted hover:text-ink"}`}>
+                {m === "chat" ? <MessageCircle className="size-4" /> : <Users className="size-4" />}{m === "chat" ? "One person" : "Group"}
+              </button>
+            ))}
+          </div>
+          {mode === "group" ? <NewGroupForm onCreated={(id) => go(groupRoute(id))} /> : <>
           <label className="mt-4 flex h-10 items-center gap-2 rounded-full border border-line bg-porcelain pr-4 pl-3 transition focus-within:border-volt-500/60">
             <Search className="size-4 shrink-0 text-muted" />
             <input autoFocus className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted/80" placeholder="Find someone" aria-label="Find someone" value={query} onChange={(e) => setQuery(e.target.value)} />
@@ -114,17 +140,17 @@ function NewChat({ onPick }: { onPick?: OnPick }) {
             {people && shown.length === 0 && <li className="p-3 text-sm text-muted">{people.length ? "No one matches that name." : "No one else is here yet."}</li>}
             {shown.map((p) => (
               <li key={p.id}>
-                <button type="button" className="flex w-full items-center gap-3 rounded-2xl p-2 text-left transition hover:bg-raised"
-                  onClick={() => { setOpen(false); if (onPick) onPick(p.id); else router.push(`/chat/${p.id}`); }}>
+                <button type="button" className="flex w-full items-center gap-3 rounded-2xl p-2 text-left transition hover:bg-raised" onClick={() => go(p.id)}>
                   <PersonAvatar person={p} className="size-10 text-sm" />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-semibold">{p.name}</span>
-                    <span className="block truncate text-xs text-muted">{p.isFollowing ? "You follow them" : p.followsYou ? "Follows you" : p.bio || "Mandarin learner"}</span>
+                    <span className="block truncate text-xs text-muted">{p.isFollowing ? "You follow them" : p.followsYou ? "Follows you" : p.bio || "Language learner"}</span>
                   </span>
                 </button>
               </li>
             ))}
           </ul>
+          </>}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
@@ -169,7 +195,7 @@ function ChatList({ activeId, className, onPick }: { activeId: string | null; cl
               <span className="grid h-5 min-w-5 place-items-center rounded-full bg-tone-2/20 px-1.5 text-[11px] text-tone-2">{requests.length}</span>
               <ChevronDown className={`ml-auto size-3.5 transition ${showRequests ? "rotate-180" : ""}`} />
             </button>
-            {showRequests && <ul>{requests.map((c) => <ChatRow key={c.person.id} chat={c} active={c.person.id === activeId} onPick={onPick} />)}</ul>}
+            {showRequests && <ul>{requests.map((c) => <ChatRow key={chatRouteId(c)} chat={c} active={chatRouteId(c) === activeId} onPick={onPick} />)}</ul>}
           </section>
         )}
         {chats && rest.length === 0 && requests.length === 0 && (
@@ -179,7 +205,7 @@ function ChatList({ activeId, className, onPick }: { activeId: string | null; cl
             <p className="mt-1 text-xs text-muted">Start one with the button above, or from anyone’s profile. Bao is always here meanwhile.</p>
           </div>
         )}
-        <ul className="space-y-0.5">{rest.map((c) => <ChatRow key={c.person.id} chat={c} active={c.person.id === activeId} onPick={onPick} />)}</ul>
+        <ul className="space-y-0.5">{rest.map((c) => <ChatRow key={chatRouteId(c)} chat={c} active={chatRouteId(c) === activeId} onPick={onPick} />)}</ul>
       </div>
     </aside>
   );
