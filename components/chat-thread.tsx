@@ -24,7 +24,7 @@ import { ReactionPicker } from "./emoji-picker";
 import { FlashcardMaker } from "./flashcard-maker";
 import { GroupAvatar, GroupInfoDialog } from "./group-chat";
 import { useBotMode } from "./lang-context";
-import { useProfile } from "./profiles";
+import { useAi, useProfile } from "./profiles";
 import { DeckPreviewDialog, errorText, plural, VisibilityBadge } from "./social";
 
 const THREAD_POLL_MS = 2_500;
@@ -104,8 +104,9 @@ function DeckBubble({ deck, onOpen }: { deck: ChatDeck | null; onOpen: (id: stri
       </button>
       <div className="grid grid-cols-2 gap-2 border-t border-line p-2">
         <button type="button" className="btn btn-ghost h-9" onClick={() => onOpen(deck.id)}><Eye className="size-4" />Preview</button>
-        {deck.role
-          ? <Link href={owner ? `/decks/${deck.id}` : `/decks/${deck.id}/review`} className="btn btn-shard h-9">{owner ? <Layers className="size-4" /> : <BookOpen className="size-4" />}{owner ? "Open" : "Study"}</Link>
+        {owner ? <Link href={`/decks/${deck.id}`} className="btn btn-shard h-9"><Layers className="size-4" />Open</Link>
+          : deck.copyId ? <Link href={`/decks/${deck.copyId}`} className="btn btn-shard h-9"><Layers className="size-4" />Your copy</Link>
+          : deck.role === "collaborator" ? <Link href={`/decks/${deck.id}/review`} className="btn btn-shard h-9"><BookOpen className="size-4" />Study</Link>
           : <button type="button" className="btn btn-primary h-9" onClick={() => onOpen(deck.id)}><Plus className="size-4" />Get deck</button>}
       </div>
     </div>
@@ -283,7 +284,7 @@ function PrivateDeckAlert({ deck, name, busy, onShare, onCancel }: { deck: DeckS
   const owner = deck.role === "owner";
   const options = [
     { value: "unlisted" as const, label: "Make unlisted & send", detail: "Hidden from Social. Only people you send it to can open it.", icon: EyeOff },
-    { value: "public" as const, label: "Make public & send", detail: "Anyone can find and follow it in Social.", icon: Globe },
+    { value: "public" as const, label: "Make public & send", detail: "Anyone can find it in Social and save a copy.", icon: Globe },
   ];
   return (
     <div role="alertdialog" aria-labelledby="private-deck-title" aria-describedby="private-deck-detail" className="mb-2 animate-pop rounded-3xl border border-tone-2/40 bg-tone-2/10 p-4">
@@ -353,6 +354,8 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
   const [loadingEarlier, setLoadingEarlier] = useState(false);
   const [error, setError] = useState("");
   const [asking, setAsking] = useState<number[]>([]);
+  const ai = useAi();
+  const bao = ai("bao");
   const [replyTo, setReplyTo] = useState<Local | null>(null);
   const [active, setActive] = useState<number | null>(null);
   const [highlight, setHighlight] = useState<number | null>(null);
@@ -458,8 +461,8 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
   };
   const lastMine = [...messages].reverse().find((m) => m.id > 0 && m.senderId === profile && m.kind !== "system");
   const askMatch = /(?:^|\s)@(\w*)$/.exec(text.slice(0, caret));
-  const suggestAsk = askMatch != null && "ask".startsWith(askMatch[1].toLowerCase()) && askMatch[1].toLowerCase() !== "ask";
-  const asksBot = isAsk(text);
+  const suggestAsk = bao && askMatch != null && "ask".startsWith(askMatch[1].toLowerCase()) && askMatch[1].toLowerCase() !== "ask";
+  const asksBot = bao && isAsk(text);
 
   async function ask(messageId: number) {
     setAsking((a) => [...a, messageId]);
@@ -478,7 +481,7 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
       id: -Date.now(), senderId: profile, kind: payload.kind, body: payload.kind === "text" ? payload.body : "", createdAt: new Date().toISOString(),
       replyTo: replyTo && replyTo.id > 0 ? { id: replyTo.id, senderId: replyTo.senderId, kind: replyTo.kind, body: replyTo.body, deckName: replyTo.deck && !replyTo.deck.unavailable ? replyTo.deck.name : null } : null,
       deck: payload.kind === "deck" ? {
-        id: payload.deck.id, name: payload.deck.name, visibility: payload.deck.visibility, cards: payload.deck.cards, followers: 0, role: payload.deck.role, updatedAt: "",
+        id: payload.deck.id, name: payload.deck.name, visibility: payload.deck.visibility, cards: payload.deck.cards, members: 0, saves: 0, remixes: 0, copyId: null, role: payload.deck.role, updatedAt: "",
         owner: payload.deck.role === "owner" ? { id: profile, name: myName, avatar, avatarCrop, color } : { id: payload.deck.ownerId, name: payload.deck.ownerName ?? "someone", avatar: null, avatarCrop: null, color: "azure" },
       } : null,
       reactions: [], local: "sending", payload,
@@ -493,7 +496,7 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
       });
       setMessages((list) => upsert(list.filter((m) => m.id !== temp.id), [res.message]));
       setChat(res.chat);
-      if (payload.kind === "text" && isAsk(payload.body) && res.chat.aiEnabled) void ask(res.message.id);
+      if (bao && payload.kind === "text" && isAsk(payload.body) && res.chat.aiEnabled) void ask(res.message.id);
     } catch (e) {
       if (payload.kind === "deck" && errorText(e, "") === "This deck is private.") {
         setMessages((list) => list.filter((m) => m.id !== temp.id));
@@ -508,7 +511,7 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
     const body = text.trim();
     if (!body || !canSend) return;
     if (body.length > MAX_MESSAGE) return void toast.error(`Messages can be up to ${MAX_MESSAGE} characters.`);
-    if (isAsk(body) && !chat?.aiEnabled) {
+    if (bao && isAsk(body) && !chat?.aiEnabled) {
       if (!bothAccepted) return void toast.error(group ? "Join the group first." : `Bao can join once ${title} has accepted your chat.`);
       setConfirmAi(true);
       return;
@@ -682,7 +685,7 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
                   <Users className="size-4 text-muted" />Members and settings
                 </DropdownMenu.Item>
               )}
-              {chat && bothAccepted && (
+              {chat && bothAccepted && (bao || chat.aiEnabled) && (
                 <DropdownMenu.Item className="flex h-10 cursor-pointer items-center gap-3 rounded-xl px-3 text-sm outline-none data-[highlighted]:bg-raised" onSelect={() => (chat.aiEnabled ? void setBot(false) : setConfirmAi(true))}>
                   <Sparkles className="size-4 text-second-300" />{chat.aiEnabled ? "Remove Bao" : "Add Bao"}
                 </DropdownMenu.Item>
@@ -734,7 +737,7 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
                 onOpenDeck={setPreviewDeck}
                 onRetry={() => { setMessages((list) => list.filter((x) => x.id !== m.id)); if (m.payload) void send(m.payload); }}
                 onDiscard={() => setMessages((list) => list.filter((x) => x.id !== m.id))}
-                onFlashcards={() => setCardsFrom(m.body)}
+                onFlashcards={ai("create") ? () => setCardsFrom(m.body) : undefined}
               />
             </Fragment>
           );
@@ -798,7 +801,7 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
             )}
             <form className={`flex items-end gap-1 rounded-[1.6rem] border bg-porcelain p-1.5 transition ${asksBot ? "border-second-500/60" : "border-line focus-within:border-volt-500/60"}`} onSubmit={(e) => { e.preventDefault(); submit(); }}>
               <DeckPicker onPick={pickDeck} disabled={!canSend} />
-              <button type="button" className={`icon-btn shrink-0 ${asksBot ? "text-second-300" : ""}`} aria-label="Ask Bao" title="Ask Bao (@ask)" onClick={insertAsk}><Sparkles className="size-[18px]" /></button>
+              {bao && <button type="button" className={`icon-btn shrink-0 ${asksBot ? "text-second-300" : ""}`} aria-label="Ask Bao" title="Ask Bao (@ask)" onClick={insertAsk}><Sparkles className="size-[18px]" /></button>}
               <textarea
                 ref={input} rows={1} value={text} maxLength={MAX_MESSAGE + 200} aria-label={`Message ${title}`}
                 placeholder={asksBot ? "Ask Bao about Chinese…" : `Message ${title}`}
@@ -821,7 +824,7 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
       {group && <GroupInfoDialog group={group} open={info} onOpenChange={setInfo} onGroup={(next) => setThread((t) => t && { ...t, group: next })} onLeft={left} />}
       <FlashcardMaker text={cardsFrom} onClose={() => setCardsFrom(null)} />
       <DeckPreviewDialog deckId={previewDeck} onClose={() => setPreviewDeck(null)}
-        onFollowed={(deckId) => setMessages((list) => list.map((m) => (m.deck && !m.deck.unavailable && m.deck.id === deckId ? { ...m, deck: { ...m.deck, role: "follower" } } : m)))} />
+        onSaved={(next) => setMessages((list) => list.map((m) => (m.deck && !m.deck.unavailable && m.deck.id === next.id ? { ...m, deck: { ...m.deck, ...next } } : m)))} />
     </>
   );
 }

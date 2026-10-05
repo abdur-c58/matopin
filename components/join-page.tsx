@@ -61,7 +61,7 @@ export function JoinPage({ code }: { code: string }) {
             <Link href={`/u/${deck.owner.id}`} className="mx-auto mt-3 flex w-fit items-center gap-2 text-sm text-muted transition hover:text-ink">
               <PersonAvatar person={deck.owner} className="size-7 text-xs" />by <span className="font-semibold text-ink">{deck.owner.name}</span>
             </Link>
-            <p className="mt-3 text-sm text-muted">{plural(deck.cards, "card")} · {plural(deck.followers, "member")}</p>
+            <p className="mt-3 text-sm text-muted">{plural(deck.cards, "card")} · {plural(deck.members, "collaborator")}</p>
             <p className="mx-auto mt-4 max-w-xs text-xs text-muted">Collaborators can add and edit cards. Your review progress stays your own.</p>
             <div className="mt-6">
               {deck.role === "owner" ? (

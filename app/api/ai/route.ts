@@ -5,12 +5,18 @@ import {
 import { checkBatch } from "@/lib/card-check";
 import { kanaKey } from "@/lib/jdict";
 import { DEFAULT_LANG, hasCjk, isLang, type Lang } from "@/lib/lang";
+import { aiRefusal } from "@/lib/matopin-session";
 import { DEFAULT_OPENAI_MODEL, generateJson } from "@/lib/openai";
+import type { AiFeature } from "@/lib/prefs";
 import { type Card, DEFAULT_FLUENCY, isCardKind, isFluency } from "@/lib/cards";
 
 export const runtime = "nodejs";
 
 const MAX_TRANSLATE = 1500;
+
+const TASK_FEATURES: Record<string, AiFeature> = {
+  fill: "create", lookup: "create", prompt: "create", format: "create", extract: "create", check: "check", convert: "convert", translate: "translate",
+};
 
 type Body = {
   task?: string;
@@ -39,6 +45,8 @@ async function repaired(key: string, model: string, drafts: CardDraft[], lang: L
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as Body | null;
   if (!body?.task) return Response.json({ error: "Missing request." }, { status: 400 });
+  const refusal = await aiRefusal(TASK_FEATURES[body.task] ?? "create");
+  if (refusal) return refusal;
   const key = process.env.OPENAI_API_KEY?.trim() ?? "";
   if (!key) return Response.json({ error: "Set OPENAI_API_KEY in .env.local." }, { status: 400 });
   const model = process.env.OPENAI_MODEL?.trim() || DEFAULT_OPENAI_MODEL;

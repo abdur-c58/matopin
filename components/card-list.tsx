@@ -17,8 +17,9 @@ type Props = {
   onSelect: (id: string) => void; onChange: (id: string, f: CardField, v: string) => void;
   onKind: (id: string, kind: CardKind) => void;
   onApplyMatch: (id: string, match: WordMatch) => void;
-  onLookup: (c: Card, hint: string) => Promise<WordMatch[] | null>;
-  onRemove: (id: string) => void; onVoice: (c: Card) => void;
+  /** Null hides word lookup, and `onVoice` null hides generating audio, when those AI services are off. */
+  onLookup: ((c: Card, hint: string) => Promise<WordMatch[] | null>) | null;
+  onRemove: (id: string) => void; onVoice: ((c: Card) => void) | null;
 };
 
 function Cell({ label, className = "", multiline = false, lang, ...p }: { label: string; className?: string; multiline?: boolean } & React.InputHTMLAttributes<HTMLInputElement> & React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
@@ -56,7 +57,7 @@ function KindPicker({ kind, onChange }: { kind: CardKind; onChange: (kind: CardK
 
 function Row({ card, active, voiced, busy, simplified, onSelect, onChange, onKind, onApplyMatch, onLookup, onRemove, onVoice }: {
   card: Card; active: boolean; voiced: boolean; busy: boolean;
-  onSelect: () => void; onVoice: () => void;
+  onSelect: () => void; onVoice: (() => void) | null;
 } & Pick<Props, "simplified" | "onChange" | "onKind" | "onRemove" | "onApplyMatch" | "onLookup">) {
   const withExample = hasExample(card);
   const lang = useCardLang();
@@ -73,6 +74,7 @@ function Row({ card, active, voiced, busy, simplified, onSelect, onChange, onKin
   const set = (f: CardField) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(card.id, f, e.target.value);
 
   async function search(clue = hint, subject: Card = card) {
+    if (!onLookup) return;
     if (!subject.reading.trim() && !subject.meaning.trim()) { await onLookup(subject, clue); return; }
     lookupOpenRef.current = true;
     setLookupOpen(true);
@@ -116,14 +118,20 @@ function Row({ card, active, voiced, busy, simplified, onSelect, onChange, onKin
           <span className="label">{labels.meaning}</span>
           <div className="flex items-center gap-1">
             <input className="field min-w-0 flex-1" value={card.meaning} onChange={set("meaning")} placeholder={labels.meaningHint} aria-label={labels.meaning} onKeyDown={(e) => { if (e.key === "Enter" && card.kind !== "sentence") void search(); }} />
-            <button type="button" className="icon-btn size-10 shrink-0 border border-line" aria-label="Find words" disabled={looking} onClick={() => void search()}>
-              {looking ? <LoaderCircle className="size-4 animate-spin" /> : <Search className="size-4" />}
-            </button>
+            {onLookup && (
+              <button type="button" className="icon-btn size-10 shrink-0 border border-line" aria-label="Find words" disabled={looking} onClick={() => void search()}>
+                {looking ? <LoaderCircle className="size-4 animate-spin" /> : <Search className="size-4" />}
+              </button>
+            )}
           </div>
         </div>
         <div className="flex items-center justify-end gap-0.5">
-          <span title={voiced ? "Audio ready" : "No audio yet"} className={`mr-1.5 size-2 rounded-full transition-colors ${voiced ? "bg-tone-3" : "bg-line"}`} />
-          <button type="button" className="icon-btn" aria-label="Generate audio" disabled={busy || !card.term.trim()} onClick={onVoice}><Mic className="size-4" /></button>
+          {onVoice && (
+            <>
+              <span title={voiced ? "Audio ready" : "No audio yet"} className={`mr-1.5 size-2 rounded-full transition-colors ${voiced ? "bg-tone-3" : "bg-line"}`} />
+              <button type="button" className="icon-btn" aria-label="Generate audio" disabled={busy || !card.term.trim()} onClick={onVoice}><Mic className="size-4" /></button>
+            </>
+          )}
           {simplified && (
             <button type="button" className="inline-flex h-8 items-center gap-1 rounded-full px-2.5 text-xs font-medium whitespace-nowrap text-muted transition hover:bg-raised hover:text-ink" aria-expanded={more} onClick={() => setMore((m) => !m)}>
               <ChevronDown className={`size-3.5 transition-transform ${more ? "rotate-180" : ""}`} />{more ? "Show less" : "Show more"}
@@ -189,7 +197,7 @@ export function CardList({ cards, selectedId, clips, busy, simplified, onSelect,
             key={c.id} card={c} active={c.id === selectedId} voiced={Boolean(c.term.trim() && clips[target(c)])}
             busy={busy} simplified={simplified}
             onSelect={() => onSelect(c.id)} onChange={onChange} onKind={onKind} onApplyMatch={onApplyMatch} onLookup={onLookup}
-            onRemove={onRemove} onVoice={() => onVoice(c)}
+            onRemove={onRemove} onVoice={onVoice && (() => onVoice(c))}
           />
         ))}
       </AnimatePresence>
@@ -197,29 +205,32 @@ export function CardList({ cards, selectedId, clips, busy, simplified, onSelect,
   );
 }
 
+/** `onCreate` and `onFill` are null when card writing with AI is off, which hides them. */
 export function EditTools({ busy, onCreate, onFill, onAdd, onClear }: {
-  busy: boolean; onCreate: (prompt: string) => Promise<boolean>; onFill: () => void; onAdd: () => void; onClear: () => void;
+  busy: boolean; onCreate: ((prompt: string) => Promise<boolean>) | null; onFill: (() => void) | null; onAdd: () => void; onClear: () => void;
 }) {
   const [prompt, setPrompt] = useState("");
   const lang = useCardLang();
   const submit = () => {
-    if (busy || !prompt.trim()) return;
+    if (busy || !prompt.trim() || !onCreate) return;
     void onCreate(prompt).then((ok) => { if (ok) setPrompt(""); });
   };
   return (
     <section aria-label="Card tools" className="surface space-y-3 p-4">
-      <form onSubmit={(e) => { e.preventDefault(); submit(); }}>
-        <label htmlFor="card-prompt" className="label">New card from a prompt</label>
-        <textarea
-          id="card-prompt" rows={2} className="field h-auto resize-none py-2 leading-relaxed"
-          value={prompt} onChange={(e) => setPrompt(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
-          placeholder="e.g. the word for busy, or how to say I'm hungry"
-        />
-        <Button variant="primary" className="mt-2 w-full" disabled={busy || !prompt.trim()} type="submit"><WandSparkles className="size-4" />Create card</Button>
-      </form>
-      <div className="grid grid-cols-2 gap-2">
-        <Button disabled={busy} onClick={onFill} title={`Fill missing fields for every card with ${lang === "ja" ? "a word or reading" : "pinyin"}`}><Sparkles className="size-4" />Fill details</Button>
+      {onCreate && (
+        <form onSubmit={(e) => { e.preventDefault(); submit(); }}>
+          <label htmlFor="card-prompt" className="label">New card from a prompt</label>
+          <textarea
+            id="card-prompt" rows={2} className="field h-auto resize-none py-2 leading-relaxed"
+            value={prompt} onChange={(e) => setPrompt(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
+            placeholder="e.g. the word for busy, or how to say I'm hungry"
+          />
+          <Button variant="primary" className="mt-2 w-full" disabled={busy || !prompt.trim()} type="submit"><WandSparkles className="size-4" />Create card</Button>
+        </form>
+      )}
+      <div className={`grid gap-2 ${onFill ? "grid-cols-2" : ""}`}>
+        {onFill && <Button disabled={busy} onClick={onFill} title={`Fill missing fields for every card with ${lang === "ja" ? "a word or reading" : "pinyin"}`}><Sparkles className="size-4" />Fill details</Button>}
         <Button onClick={onAdd}><Plus className="size-4" />Add card</Button>
       </div>
       <Button variant="danger-outline" className="w-full" disabled={busy} onClick={onClear}><Trash2 className="size-4" />Clear all</Button>

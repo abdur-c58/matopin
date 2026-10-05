@@ -24,7 +24,7 @@ const KANJI = /[\u3400-\u9fff\uf900-\ufaff々]/;
 const JLPT: Record<number, string> = { 4: "N5", 3: "N4", 2: "N3–N2", 1: "N1" };
 const gradeLabel = (g: number) => (g <= 6 ? `Grade ${g}` : g === 8 ? "Jōyō" : "Jinmeiyō");
 
-const say = (text: string, reading: string, sentence?: number) => () => loadPronunciationJa(text, reading, sentence);
+const say = (text: string, reading: string, sentence?: number) => (ai: boolean) => loadPronunciationJa(text, reading, sentence, ai);
 
 // Furigana ----------------------------------------------------------------------------------------------------------
 

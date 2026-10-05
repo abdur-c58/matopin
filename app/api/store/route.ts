@@ -1,16 +1,12 @@
-import { cookies } from "next/headers";
-import { auth } from "@/auth";
 import { BOT_ID } from "@/lib/chat";
 import { askBot } from "@/lib/chat-bot";
 import { isLang } from "@/lib/lang";
+import { aiOffMessage, logout, matopinSession, prefsFor, withToken } from "@/lib/matopin-session";
 import { rpc, StoreError } from "@/lib/supabase";
 import { cleanCrop, DEFAULT_AVATAR_COLOR, isAvatarColor } from "@/lib/avatar";
-import { cleanPrefs } from "@/lib/prefs";
+import { aiAllowed, cleanPrefs } from "@/lib/prefs";
 import { isDeckRole, isVisibility, type DeckRole } from "@/lib/social";
 import { DEFAULT_FLUENCY, isFluency } from "@/lib/cards";
-
-const COOKIE = "matopin_session";
-const MAX_AGE = 30 * 24 * 60 * 60;
 
 type ProfileRow = { id: string; name: string; email?: string | null; fluency: string; prefs?: unknown; avatar?: string | null; color?: string; avatar_crop?: unknown; bio?: string | null };
 type DeckRow = { id: string; deck: unknown; srs: unknown; tags: unknown; version: number; role?: string; visibility?: string; owner_id?: string; owner_name?: string | null };
@@ -38,54 +34,44 @@ const int = (v: unknown) => (typeof v === "number" && Number.isSafeInteger(v) ? 
 const uuid = (v: unknown) => (typeof v === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v) ? v : null);
 const ids = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string").slice(0, 40) : []);
 
-/**
- * Google sign-in (auth.ts) says who is asking; the matopin_* functions want their own login token. The token is kept
- * in an httpOnly cookie as `<subject>|<token>`, and a new one is made whenever it is missing, expired, or belongs
- * to a different Google account than the one now signed in.
- */
 export async function POST(req: Request) {
   const body = ((await req.json().catch(() => null)) ?? {}) as Body;
-  const jar = await cookies();
-  const session = await auth();
-  const subject = session?.user?.id;
-  const [cookieSubject, saved] = (jar.get(COOKIE)?.value ?? "").split("|");
-
   try {
     if (body.action === "logout") {
-      if (saved) await rpc("matopin_logout", { p_token: saved }).catch(() => null);
-      jar.delete(COOKIE);
+      await logout();
       return Response.json({ ok: true });
     }
-    if (!subject) {
-      jar.delete(COOKIE);
+    const session = await matopinSession();
+    if (!session) {
       if (body.action === "me") return Response.json({ me: null });
       return Response.json({ error: "Not logged in" }, { status: 401 });
     }
-
-    const signIn = async () => {
-      const { email, name, image } = session.user ?? {};
-      const token = await rpc<string>("matopin_oauth_login", { p_subject: subject, p_email: email ?? null, p_name: name ?? null, p_avatar: image ?? null }, { admin: true });
-      jar.set(COOKIE, `${subject}|${token}`, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: MAX_AGE });
-      return token;
-    };
-
-    const fresh = cookieSubject !== subject || !saved;
-    const token = fresh ? await signIn() : saved;
-    try {
-      return await handle(body, token);
-    } catch (e) {
-      // Every function checks the token before changing anything, so retrying with a new one is safe.
-      if (fresh || !(e instanceof StoreError) || e.status !== 401) throw e;
-      return await handle(body, await signIn());
-    }
+    return await withToken(session, (token) => handle(body, token));
   } catch (e) {
     if (e instanceof StoreError) return Response.json({ error: e.message }, { status: e.status });
     return Response.json({ error: "Could not reach Supabase." }, { status: 502 });
   }
 }
 
+/** Bao reads a chat only while nobody in it has turned Bao off. Before supabase/016 is run, only the asker's own setting counts. */
+async function baoBlocked(token: string, chat: { with: string } | { group: string }): Promise<boolean> {
+  try {
+    return await rpc<boolean>("matopin_chat_ai_blocked", { p_token: token, p_profile: "with" in chat ? chat.with : null, p_chat: "group" in chat ? chat.group : null });
+  } catch (e) {
+    if (!(e instanceof StoreError) || !/missing the app tables/.test(e.message)) throw e;
+    return !aiAllowed(await prefsFor(token), "bao");
+  }
+}
+
+async function needBao(token: string, chat: { with: string } | { group: string }) {
+  if (!(await baoBlocked(token, chat))) return;
+  if (!aiAllowed(await prefsFor(token), "bao")) throw new StoreError(aiOffMessage("bao"), 403);
+  throw new StoreError("Someone in this chat has turned Bao off, so Bao can’t read it.", 403);
+}
+
 async function handle(body: Body, token: string) {
   const group = uuid(body.group);
+  const chat = group ? { group } : { with: str(body.with) };
   switch (body.action) {
     case "me": {
       const me = await rpc<ProfileRow[]>("matopin_me", { p_token: token });
@@ -125,13 +111,14 @@ async function handle(body: Body, token: string) {
       return Response.json(await rpc("matopin_social", { p_token: token }));
     case "profileView":
       return Response.json(await rpc("matopin_profile_view", { p_token: token, p_profile: str(body.id) }));
+    case "peopleSearch":
+      return Response.json({ people: await rpc("matopin_people_search", { p_token: token, p_query: str(body.query).slice(0, 80) }) });
     case "follow":
       return Response.json({ person: await rpc("matopin_follow", { p_token: token, p_profile: str(body.id), p_on: body.on === true }) });
     case "deckPreview":
       return Response.json({ deck: await rpc("matopin_deck_preview", { p_token: token, p_id: str(body.id) }) });
-    case "followDeck":
-      await rpc("matopin_deck_follow", { p_token: token, p_id: str(body.id), p_on: body.on === true });
-      return Response.json({ ok: true });
+    case "copyDeck":
+      return Response.json(await rpc("matopin_deck_copy", { p_token: token, p_id: str(body.id) }));
     case "invitePreview":
       return Response.json({ deck: await rpc("matopin_invite_preview", { p_token: token, p_code: str(body.code) }) });
     case "inviteJoin":
@@ -141,7 +128,7 @@ async function handle(body: Body, token: string) {
     case "deckShare":
       return Response.json(await rpc("matopin_deck_share", { p_token: token, p_id: str(body.id), p_visibility: str(body.visibility), p_reset: body.reset === true }));
     case "deckMember": {
-      const role = body.role === "follower" || body.role === "collaborator" ? body.role : null;
+      const role = body.role === "collaborator" ? body.role : null;
       return Response.json(await rpc("matopin_deck_member", { p_token: token, p_id: str(body.id), p_member: str(body.member), p_role: role }));
     }
     case "chats": {
@@ -151,6 +138,7 @@ async function handle(body: Body, token: string) {
     case "botThread":
       return Response.json(await rpc("matopin_bot_thread", { p_token: token, p_after: int(body.after), p_before: int(body.before), p_since: int(body.since) }));
     case "botSend":
+      await needBao(token, { with: BOT_ID });
       return Response.json(await rpc("matopin_bot_send", { p_token: token, p_body: str(body.body), p_reply: int(body.replyTo) }));
     case "botClear":
       await rpc("matopin_bot_clear", { p_token: token });
@@ -170,6 +158,7 @@ async function handle(body: Body, token: string) {
     }
     case "chatRespond":
     case "chatSetAi":
+      if (body.action === "chatSetAi" && body.on === true) await needBao(token, chat);
       if (group) {
         if (body.action === "chatSetAi") return Response.json({ chat: await rpc("matopin_group_set_ai", { p_token: token, p_chat: group, p_on: body.on === true }) });
         return Response.json({ chat: await rpc("matopin_group_respond", { p_token: token, p_chat: group, p_accept: body.accept === true }) });
@@ -180,7 +169,8 @@ async function handle(body: Body, token: string) {
     case "chatReact":
       return Response.json({ reactions: await rpc("matopin_chat_react", { p_token: token, p_message: int(body.message), p_emoji: str(body.emoji), p_on: body.on === true }) });
     case "chatAsk":
-      return Response.json({ message: await askBot(token, group ? { group } : { with: str(body.with) }, int(body.message), isLang(body.lang) ? body.lang : undefined) });
+      await needBao(token, chat);
+      return Response.json({ message: await askBot(token, chat, int(body.message), isLang(body.lang) ? body.lang : undefined) });
     case "groupCreate":
       return Response.json(await rpc("matopin_group_create", { p_token: token, p_name: str(body.name), p_members: ids(body.members) }));
     case "groupAdd":

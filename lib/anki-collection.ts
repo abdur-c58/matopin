@@ -84,6 +84,68 @@ function readDb(db: DatabaseSync): AnkiCollection {
   return { created: num(col.crt) * 1000, notetypes, decks, notes, cards, reviews };
 }
 
+const MAX_MEDIA_INDEX = 64 * 1024 * 1024;
+
+function varint(bytes: Buffer, at: number): [number, number] {
+  let value = 0;
+  let scale = 1;
+  for (let i = at; i < bytes.length && i < at + 10; i++) {
+    value += (bytes[i] & 0x7f) * scale;
+    if (!(bytes[i] & 0x80)) return [value, i + 1];
+    scale *= 128;
+  }
+  throw new AnkiError("The package's media list is damaged.");
+}
+
+/** Walks a protobuf message, calling `field` for each length-delimited field and skipping the rest. */
+function protoFields(bytes: Buffer, field: (no: number, value: Buffer) => void) {
+  let at = 0;
+  while (at < bytes.length) {
+    const [key, next] = varint(bytes, at);
+    at = next;
+    const wire = key % 8;
+    if (wire === 0) at = varint(bytes, at)[1];
+    else if (wire === 1) at += 8;
+    else if (wire === 5) at += 4;
+    else if (wire === 2) {
+      const [length, start] = varint(bytes, at);
+      if (start + length > bytes.length) throw new AnkiError("The package's media list is damaged.");
+      field(Math.floor(key / 8), bytes.subarray(start, start + length));
+      at = start + length;
+    } else throw new AnkiError("The package's media list is damaged.");
+  }
+}
+
+/**
+ * The package's `media` file, as file name to the zip entry that holds it. Older packages keep it as JSON
+ * (`{"0": "word.mp3"}`); newer ones as zstd-compressed protobuf, where entry i is stored as "i".
+ */
+export function readMediaIndex(bytes: Buffer): Record<string, string> {
+  let raw = bytes;
+  if (bytes.subarray(0, 4).equals(ZSTD_MAGIC)) {
+    try {
+      raw = zstdDecompressSync(bytes, { maxOutputLength: MAX_MEDIA_INDEX });
+    } catch {
+      throw new AnkiError("The package's media list is damaged.");
+    }
+  }
+  const out: Record<string, string> = {};
+  const head = raw.subarray(0, 64).toString("utf8").trimStart();
+  if (head.startsWith("{")) {
+    for (const [entry, name] of Object.entries(parseJson(raw.toString("utf8")))) if (typeof name === "string") out[name] = entry;
+    return out;
+  }
+  let index = 0;
+  protoFields(raw, (no, entry) => {
+    if (no !== 1) return;
+    let name = "";
+    protoFields(entry, (field, value) => { if (field === 1) name = value.toString("utf8"); });
+    if (name) out[name] = String(index);
+    index++;
+  });
+  return out;
+}
+
 /** `bytes` is collection.anki21b (zstd), collection.anki21, or collection.anki2. */
 export async function readCollection(bytes: Buffer): Promise<AnkiCollection> {
   let raw = bytes;

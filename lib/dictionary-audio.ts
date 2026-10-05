@@ -236,9 +236,9 @@ export function piecesOf(words: string[], syllables: string[]): Piece[] {
  * character. A sentence passes its Tatoeba id and its words, so it can be read word by word when Tatoeba has no
  * openly licensed recording of it.
  */
-export async function pronounce({ text, pinyin, sentence, words }: { text: string; pinyin: string; sentence: number | null; words: string[] }): Promise<Pronunciation> {
+export async function pronounce({ text, pinyin, sentence, words, ai = true }: { text: string; pinyin: string; sentence: number | null; words: string[]; ai?: boolean }): Promise<Pronunciation> {
   const pieces = piecesOf(words.length ? words : [text], numberedSyllables(pinyin));
-  const main = sentence ? [hasHanChars(text) ? fishKey(text) : null, `sentence:${sentence}`] : [];
+  const main = sentence ? [ai && hasHanChars(text) ? fishKey(text) : null, `sentence:${sentence}`] : [];
   const keys = [...new Set([...main, ...pieces.flatMap((p) => [p.key, ...p.fallback])].filter((k): k is string => Boolean(k)))];
   if (!keys.length) return { clips: [] };
 
@@ -258,11 +258,11 @@ export async function pronounce({ text, pinyin, sentence, words }: { text: strin
 
 /**
  * Japanese: a word plays a Lingua Libre recording, else Fish Audio reading its kana. A sentence plays its
- * Fish Audio reading, else a Tatoeba recording.
+ * Fish Audio reading, else a Tatoeba recording. Without `ai`, only the recordings.
  */
-export async function pronounceJa({ text, reading, sentence }: { text: string; reading: string; sentence: number | null }): Promise<Pronunciation> {
+export async function pronounceJa({ text, reading, sentence, ai = true }: { text: string; reading: string; sentence: number | null; ai?: boolean }): Promise<Pronunciation> {
   const said = hasKana(text) || !reading.trim() ? text : reading;
-  const keys = sentence ? [fishJaKey(said), `sentence:${sentence}`] : [`jaword:${text.trim()}`, fishJaKey(said)];
+  const keys = (sentence ? [fishJaKey(said), `sentence:${sentence}`] : [`jaword:${text.trim()}`, fishJaKey(said)]).filter((key) => ai || !key.startsWith("fish"));
   if (!text.trim() || !hasCjk(said)) return { clips: [] };
   const get = await rowGetter(keys);
   for (const key of keys) {

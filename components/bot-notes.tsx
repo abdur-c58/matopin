@@ -10,7 +10,7 @@ import { hasHanChar, hasKana, isKanaOnly, LANG_INFO } from "@/lib/lang";
 import { rubyPieces, toneOf } from "@/lib/cards";
 import { FlashcardMaker } from "./flashcard-maker";
 import { Pinyin } from "./preview";
-import { useProfile } from "./profiles";
+import { useAi, useProfile } from "./profiles";
 import { useLookUp } from "./quick-panels";
 
 const GAP = 8;
@@ -78,6 +78,7 @@ function WordRow({ word, lang, onLookUp }: { word: NoteWord; lang: Note["lang"];
 
 function CardActions({ note, onCards }: { note: Note; onCards: () => void }) {
   const { prefs } = useProfile();
+  const ai = useAi();
   const lookUp = useLookUp();
   const [copied, setCopied] = useState(false);
   const [listening, setListening] = useState<"loading" | "playing" | null>(null);
@@ -113,12 +114,14 @@ function CardActions({ note, onCards }: { note: Note; onCards: () => void }) {
   const button = "inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-muted transition hover:bg-raised hover:text-ink";
   return (
     <div className="flex flex-wrap gap-0.5 border-t border-line p-1.5">
-      <button type="button" className={button} onClick={() => void hear()}>
-        {listening === "loading" ? <LoaderCircle className="size-3.5 animate-spin" /> : listening === "playing" ? <Square className="size-3 fill-current" /> : <Volume2 className="size-3.5" />}Listen
-      </button>
+      {ai("voice") && (
+        <button type="button" className={button} onClick={() => void hear()}>
+          {listening === "loading" ? <LoaderCircle className="size-3.5 animate-spin" /> : listening === "playing" ? <Square className="size-3 fill-current" /> : <Volume2 className="size-3.5" />}Listen
+        </button>
+      )}
       <button type="button" className={button} onClick={() => lookUp(note.text, note.lang)}><BookA className="size-3.5" />Dictionary</button>
       <button type="button" className={button} onClick={() => void copy()}>{copied ? <Check className="size-3.5 text-volt-500" /> : <Copy className="size-3.5" />}Copy</button>
-      <button type="button" className={button} onClick={onCards}><Layers className="size-3.5" />Cards</button>
+      {ai("create") && <button type="button" className={button} onClick={onCards}><Layers className="size-3.5" />Cards</button>}
     </div>
   );
 }

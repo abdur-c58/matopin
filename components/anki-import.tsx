@@ -2,31 +2,31 @@
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Dialog } from "radix-ui";
-import { FileUp, History, Layers, LoaderCircle, TriangleAlert, X } from "lucide-react";
+import { FileUp, History, Layers, LoaderCircle, TriangleAlert, Volume2, X } from "lucide-react";
 import { toast } from "sonner";
 import {
-  ANKI_ACCEPT, buildDecks, cleanField, deckChoices, deckLabel, FIELD_ROLES, filledCard, guessRoles, isAnkiFile, noteToCard, readAnkiPackage,
-  type AnkiCollection, type FieldRole, type Roles,
+  ANKI_ACCEPT, attachAudio, buildDecks, cleanField, deckChoices, deckLabel, FIELD_ROLES, filledCard, guessRoles, isAnkiFile, noteSounds, noteToCard, readAnkiPackage,
+  type AnkiCollection, type AnkiMedia, type FieldRole, type Roles,
 } from "@/lib/anki";
 import { addDeck, deckScope } from "@/lib/decks";
 import { detectLanguage, LANG_INFO, LANGS, type Lang } from "@/lib/lang";
 import { pushNow } from "@/lib/sync";
 import { useDecks } from "./decks-context";
-import { useActiveLang } from "./lang-context";
+import { useActiveLang, useLearning } from "./lang-context";
 import { useProfile } from "./profiles";
 import { Button } from "./ui";
 
-type Loaded = { collection: AnkiCollection; fileName: string; roles: Roles; decks: Set<number> };
+type Loaded = { collection: AnkiCollection; media: AnkiMedia; fileName: string; roles: Roles; decks: Set<number> };
 
 const plural = (n: number, word: string) => `${n.toLocaleString()} ${word}${n === 1 ? "" : "s"}`;
 
-function load(collection: AnkiCollection, fileName: string): Loaded {
+function load(collection: AnkiCollection, media: AnkiMedia, fileName: string): Loaded {
   const used = new Set(collection.notes.map((n) => n.type));
   const roles: Roles = {};
   for (const type of collection.notetypes) {
     if (used.has(type.id)) roles[type.id] = guessRoles(type, collection.notes.filter((n) => n.type === type.id));
   }
-  return { collection, fileName, roles, decks: new Set(deckChoices(collection).map((d) => d.id)) };
+  return { collection, media, fileName, roles, decks: new Set(deckChoices(collection).map((d) => d.id)) };
 }
 
 export function AnkiImport({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
@@ -41,6 +41,7 @@ export function AnkiImport({ open, onOpenChange }: { open: boolean; onOpenChange
   const [progress, setProgress] = useState(true);
   const [langChoice, setLangChoice] = useState<Lang | null>(null);
   const { lang: active } = useActiveLang();
+  const { single } = useLearning();
   const { filter } = useDecks();
 
   const choices = useMemo(() => (loaded ? deckChoices(loaded.collection) : []), [loaded]);
@@ -59,9 +60,18 @@ export function AnkiImport({ open, onOpenChange }: { open: boolean; onOpenChange
   }, [loaded, notes]);
   const mapped = useMemo(() => (loaded ? notes.map((n) => noteToCard(n, loaded.roles[n.type] ?? [])) : []), [loaded, notes]);
   const usable = mapped.filter(filledCard);
+  const withAudio = useMemo(() => {
+    if (!loaded?.media.size) return 0;
+    const fields = new Map(loaded.collection.notetypes.map((t) => [t.id, t.fields]));
+    return notes.filter((note, i) => {
+      if (!filledCard(mapped[i])) return false;
+      const found = noteSounds(note, loaded.roles[note.type] ?? [], fields.get(note.type) ?? []);
+      return (found.word && mapped[i].term.trim() && loaded.media.has(found.word)) || (found.example && mapped[i].example.trim() && loaded.media.has(found.example));
+    }).length;
+  }, [loaded, notes, mapped]);
   const noPinyin = usable.filter((c) => !c.reading.trim()).length;
   const detected = useMemo(() => detectLanguage(usable.slice(0, 300)), [usable]);
-  const language: Lang = langChoice ?? detected ?? (filter === "all" ? active : filter);
+  const language: Lang = single ?? langChoice ?? detected ?? (filter === "all" ? active : filter);
   const readingName = LANG_INFO[language].readingLabel.toLowerCase();
   const studied = choices.filter((d) => loaded?.decks.has(d.id)).reduce((sum, d) => sum + d.studied, 0);
   const deckCount = combine ? 1 : choices.filter((d) => loaded?.decks.has(d.id)).length;
@@ -78,9 +88,9 @@ export function AnkiImport({ open, onOpenChange }: { open: boolean; onOpenChange
     if (!isAnkiFile(file.name)) { toast.error("Choose an Anki package, ending in .apkg or .colpkg."); return; }
     setReading(true);
     try {
-      const collection = await readAnkiPackage(file);
+      const { collection, media } = await readAnkiPackage(file, true);
       if (!collection.notes.length) throw new Error("That package has no cards in it.");
-      setLoaded(load(collection, file.name.replace(/\.(apkg|colpkg)$/i, "")));
+      setLoaded(load(collection, media, file.name.replace(/\.(apkg|colpkg)$/i, "")));
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Couldn’t read that Anki file.");
     } finally {
@@ -110,9 +120,15 @@ export function AnkiImport({ open, onOpenChange }: { open: boolean; onOpenChange
         combine, roles: loaded.roles, progress: progress && studied > 0, fallbackName: loaded.fileName || "Anki deck", language,
       });
       if (!decks.length) throw new Error("No cards to import. Map at least one field to Word, Reading, or Meaning.");
+      if (withAudio) {
+        const id = toast.loading("Uploading audio…");
+        const { failed } = await attachAudio(decks, loaded.media, (done, total) => toast.loading(`Uploading audio ${done.toLocaleString()} of ${total.toLocaleString()}`, { id }));
+        if (failed) toast.warning(`${plural(failed, "recording")} couldn’t upload. Those cards get voices generated here instead.`, { id });
+        else toast.dismiss(id);
+      }
       const ids: string[] = [];
       for (const deck of decks) {
-        const id = addDeck(profile, { ...deck, language: langChoice ?? deck.language });
+        const id = addDeck(profile, { ...deck, language: single ?? langChoice ?? deck.language });
         ids.push(id);
         await pushNow(deckScope(profile, id));
       }
@@ -164,7 +180,7 @@ export function AnkiImport({ open, onOpenChange }: { open: boolean; onOpenChange
               <ol className="list-decimal space-y-1 pl-5 text-sm text-muted">
                 <li>In Anki, select the deck and choose <span className="font-medium text-ink">File → Export</span>.</li>
                 <li>Pick <span className="font-medium text-ink">Anki Deck Package (.apkg)</span>. Tick <span className="font-medium text-ink">Include scheduling information</span> to keep your progress.</li>
-                <li>Audio and images stay behind. Voices are generated here instead.</li>
+                <li>The deck’s audio comes along. Images stay behind, and cards without audio are voiced here.</li>
               </ol>
             </div>
           ) : (
@@ -224,7 +240,7 @@ export function AnkiImport({ open, onOpenChange }: { open: boolean; onOpenChange
                   );
                 })}
 
-                {usable.length > 0 && (
+                {usable.length > 0 && !single && (
                   <section>
                     <h3 className="text-sm font-semibold">Language</h3>
                     <p className="mt-0.5 text-xs text-muted">{detected ? `These cards look like ${LANG_INFO[detected].name}.` : "The cards don’t show which language they are in, so pick one."}</p>
@@ -264,6 +280,13 @@ export function AnkiImport({ open, onOpenChange }: { open: boolean; onOpenChange
                     </span>
                   </span>
                 </label>
+
+                {withAudio > 0 && (
+                  <p className="flex items-start gap-2 rounded-xl bg-raised px-3 py-2.5 text-sm text-muted">
+                    <Volume2 className="mt-0.5 size-4 shrink-0 text-volt-500" />
+                    {plural(withAudio, "card")} {withAudio === 1 ? "keeps its" : "keep their"} audio from Anki. Editing a card’s text switches it to a generated voice.
+                  </p>
+                )}
 
                 {noPinyin > 0 && (
                   <p className="flex items-start gap-2 rounded-xl bg-raised px-3 py-2.5 text-sm text-muted">

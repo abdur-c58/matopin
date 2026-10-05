@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { BookOpen, Check, FileUp, Languages, Layers, LogOut, Plus, Rows3, Settings2, Trash2 } from "lucide-react";
+import { Archive as ArchiveIcon, ArrowLeft, BookOpen, Check, FileUp, Languages, Layers, LogOut, Plus, Rows3, Settings2, Trash2 } from "lucide-react";
 import type { DeckSummary } from "@/lib/decks";
 import { LANG_INFO, LANGS } from "@/lib/lang";
 import { ROLE_LABELS } from "@/lib/social";
@@ -10,7 +10,8 @@ import { AnkiImport } from "./anki-import";
 import { ProgressBar } from "./charts";
 import { DeckConvert, otherLang } from "./deck-convert";
 import { type DeckFilter, dueTotal, useDecks } from "./decks-context";
-import { LangBadge } from "./lang-context";
+import { LangBadge, useLearning } from "./lang-context";
+import { useAi } from "./profiles";
 import { VisibilityBadge } from "./social";
 import { Button, Chips } from "./ui";
 import { useProfileData } from "./use-stats";
@@ -26,7 +27,7 @@ function DueCounts({ due }: { due: DeckSummary["due"] }) {
 }
 
 function DeckCard({ deck, mature, kept, showLang, onDelete, onConvert }: {
-  deck: DeckSummary; mature: number; kept: number | null; showLang: boolean; onDelete: () => void; onConvert: () => void;
+  deck: DeckSummary; mature: number; kept: number | null; showLang: boolean; onDelete: () => void; onConvert: (() => void) | null;
 }) {
   const due = dueTotal(deck);
   const owner = deck.role === "owner";
@@ -41,7 +42,7 @@ function DeckCard({ deck, mature, kept, showLang, onDelete, onConvert }: {
             {deck.cards} card{deck.cards === 1 ? "" : "s"}{kept != null && ` · ${Math.round(kept * 100)}% retention`}
           </p>
         </div>
-        {owner && deck.cards > 0 && (
+        {onConvert && owner && deck.cards > 0 && (
           <button type="button" className="icon-btn btn-shard" aria-label={`Make a ${LANG_INFO[otherLang(deck.language)].name} deck from ${deck.name}`} title={`Make a ${LANG_INFO[otherLang(deck.language)].name} deck from this one`} onClick={onConvert}>
             <Languages className="size-4" />
           </button>
@@ -100,9 +101,40 @@ function LanguageSwitch({ value, onChange, counts }: { value: DeckFilter; onChan
   );
 }
 
+/** Decks in a language this profile no longer learns, kept with their cards and progress. */
+function ArchiveView({ decks, detail, onDelete, onBack }: {
+  decks: DeckSummary[]; detail: Map<string, { mature: number; kept: number | null }>; onDelete: (deck: DeckSummary) => void; onBack: () => void;
+}) {
+  const { learning } = useLearning();
+  return (
+    <>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="flex items-center gap-2 text-lg font-bold"><ArchiveIcon className="size-5 text-volt-500" />Archive</h2>
+          <p className="text-sm text-muted">
+            Decks in a language you aren’t learning right now. Their cards and progress are kept, and you can still open and study them.{" "}
+            <Link href="/settings#learning" className="font-semibold text-ink hover:text-volt-500">Learn {learning === "both" ? "another language" : "both languages"}</Link> to bring them back.
+          </p>
+        </div>
+        <Button variant="ghost" onClick={onBack}><ArrowLeft className="size-4" />Back to decks</Button>
+      </div>
+      {decks.length === 0 ? (
+        <p className="surface p-10 text-center text-sm text-muted">Nothing in the archive.</p>
+      ) : (
+        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {decks.map((deck) => <DeckCard key={deck.id} deck={deck} showLang mature={detail.get(deck.id)?.mature ?? 0} kept={detail.get(deck.id)?.kept ?? null} onDelete={() => onDelete(deck)} onConvert={null} />)}
+        </ul>
+      )}
+    </>
+  );
+}
+
 export function DeckList() {
-  const { decks, create, requestDelete, filter: language, setFilter: setLanguage } = useDecks();
+  const { decks, archived, create, requestDelete, filter: language, setFilter: setLanguage } = useDecks();
+  const { single } = useLearning();
+  const converts = useAi()("convert");
   const data = useProfileData();
+  const [archiveOpen, setArchiveOpen] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).has("archive"));
   const [filter, setFilter] = useState<Filter>("all");
   const [importing, setImporting] = useState(false);
   const [converting, setConverting] = useState<DeckSummary | null>(null);
@@ -117,12 +149,28 @@ export function DeckList() {
   const shown = inLanguage.filter((d) => (filter === "due" ? dueTotal(d) > 0 : filter === "done" ? d.cards > 0 && dueTotal(d) === 0 : filter === "empty" ? d.cards === 0 : true));
   const languageName = language === "all" ? "" : `${LANG_INFO[language].name} `;
 
+  if (archiveOpen) {
+    return (
+      <main className="px-4 pt-5 pb-10 md:px-8">
+        <ArchiveView decks={archived} detail={detail} onDelete={requestDelete} onBack={() => setArchiveOpen(false)} />
+      </main>
+    );
+  }
+
   return (
     <main className="px-4 pt-5 pb-10 md:px-8">
+      {archived.length > 0 && (
+        <button type="button" onClick={() => setArchiveOpen(true)}
+          className="mb-4 flex w-full items-center gap-3 rounded-2xl border border-line bg-raised/50 px-4 py-2.5 text-left text-sm transition hover:bg-raised">
+          <ArchiveIcon className="size-4 shrink-0 text-muted" />
+          <span className="min-w-0 flex-1"><span className="font-semibold">{archived.length} {archived.length === 1 ? "deck" : "decks"} in the archive</span> <span className="text-muted">from a language you aren’t learning now</span></span>
+          <span className="shrink-0 font-semibold text-volt-600">View</span>
+        </button>
+      )}
       {decks && decks.length > 0 && (
         <div className="mb-4 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <LanguageSwitch value={language} onChange={setLanguage} counts={counts} />
+            {single ? <LangBadge lang={single} className="h-8 px-3 text-sm" /> : <LanguageSwitch value={language} onChange={setLanguage} counts={counts} />}
             <div className="flex flex-wrap items-center gap-3">
               <p className="text-sm text-muted">{totalDue ? <><span className="font-semibold text-ink tabular-nums">{totalDue}</span> card{totalDue === 1 ? "" : "s"} to study today</> : "You’re all caught up for now."}</p>
               <Button variant="shard" onClick={() => setImporting(true)}><FileUp className="size-4" />Import from Anki</Button>
@@ -150,7 +198,7 @@ export function DeckList() {
       )}
       {inLanguage.length > 0 && (
         <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {shown.map((deck) => <DeckCard key={deck.id} deck={deck} showLang={language === "all"} mature={detail.get(deck.id)?.mature ?? 0} kept={detail.get(deck.id)?.kept ?? null} onDelete={() => requestDelete(deck)} onConvert={() => setConverting(deck)} />)}
+          {shown.map((deck) => <DeckCard key={deck.id} deck={deck} showLang={language === "all"} mature={detail.get(deck.id)?.mature ?? 0} kept={detail.get(deck.id)?.kept ?? null} onDelete={() => requestDelete(deck)} onConvert={single || !converts ? null : () => setConverting(deck)} />)}
           {filter === "all" && (
             <li>
               <button type="button" onClick={() => void create()} className="flex size-full min-h-56 flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-line text-sm font-semibold text-muted transition hover:border-volt-500/60 hover:text-ink">

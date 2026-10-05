@@ -14,6 +14,7 @@ import { LANG_INFO, LANGS, type Lang } from "@/lib/lang";
 import { FLUENCY_LEVELS, fluencyLabels, type Fluency } from "@/lib/cards";
 import { DeckSharing } from "./deck-sharing";
 import { useDecks } from "./decks-context";
+import { useLearning } from "./lang-context";
 import { useProfile } from "./profiles";
 import { VisibilityBadge } from "./social";
 import { Dropdown, Field } from "./ui";
@@ -76,13 +77,14 @@ const EASY_OPTIONS: { value: EasyDay; label: string }[] = [{ value: 1, label: "N
 
 export function DeckSettings({ deckId, scope }: { deckId: string; scope: string }) {
   const { fluency: profileFluency } = useProfile();
-  const { decks, requestDelete } = useDecks();
+  const { allDecks: decks, requestDelete } = useDecks();
   const z = useDeckEditor(scope, profileFluency);
   const [stored, setStored] = useState<Store | null>(null);
   const [opts, setOpts] = useState<ReviewSettings>(DEFAULT_REVIEW);
   const [, setVersion] = useState(0);
   const deck = decks?.find((d) => d.id === deckId);
   const owner = !deck || deck.role === "owner";
+  const { single } = useLearning();
   const readOnly = deck?.role === "follower";
 
   useEffect(() => {
@@ -134,11 +136,13 @@ export function DeckSettings({ deckId, scope }: { deckId: string; scope: string 
 
       <Section title="Deck" description={readOnly ? "Set by the deck’s owner." : "The name shows in your deck list and becomes the Anki deck name on export."}>
         <Field label="Deck name" value={z.settings.deck} disabled={readOnly} onChange={(e) => z.patchSettings({ deck: e.target.value })} />
-        <div>
-          <Dropdown<Lang> label="Language" value={z.lang} disabled={!owner} onChange={(language) => z.patchSettings({ language })}
-            options={LANGS.map((l) => ({ value: l, label: `${LANG_INFO[l].name} · ${LANG_INFO[l].native}` }))} />
-          <Hint>Sets the dictionary, voices, card fields and AI prompts this deck uses, and where it is listed.</Hint>
-        </div>
+        {!single && (
+          <div>
+            <Dropdown<Lang> label="Language" value={z.lang} disabled={!owner} onChange={(language) => z.patchSettings({ language })}
+              options={LANGS.map((l) => ({ value: l, label: `${LANG_INFO[l].name} · ${LANG_INFO[l].native}` }))} />
+            <Hint>Sets the dictionary, voices, card fields and AI prompts this deck uses, and where it is listed.</Hint>
+          </div>
+        )}
         <Dropdown label="Card direction" value={z.settings.notetype} disabled={readOnly} onChange={(notetype) => z.patchSettings({ notetype })}
           options={[{ value: "Basic", label: "Word → meaning" }, { value: "Basic (and reversed card)", label: "Both directions" }]} />
       </Section>

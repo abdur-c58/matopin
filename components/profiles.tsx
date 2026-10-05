@@ -10,7 +10,7 @@ import { APP_NAME } from "@/lib/brand";
 import { adoptOldKeys, clearLocal } from "@/lib/profiles";
 import { signInError } from "@/lib/sign-in-errors";
 import { store, type ProfileInfo } from "@/lib/store-client";
-import { DEFAULT_PREFS, type Prefs } from "@/lib/prefs";
+import { aiAllowed, DEFAULT_PREFS, type AiFeature, type Prefs } from "@/lib/prefs";
 import { flushPending, pullDecks, startSync } from "@/lib/sync";
 import { applyAccent, applySecond, DEFAULT_ACCENT, DEFAULT_SECOND } from "@/lib/theme";
 import { FLUENCY_LABELS, FLUENCY_LEVELS, type Fluency } from "@/lib/cards";
@@ -48,6 +48,12 @@ export function useProfile() {
 
 /** False on the few pages a visitor can open without signing in, where there's no profile to use. */
 export const useSignedIn = () => useContext(Ctx) !== null;
+
+/** Whether this account uses an AI service. A visitor who isn't signed in has none. */
+export function useAi(): (feature: AiFeature) => boolean {
+  const prefs = useContext(Ctx)?.prefs;
+  return (feature) => (prefs ? aiAllowed(prefs, feature) : false);
+}
 
 /** Pages a visitor who isn't signed in can look at, read-only. */
 const GUEST_PAGES = ["/u/"];

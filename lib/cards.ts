@@ -10,12 +10,17 @@ export type CardKind = (typeof CARD_KINDS)[number];
 export const CARD_KIND_LABELS: Record<CardKind, string> = { term: "Term", phrase: "Phrase", sentence: "Sentence" };
 export const isCardKind = (v: unknown): v is CardKind => CARD_KINDS.includes(v as CardKind);
 
+/** A recording that came with the card (from an Anki package) and the text it was recorded for. Editing that text drops it. */
+export type AudioRef = { clip: string; text: string };
+export type CardAudio = { word?: AudioRef; example?: AudioRef };
 export type Card = {
   id: string; kind: CardKind; term: string; reading: string; meaning: string;
   example: string; exampleReading: string; exampleMeaning: string;
-  notes: string; tags: string;
+  notes: string; tags: string; audio?: CardAudio;
 };
-export type CardField = Exclude<keyof Card, "id" | "kind">;
+export type CardField = Exclude<keyof Card, "id" | "kind" | "audio">;
+/** Stored card recordings are named by a hash of their bytes. */
+export const CARD_CLIP = /^[a-f0-9]{40}\.(mp3|ogg|wav|m4a|webm|flac)$/;
 export type Notetype = "Basic" | "Basic (and reversed card)";
 export const FLUENCY_LEVELS = ["beginner", "elementary", "intermediate", "advanced"] as const;
 export type Fluency = (typeof FLUENCY_LEVELS)[number];
@@ -84,7 +89,17 @@ export function normalizeCard(raw: Partial<Card>): Card {
   }
   card.reading = cleanPinyin(card.reading);
   card.exampleReading = cleanPinyin(card.exampleReading);
+  const word = audioRef(card.audio?.word, card.term);
+  const example = audioRef(card.audio?.example, card.example);
+  if (word || example) card.audio = { ...(word && { word }), ...(example && { example }) };
+  else delete card.audio;
   return card;
+}
+
+function audioRef(raw: unknown, text: string): AudioRef | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const { clip, text: said } = raw as Partial<AudioRef>;
+  return typeof clip === "string" && CARD_CLIP.test(clip) && typeof said === "string" && said && said === text.trim() ? { clip, text: said } : undefined;
 }
 
 const HAN = /[\u3400-\u9fff]/;
@@ -101,8 +116,8 @@ export function toneOf(syllable: string): number {
 export const hasTone = (s: string) => /[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ1-4]/.test(s);
 
 export type Speaker = "A" | "B";
-/** `key` names the clip in a deck (and its Anki export); `text`, `lang` and `voice` are what gets voiced. */
-export type Spoken = { key: string; text: string; speaker: Speaker; lang: Lang; voice: Voice };
+/** `key` names the clip in a deck (and its Anki export); `text`, `lang` and `voice` are what gets voiced. `clip` is the card's own recording, played instead. */
+export type Spoken = { key: string; text: string; speaker: Speaker; lang: Lang; voice: Voice; clip?: string };
 
 const SPEAKER_LINE = /^([AB])\s*[:：]\s*(.*)$/;
 
@@ -155,6 +170,8 @@ const kanaFor = (text: string, reading: string) => (!hasKana(text) && reading.tr
 
 /** `lang` is the deck's language, so kanji-only Japanese isn't voiced as Mandarin. */
 export function wordSpoken(c: Card, lang: Lang): Spoken[] {
+  const own = c.audio?.word;
+  if (own && own.text === c.term.trim()) return [{ ...spoken(own.text, "A", lang, voiceFor(own.text)), clip: own.clip }];
   const text = c.term.trim() ? target(c) : "";
   return text ? [spoken(text, "A", lang, voiceFor(text), text === c.term.trim() ? kanaFor(text, c.reading) : text)] : [];
 }
@@ -162,6 +179,8 @@ export function wordSpoken(c: Card, lang: Lang): Spoken[] {
 /** A conversation's two speakers always get different voices (lib/voice.ts). */
 export function exampleSpoken(c: Card, lang: Lang): Spoken[] {
   if (!hasExample(c)) return [];
+  const own = c.audio?.example;
+  if (own && own.text === c.example.trim()) return [{ ...spoken(own.text, "A", lang, voiceFor(own.text)), clip: own.clip }];
   const conversation = isConversation(c.example);
   return exampleLines(c.example, c.exampleReading).filter((line) => hasCjk(line.hanzi))
     .map((line) => spoken(line.hanzi, line.speaker, lang,

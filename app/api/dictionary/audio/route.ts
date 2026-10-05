@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
-import { auth } from "@/auth";
 import { MAX_QUERY } from "@/lib/dictionary";
+import { aiRefusal } from "@/lib/matopin-session";
 import { AUDIO_NOT_SET_UP, pronounce, pronounceJa } from "@/lib/dictionary-audio";
 import { StoreError } from "@/lib/supabase";
 
@@ -12,8 +12,9 @@ export const runtime = "nodejs";
  * its kana as &reading=.
  */
 export async function GET(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) return Response.json({ error: "Not logged in" }, { status: 401 });
+  const refusal = await aiRefusal("voice");
+  if (refusal && refusal.status !== 403) return refusal;
+  const ai = !refusal;
   const params = request.nextUrl.searchParams;
   const sentence = Number(params.get("sentence")) || null;
   const text = (params.get("text") ?? "").slice(0, sentence ? 300 : MAX_QUERY);
@@ -21,8 +22,8 @@ export async function GET(request: NextRequest) {
   const words = params.getAll("w").slice(0, 60).map((w) => w.slice(0, MAX_QUERY));
   try {
     const body = params.get("lang") === "ja"
-      ? await pronounceJa({ text, reading: (params.get("reading") ?? "").slice(0, 600), sentence })
-      : await pronounce({ text, pinyin, sentence, words });
+      ? await pronounceJa({ text, reading: (params.get("reading") ?? "").slice(0, 600), sentence, ai })
+      : await pronounce({ text, pinyin, sentence, words, ai });
     return Response.json(body, { headers: { "Cache-Control": body.clips.length ? "private, max-age=86400" : "no-store" } });
   } catch (e) {
     if (e instanceof StoreError && (e.message === AUDIO_NOT_SET_UP || e.message.startsWith("Supabase is missing"))) {

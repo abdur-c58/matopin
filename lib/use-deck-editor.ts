@@ -29,7 +29,8 @@ function loadTags(scope: string): string[] {
 type CardsUpdate = Card[] | ((cards: Card[]) => Card[]);
 export type CardFix = { id: string; field: CardField; before: string; value: string };
 
-export function useDeckEditor(scope: string, profileFluency: Fluency, speed = 1) {
+/** `voices` is false when the account has AI voices off: cards then only play recordings they came with. */
+export function useDeckEditor(scope: string, profileFluency: Fluency, speed = 1, voices = true) {
   const [saved, setSaved] = useState<Card[]>(() => [newCard()]);
   const [draft, setDraft] = useState<Card[] | null>(null);
   const editingRef = useRef(false);
@@ -49,7 +50,7 @@ export function useDeckEditor(scope: string, profileFluency: Fluency, speed = 1)
   const [savedFor, setSavedFor] = useState<string | null>(null);
   const tagsRef = useRef<string[]>([]);
   const { listening, listen: play } = useListen(speed, (line, blob) => {
-    setClips((cs) => (cs[line.key] ? cs : { ...cs, [line.key]: { blob, name: clipName(line.key) } }));
+    setClips((cs) => (cs[line.key] ? cs : { ...cs, [line.key]: { blob, name: line.clip ? `matopin_${line.clip}` : clipName(line.key) } }));
   });
   /** Set while state is being filled from the synced copy, so loading a deck never saves it back. */
   const loading = useRef({ deck: false, tags: false });
@@ -169,7 +170,7 @@ export function useDeckEditor(scope: string, profileFluency: Fluency, speed = 1)
       for (const [i, line] of todo.entries()) {
         toast.loading(`Generating audio ${i + 1} of ${todo.length}`, { id });
         const blob = await loadClip(line);
-        setClips((c) => ({ ...c, [line.key]: { blob, name: clipName(line.key) } }));
+        setClips((c) => ({ ...c, [line.key]: { blob, name: line.clip ? `matopin_${line.clip}` : clipName(line.key) } }));
       }
       toast.success(`${todo.length} clip${todo.length > 1 ? "s" : ""} ready`, { id });
     } catch (e) {
@@ -177,7 +178,7 @@ export function useDeckEditor(scope: string, profileFluency: Fluency, speed = 1)
     } finally { setBusy(false); }
   }, [clips, lang, settings.voiceExample]);
 
-  const importCards = useCallback(async (incoming: Card[]) => {
+  const importCards = useCallback(async (incoming: Card[], keepLanguage = false) => {
     const parsed = incoming.filter((c) => c.reading.trim() || (lang === "ja" && c.term.trim()));
     if (!parsed.length) {
       toast.error(lang === "ja" ? "No cards found. Each row needs a word or its reading. Meaning is optional." : "No cards found. Each row needs a pinyin. Meaning is optional, and tone marks are optional.");
@@ -186,7 +187,7 @@ export function useDeckEditor(scope: string, profileFluency: Fluency, speed = 1)
     rememberTags(parsed.flatMap((c) => splitTags(c.tags)));
     // The first cards in a deck decide its language when they clearly belong to the other one.
     const empty = !cards.some((c) => c.term.trim() || c.reading.trim());
-    const detected = empty ? detectLanguage(parsed) : null;
+    const detected = empty && !keepLanguage ? detectLanguage(parsed) : null;
     if (detected && detected !== lang) {
       setSettings((s) => ({ ...s, language: detected }));
       notifyDecks();
@@ -196,9 +197,9 @@ export function useDeckEditor(scope: string, profileFluency: Fluency, speed = 1)
     setSelectedId(parsed[0].id);
     toast.success(`${parsed.length} cards imported`);
     const language = detected ?? lang;
-    if (settings.autoVoice && parsed.some((c) => spokenTexts(c, settings.voiceExample, language).length)) await voice(parsed, language);
+    if (voices && settings.autoVoice && parsed.some((c) => spokenTexts(c, settings.voiceExample, language).length)) await voice(parsed, language);
     return true;
-  }, [cards, lang, rememberTags, setCards, settings.autoVoice, settings.voiceExample, voice]);
+  }, [cards, lang, rememberTags, setCards, settings.autoVoice, settings.voiceExample, voice, voices]);
 
   const fillDetails = useCallback(async () => {
     const targets = cards.filter((c) => canFill(c, lang) && needsFill(c));

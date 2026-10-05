@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { LoaderCircle, MessageSquareText, Volume2 } from "lucide-react";
+import { Eye, EyeOff, LoaderCircle, MessageSquareText, Volume2 } from "lucide-react";
 import { useListen, type ListenPart } from "@/lib/audio";
 import { dataKey } from "@/lib/profiles";
 import { DEFAULT_LANG, type Lang } from "@/lib/lang";
@@ -39,8 +39,8 @@ const canHear = (item: QueueItem, revealed: boolean, part: ListenPart, lang: Lan
     ? wordSpoken(item.card, lang).length > 0 && (revealed || item.schedule.side !== "meaning")
     : revealed && exampleSpoken(item.card, lang).length > 0;
 
-function Face({ item, revealed, listening, onListen }: {
-  item: QueueItem; revealed: boolean; listening: ListenPart | null; onListen: (part: ListenPart) => void;
+function Face({ item, revealed, hideReading, listening, onListen }: {
+  item: QueueItem; revealed: boolean; hideReading: boolean; listening: ListenPart | null; onListen: (part: ListenPart) => void;
 }) {
   const { card, schedule } = item;
   const word = <RubyLine hanzi={card.term} pinyin={card.reading} large />;
@@ -49,8 +49,8 @@ function Face({ item, revealed, listening, onListen }: {
   const hearWord = canHear(item, revealed, "word", lang);
   const hearExample = canHear(item, revealed, "example", lang);
   return (
-    <div className="flex min-h-72 flex-col items-center justify-center px-6 py-10 text-center">
-      <p className="mb-6 text-xs font-medium tracking-wide text-muted uppercase">{schedule.side === "meaning" ? "Meaning" : "Word"}</p>
+    <div className={`flex min-h-72 flex-col items-center justify-center px-6 py-10 text-center ${hideReading && !revealed ? "[&_[data-reading]]:invisible" : ""}`}>
+      <p className="mb-6 text-xs font-medium tracking-wide text-muted uppercase">{schedule.side === "meaning" ? "Meaning" : card.kind === "term" ? "Word" : CARD_KIND_LABELS[card.kind]}</p>
       {schedule.side === "meaning" ? meaning : word}
       {revealed && (
         <div className="mt-8 w-full space-y-3 border-t border-line pt-6">
@@ -119,8 +119,13 @@ export function ReviewSession({ scope, editHref, settingsHref }: { scope: string
   const itemKey = session?.item?.schedule.key ?? "";
   const revealed = shownKey === itemKey && itemKey !== "";
   const shownAt = useRef({ key: "", at: 0 });
-  const { prefs } = useProfile();
+  const { prefs, setPrefs } = useProfile();
   const { listening, listen, stop } = useListen(prefs.playbackSpeed);
+  const readingName = deck?.language === "ja" ? "furigana" : "pinyin";
+  const toggleReading = () => {
+    const next = !prefs.studyReading;
+    void setPrefs({ studyReading: next }).catch(() => toast.error(`Couldn’t ${next ? "show" : "hide"} ${readingName}.`));
+  };
   useEffect(() => {
     shownAt.current = { key: itemKey, at: Date.now() };
     stop();
@@ -164,6 +169,9 @@ export function ReviewSession({ scope, editHref, settingsHref }: { scope: string
       } else if (!event.metaKey && !event.ctrlKey && !event.altKey && (event.key === "r" || event.key === "e")) {
         event.preventDefault();
         hear(event.key === "r" ? "word" : "example");
+      } else if (!event.metaKey && !event.ctrlKey && !event.altKey && event.key === "p") {
+        event.preventDefault();
+        toggleReading();
       }
     };
     window.addEventListener("keydown", onKey);
@@ -182,9 +190,17 @@ export function ReviewSession({ scope, editHref, settingsHref }: { scope: string
             <span className="text-tone-1"><span className="font-semibold">{session.counts.learning}</span> learning</span>
             <span className="text-tone-3"><span className="font-semibold">{session.counts.review}</span> due</span>
           </div>
-          <Link href={settingsHref} className="text-muted hover:text-ink">
-            Today {session.newToday}/{limits.newPerDay} new · {session.reviewsToday}/{limits.reviewsPerDay} reviews
-          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <button type="button" role="switch" aria-checked={prefs.studyReading} onClick={toggleReading}
+              title={`${prefs.studyReading ? "Hide" : "Show"} ${readingName} until the answer (P)`}
+              className={`inline-flex h-7 items-center gap-1.5 rounded-full px-3 text-xs font-semibold transition-colors ${prefs.studyReading ? "bg-volt-50 text-volt-700" : "bg-raised text-muted hover:text-ink"}`}>
+              {prefs.studyReading ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
+              <span className="capitalize">{readingName}</span>
+            </button>
+            <Link href={settingsHref} className="text-muted hover:text-ink">
+              Today {session.newToday}/{limits.newPerDay} new · {session.reviewsToday}/{limits.reviewsPerDay} reviews
+            </Link>
+          </div>
         </div>
       )}
       {session && reviewableCount > 0 && deck?.language !== "ja" && <ToneLegend className="surface flex px-4 py-2.5" />}
@@ -220,7 +236,7 @@ export function ReviewSession({ scope, editHref, settingsHref }: { scope: string
         )}
         {session?.item && (
           <>
-            <Face item={session.item} revealed={revealed} listening={listening} onListen={hear} />
+            <Face item={session.item} revealed={revealed} hideReading={!prefs.studyReading} listening={listening} onListen={hear} />
             <div className="border-t border-line p-4">
               {revealed ? (
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -240,7 +256,7 @@ export function ReviewSession({ scope, editHref, settingsHref }: { scope: string
       </section>
       {session?.item && (
         <p className="hidden text-center text-xs text-muted sm:block">
-          <kbd className="rounded border border-line bg-surface px-1.5 py-0.5 font-mono">Space</kbd> shows the answer · <kbd className="rounded border border-line bg-surface px-1.5 py-0.5 font-mono">1</kbd>–<kbd className="rounded border border-line bg-surface px-1.5 py-0.5 font-mono">4</kbd> grades it · <kbd className="rounded border border-line bg-surface px-1.5 py-0.5 font-mono">R</kbd> plays the word · <kbd className="rounded border border-line bg-surface px-1.5 py-0.5 font-mono">E</kbd> the example
+          <kbd className="rounded border border-line bg-surface px-1.5 py-0.5 font-mono">Space</kbd> shows the answer · <kbd className="rounded border border-line bg-surface px-1.5 py-0.5 font-mono">1</kbd>–<kbd className="rounded border border-line bg-surface px-1.5 py-0.5 font-mono">4</kbd> grades it · <kbd className="rounded border border-line bg-surface px-1.5 py-0.5 font-mono">R</kbd> plays the word · <kbd className="rounded border border-line bg-surface px-1.5 py-0.5 font-mono">E</kbd> the example · <kbd className="rounded border border-line bg-surface px-1.5 py-0.5 font-mono">P</kbd> {prefs.studyReading ? "hides" : "shows"} {readingName}
         </p>
       )}
     </main>

@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { aiRefusal } from "@/lib/matopin-session";
 import { storeCardClip, storedCardClip } from "@/lib/card-audio";
 import { FishError, fishSpeak } from "@/lib/fish";
 import { isLang, textLang } from "@/lib/lang";
@@ -16,8 +16,8 @@ const audio = (bytes: ArrayBuffer) => new Response(bytes, { headers: { "Content-
  * `lang` picks the language's voices; without it, kana means Japanese and anything else Chinese.
  */
 export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user?.id) return Response.json({ error: "Not logged in" }, { status: 401 });
+  const refusal = await aiRefusal("voice");
+  if (refusal) return refusal;
   const body = (await request.json().catch(() => null)) as { text?: string; lang?: unknown; voice?: unknown } | null;
   const text = body?.text?.trim() ?? "";
   if (!text) return Response.json({ error: "Nothing to speak." }, { status: 400 });

@@ -4,7 +4,7 @@ import { HoverCard } from "radix-ui";
 import { Check } from "lucide-react";
 import { LANG_INFO, LANGS, type Lang } from "@/lib/lang";
 import { useDecks } from "./decks-context";
-import { useActiveLang } from "./lang-context";
+import { useActiveLang, useLearning } from "./lang-context";
 
 /** Each language with how many decks this profile has in it. */
 function LanguageOptions({ onPicked, compact = false }: { onPicked?: () => void; compact?: boolean }) {
@@ -44,6 +44,8 @@ function LanguageOptions({ onPicked, compact = false }: { onPicked?: () => void;
 export function RailLanguageSwitcher({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const { lang } = useActiveLang();
+  const { single } = useLearning();
+  if (single) return children;
   return (
     <HoverCard.Root open={open} onOpenChange={setOpen} openDelay={80} closeDelay={180}>
       <HoverCard.Trigger asChild>{children}</HoverCard.Trigger>
@@ -65,6 +67,8 @@ export function RailLanguageSwitcher({ children }: { children: React.ReactNode }
 
 /** The same picker for the mobile menu. */
 export function LanguageMenu({ onPicked }: { onPicked?: () => void }) {
+  const { single } = useLearning();
+  if (single) return null;
   return (
     <section aria-label="Language" className="mt-5">
       <p className="mb-1.5 px-2 text-[11px] font-semibold tracking-wide text-muted uppercase">I’m learning</p>

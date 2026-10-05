@@ -13,9 +13,9 @@ import { CardView } from "./card-view";
 import { useDeckCheck } from "./deck-check";
 import { useDeckSummary } from "./deck-gate";
 import { ImportPanel } from "./import-panel";
-import { DeckLangProvider } from "./lang-context";
+import { DeckLangProvider, useLearning } from "./lang-context";
 import { Preview, ToneLegend } from "./preview";
-import { useProfile } from "./profiles";
+import { useAi, useProfile } from "./profiles";
 import { Button, Toggle } from "./ui";
 
 const isBlank = (c: Card) => !c.term.trim() && !c.reading.trim() && !c.meaning.trim();
@@ -48,7 +48,10 @@ function useLeaveGuard(active: boolean, onLeave: (href: string) => void) {
 
 export function DeckEditor({ scope }: { scope: string }) {
   const { fluency: profileFluency, prefs, setPrefs } = useProfile();
-  const z = useDeckEditor(scope, profileFluency, prefs.playbackSpeed);
+  const ai = useAi();
+  const { single } = useLearning();
+  const z = useDeckEditor(scope, profileFluency, prefs.playbackSpeed, ai("voice"));
+  const writing = ai("create");
   const summary = useDeckSummary();
   const readOnly = summary?.role === "follower";
   const changeSpeed = (playbackSpeed: number) =>
@@ -128,8 +131,8 @@ export function DeckEditor({ scope }: { scope: string }) {
           ) : (
             <div className="flex flex-wrap items-center gap-2">
               {tab === "import" && simplifiedToggle}
-              {tab === "cards" && !readOnly && z.filledCount > 0 && check.button}
-              <Button variant="shard" disabled={z.busy} onClick={() => void z.voice(z.filled)} title="Generate audio for every card"><Volume2 className="size-4" />Voice all</Button>
+              {tab === "cards" && !readOnly && z.filledCount > 0 && ai("check") && check.button}
+              {ai("voice") && <Button variant="shard" disabled={z.busy} onClick={() => void z.voice(z.filled)} title="Generate audio for every card"><Volume2 className="size-4" />Voice all</Button>}
               <Button variant="shard" onClick={z.exportCsv}><FileText className="size-4" />CSV</Button>
               <Button variant="shard" onClick={z.exportDeck}><Download className="size-4" />Export to Anki</Button>
               {tab === "cards" && !readOnly && <Button variant="primary" onClick={z.startEditing}><Pencil className="size-4" />Edit cards</Button>}
@@ -164,7 +167,7 @@ export function DeckEditor({ scope }: { scope: string }) {
             ) : z.editing ? (
               <>
                 {searching && shown === 0 && <p className="mb-3 text-sm text-muted">No cards match “{query.trim()}”.</p>}
-                <CardList cards={editCards} selectedId={previewCard.id} clips={z.clips} busy={z.busy} simplified={prefs.simplified} onSelect={z.setSelectedId} onChange={z.update} onKind={z.setKind} onApplyMatch={z.applyMatch} onLookup={z.lookup} onRemove={z.remove} onVoice={(c) => void z.voice([c])} />
+                <CardList cards={editCards} selectedId={previewCard.id} clips={z.clips} busy={z.busy} simplified={prefs.simplified} onSelect={z.setSelectedId} onChange={z.update} onKind={z.setKind} onApplyMatch={z.applyMatch} onLookup={writing ? z.lookup : null} onRemove={z.remove} onVoice={ai("voice") ? (c) => void z.voice([c]) : null} />
               </>
             ) : (
               <CardView cards={viewCards} selectedId={previewCard.id} clips={z.clips} onSelect={z.setSelectedId} onEdit={readOnly ? undefined : z.startEditing} />
@@ -173,7 +176,7 @@ export function DeckEditor({ scope }: { scope: string }) {
         </Tabs.Content>
         <Tabs.Content value="import" asChild>
           <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
-            <ImportPanel fluency={z.fluency} simplified={prefs.simplified} onLookup={z.lookup} onImport={async (cards) => { const ok = await z.importCards(cards); if (ok) setTab("cards"); return ok; }} />
+            <ImportPanel fluency={z.fluency} simplified={prefs.simplified} onLookup={writing ? z.lookup : null} onImport={async (cards) => { const ok = await z.importCards(cards, single != null); if (ok) setTab("cards"); return ok; }} />
           </motion.div>
         </Tabs.Content>
       </Tabs.Root>
@@ -182,8 +185,8 @@ export function DeckEditor({ scope }: { scope: string }) {
         {z.editing && tab === "cards" && (
           <EditTools
             busy={z.busy}
-            onCreate={async (prompt) => { setQuery(""); return z.createFromPrompt(prompt); }}
-            onFill={() => void z.fillDetails()}
+            onCreate={writing ? async (prompt) => { setQuery(""); return z.createFromPrompt(prompt); } : null}
+            onFill={writing ? () => void z.fillDetails() : null}
             onAdd={() => { setQuery(""); z.add(); }}
             onClear={openClear}
           />

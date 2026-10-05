@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { isLang, type Lang } from "@/lib/lang";
 import { DictionaryPage } from "./dictionary-page";
 import { JDictPage } from "./jdict-page";
-import { useActiveLang } from "./lang-context";
+import { useActiveLang, useLearning } from "./lang-context";
 import { LOOKUP_EVENT, type LookupDetail } from "./quick-panels";
 
 /**
@@ -11,6 +11,16 @@ import { LOOKUP_EVENT, type LookupDetail } from "./quick-panels";
  * switching languages in the sidebar or looking up text in the other language swaps over.
  */
 export function DictionaryRouter() {
+  const { single } = useLearning();
+  return single ? <SingleDictionary lang={single} /> : <BothDictionaries />;
+}
+
+/** One language learned: only its dictionary, whatever a link or lookup asks for. */
+function SingleDictionary({ lang }: { lang: Lang }) {
+  return lang === "ja" ? <JDictPage /> : <DictionaryPage />;
+}
+
+function BothDictionaries() {
   const { lang: active } = useActiveLang();
   const [state, setState] = useState<{ lang: Lang; run: number }>(() => {
     const lang = new URLSearchParams(window.location.search).get("lang");

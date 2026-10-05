@@ -118,8 +118,10 @@ export function ImportPanel({ fluency, simplified, onImport, onLookup }: {
   /** Only the pinyin and meaning columns show until a row is expanded. */
   simplified: boolean;
   onImport: (cards: Card[]) => boolean | Promise<boolean>;
-  onLookup: (card: Card, hint: string) => Promise<WordMatch[] | null>;
+  /** Null when card writing with AI is off, which also hides Format. */
+  onLookup: ((card: Card, hint: string) => Promise<WordMatch[] | null>) | null;
 }) {
+  const writing = onLookup != null;
   const [rows, setRows] = useState<Row[]>(() => [emptyRow()]);
   const [importing, setImporting] = useState(false);
   const [formatting, setFormatting] = useState("");
@@ -188,6 +190,7 @@ export function ImportPanel({ fluency, simplified, onImport, onLookup }: {
   };
 
   const search = async (row: Row, hint = clues[row.id] ?? "") => {
+    if (!onLookup) return;
     if (!row.cells[PINYIN]?.trim() && !row.cells[MEANING]?.trim()) { toast.error(`Enter ${lang === "ja" ? "a reading" : "a pinyin"} or an English meaning.`); return; }
     lookupRef.current = row.id;
     setLookupId(row.id);
@@ -239,7 +242,7 @@ export function ImportPanel({ fluency, simplified, onImport, onLookup }: {
     if (!isAnkiFile(picked.name)) { loadText(await picked.text()); return; }
     setReadingAnki(true);
     try {
-      const collection = await readAnkiPackage(picked);
+      const { collection } = await readAnkiPackage(picked);
       const roles = new Map(collection.notetypes.map((type) => [type.id, guessRoles(type, collection.notes.filter((n) => n.type === type.id))]));
       const loaded = collection.notes
         .map((note) => noteToCard(note, roles.get(note.type) ?? []))
@@ -267,7 +270,7 @@ export function ImportPanel({ fluency, simplified, onImport, onLookup }: {
           {lang === "ja"
             ? "Each row needs a reading (kana or romaji) or the word itself. Meaning is optional."
             : "Pinyin is required. Meaning is optional."}{" "}
-          If a row is wrong, use its magnifying glass and an optional clue to pick another. An example can be one sentence, or two speakers on their own lines starting with A： and B：. Enter adds a row, except inside an example, where it starts the next line. Upload file takes CSV, TSV, or an Anki .apkg.
+          {writing && "If a row is wrong, use its magnifying glass and an optional clue to pick another. "}An example can be one sentence, or two speakers on their own lines starting with A： and B：. Enter adds a row, except inside an example, where it starts the next line. Upload file takes CSV, TSV, or an Anki .apkg.
         </p>
       )}
       <div
@@ -330,7 +333,7 @@ export function ImportPanel({ fluency, simplified, onImport, onLookup }: {
                       <td key={CSV_COLUMNS[c].header} className="p-0 align-top">
                         <div className="flex items-start">
                           {input(c)}
-                          {c === MEANING && (
+                          {c === MEANING && writing && (
                             <button type="button" className="icon-btn mr-1 size-8 shrink-0 self-center" aria-label={`Find words for row ${r + 1}`} disabled={looking && lookupId === row.id} onClick={() => void search(row)}>
                               {looking && lookupId === row.id ? <LoaderCircle className="size-4 animate-spin" /> : <Search className="size-4" />}
                             </button>
@@ -383,12 +386,14 @@ export function ImportPanel({ fluency, simplified, onImport, onLookup }: {
           : <>{ready} {ready === 1 ? "row has" : "rows have"} pinyin{unfilled ? ` · ${unfilled} still need a word` : ""}{skipped ? ` · ${skipped} skipped without pinyin` : ""}.</>}
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
-        <span className="inline-flex items-center gap-0.5">
-          <Button variant="primary" disabled={!ready || Boolean(formatting) || importing} onClick={() => void format()}><SpellCheck className="size-4" />{formatting || "Format"}</Button>
-          <FormatHelp lang={lang} />
-        </span>
-        <Button disabled={!ready || Boolean(formatting) || importing} onClick={() => add(rows.filter(hasPinyin).map((row) => rowCard(row.cells, row.kind)))}>
-          {importing && !review ? <LoaderCircle className="size-4 animate-spin" /> : <ListPlus className="size-4" />}Add without formatting
+        {writing && (
+          <span className="inline-flex items-center gap-0.5">
+            <Button variant="primary" disabled={!ready || Boolean(formatting) || importing} onClick={() => void format()}><SpellCheck className="size-4" />{formatting || "Format"}</Button>
+            <FormatHelp lang={lang} />
+          </span>
+        )}
+        <Button variant={writing ? undefined : "primary"} disabled={!ready || Boolean(formatting) || importing} onClick={() => add(rows.filter(hasPinyin).map((row) => rowCard(row.cells, row.kind)))}>
+          {importing && !review ? <LoaderCircle className="size-4 animate-spin" /> : <ListPlus className="size-4" />}{writing ? "Add without formatting" : "Add cards"}
         </Button>
         <Button variant="ghost" onClick={() => { setRows((current) => [...current, emptyRow()]); focusCell(rows.length, 0); }}><Plus className="size-4" />Add row</Button>
         <Button variant="ghost" disabled={readingAnki} onClick={() => file.current?.click()}>

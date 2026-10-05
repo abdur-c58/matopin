@@ -177,13 +177,16 @@ function MyDecks({ decks }: { decks: DeckData[] }) {
 export function Dashboard() {
   const data = useProfileData();
   const [goal] = useGoal();
+  const { archived } = useDecks();
 
   if (!data) return <p className="p-10 text-center text-sm text-muted">Loading your dashboard…</p>;
   const { decks, now } = data;
+  const away = new Set(archived.map((d) => d.id));
+  const learning = decks.filter((d) => !away.has(d.id));
 
   return (
     <main className="grid gap-4 px-4 pt-5 pb-10 md:px-8 lg:grid-cols-12 [&>*]:min-w-0">
-      {decks.length === 0 && (
+      {learning.length === 0 && (
         <section className="surface flex flex-wrap items-center gap-4 p-5 lg:col-span-12">
           <span className="grid size-12 place-items-center rounded-2xl bg-volt-500 text-on-volt"><Layers className="size-6" /></span>
           <div className="min-w-0 flex-1">
@@ -198,7 +201,7 @@ export function Dashboard() {
         <DailyGoal decks={decks} now={now} goal={goal} />
         <Mastery decks={decks} />
       </div>
-      <MyDecks decks={decks} />
+      <MyDecks decks={learning} />
     </main>
   );
 }

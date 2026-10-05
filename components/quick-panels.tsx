@@ -3,7 +3,7 @@ import { createContext, useContext, useState } from "react";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
 import type { Lang } from "@/lib/lang";
-import { useActiveLang } from "./lang-context";
+import { useActiveLang, useLearning } from "./lang-context";
 
 export type PanelKind = "chat" | "dictionary";
 export const PANEL_PAGES: Record<PanelKind, string> = { chat: "/chat", dictionary: "/dictionary" };
@@ -27,6 +27,7 @@ export function QuickPanelsProvider({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const router = useRouter();
   const { lang: active } = useActiveLang();
+  const { single } = useLearning();
   const [open, setOpen] = useState<PanelKind[]>([]);
   // Each look-up starts the dictionary window afresh with that search, in the language it was written in.
   const [lookup, setLookup] = useState<{ query: string; lang: Lang | null; run: number }>({ query: "", lang: null, run: 0 });
@@ -41,7 +42,7 @@ export function QuickPanelsProvider({ children }: { children: React.ReactNode })
   };
   // A pop-up steps aside while its own full page is open.
   const shown = open.filter((kind) => !onPage(pathname, kind));
-  const dictLang = lookup.lang ?? active;
+  const dictLang = single ?? lookup.lang ?? active;
   const closeDict = () => { hide("dictionary"); setLookup((l) => ({ ...l, query: "", lang: null })); };
 
   return (

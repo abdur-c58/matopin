@@ -16,7 +16,7 @@ import { FlashcardMaker } from "./flashcard-maker";
 import { HandwritingPad, RiceGrid } from "./handwriting-pad";
 import { PanelFrame } from "./panel-frame";
 import { LOOKUP_EVENT, type LookupDetail } from "./quick-panels";
-import { useProfile } from "./profiles";
+import { useAi, useProfile } from "./profiles";
 import { Button } from "./ui";
 
 const TRY = ["书", "学习", "你好", "我的书", "shū", "xuexi", "ni hao", "book", "study"];
@@ -113,9 +113,10 @@ let speaking: AbortController | null = null;
 export function SpeakButton({ text, pinyin = "", sentence, label, className = "icon-btn", load, lang = "zh" }: {
   text: string; pinyin?: string; sentence?: { id: number; words: string[] }; label: string; className?: string;
   /** Japanese passes its own loader. */
-  load?: () => Promise<Pronunciation>; lang?: Lang;
+  load?: (ai: boolean) => Promise<Pronunciation>; lang?: Lang;
 }) {
   const { prefs } = useProfile();
+  const ai = useAi()("voice");
   const [state, setState] = useState<"idle" | "loading" | "playing">("idle");
   const [credit, setCredit] = useState("");
   const mine = useRef<AbortController | null>(null);
@@ -128,7 +129,7 @@ export function SpeakButton({ text, pinyin = "", sentence, label, className = "i
     speaking = mine.current = ctrl;
     setState("loading");
     try {
-      const { clips } = await (load ? load() : loadPronunciation(text, pinyin, sentence));
+      const { clips } = await (load ? load(ai) : loadPronunciation(text, pinyin, sentence, ai));
       if (ctrl.signal.aborted) return;
       if (!clips.length) {
         if (!speakWithBrowser(text, prefs.playbackSpeed, lang)) toast.error("No recording of this yet.");

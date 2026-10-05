@@ -1,6 +1,8 @@
 "use client";
-import { SocialPage } from "@/components/social-page";
+import { ProfilePage } from "@/components/profile-page";
+import { useProfile } from "@/components/profiles";
 
 export default function Social() {
-  return <SocialPage />;
+  const { profile } = useProfile();
+  return <ProfilePage key={profile} id={profile} guest={null} />;
 }

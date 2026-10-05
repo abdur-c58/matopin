@@ -3,13 +3,11 @@ import Link from "next/link";
 import { CalendarDays, Layers, Lock } from "lucide-react";
 import { APP_NAME } from "@/lib/brand";
 import { isLang, LANG_INFO } from "@/lib/lang";
-import type { PublicProfile } from "@/lib/social";
+import { deckStats, type PublicProfile } from "@/lib/social";
 import { PersonAvatar } from "./avatar";
 import { GoogleSignIn } from "./profiles";
+import { ReachStats } from "./reach-stats";
 import { Panel } from "./ui";
-
-const plural = (n: number, word: string) => `${n.toLocaleString()} ${word}${n === 1 ? "" : "s"}`;
-
 /** A profile for someone who isn't signed in: who they are and what they share, with nothing to click into. */
 export function GuestProfile({ view }: { view: PublicProfile | null }) {
   if (!view) {
@@ -38,14 +36,15 @@ export function GuestProfile({ view }: { view: PublicProfile | null }) {
             <h1 className="truncate text-2xl font-bold">{person.name}</h1>
             <p className={`mt-1 max-w-xl text-sm ${person.bio ? "" : "text-muted"}`}>{person.bio || "No bio yet."}</p>
             <p className="mt-2 flex items-center gap-1.5 text-xs text-muted"><CalendarDays className="size-3.5" />Joined {joined}</p>
-            <dl className="mt-4 flex flex-wrap gap-2">
+            <div className="mt-4 flex flex-wrap gap-2">
               {stats.map(([value, label]) => (
                 <div key={label} className="flex flex-col-reverse rounded-2xl bg-raised px-4 py-2">
-                  <dt className="text-xs text-muted">{label}</dt>
-                  <dd className="text-lg font-bold tabular-nums">{value.toLocaleString()}</dd>
+                  <span className="text-xs text-muted">{label}</span>
+                  <span className="text-lg font-bold tabular-nums">{value.toLocaleString()}</span>
                 </div>
               ))}
-            </dl>
+              <ReachStats reach={person.reach} />
+            </div>
           </div>
         </div>
         <div className="relative mt-5 flex flex-wrap items-center gap-3 rounded-2xl border border-line bg-raised/60 p-3">
@@ -66,7 +65,7 @@ export function GuestProfile({ view }: { view: PublicProfile | null }) {
               <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-raised text-volt-500"><Layers className="size-5" /></span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-base font-bold">{deck.name}</p>
-                <p className="text-xs text-muted">{plural(deck.cards, "card")} · {plural(deck.followers, "member")}</p>
+                <p className="text-xs text-muted">{deckStats(deck)}</p>
               </div>
               {isLang(deck.language) && (
                 <span className="shrink-0 rounded-full bg-raised px-2 py-0.5 text-[11px] font-semibold text-muted">{LANG_INFO[deck.language].name}</span>

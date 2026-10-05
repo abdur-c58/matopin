@@ -49,7 +49,7 @@ export function DeckGate({ children }: { children: React.ReactNode }) {
 /** This profile's summary of the open deck, including its role and sharing. */
 export function useDeckSummary() {
   const { id } = useDeck();
-  return useDecks().decks?.find((d) => d.id === id);
+  return useDecks().allDecks?.find((d) => d.id === id);
 }
 
 export function DeckHeader() {

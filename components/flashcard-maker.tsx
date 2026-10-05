@@ -13,8 +13,8 @@ import { appendCards, pushNow } from "@/lib/sync";
 import { hasCjk, LANG_INFO, type Lang, textLang } from "@/lib/lang";
 import { CARD_KIND_LABELS, CARD_KINDS, DEFAULT_SETTINGS, deckLanguage, hasExample, newCard, normalizeCard, spokenTexts, type Card, type CardField, type Fluency, type Settings, type Spoken } from "@/lib/cards";
 import { useDecks } from "./decks-context";
-import { useActiveLang } from "./lang-context";
-import { useProfile } from "./profiles";
+import { useActiveLang, useLearning } from "./lang-context";
+import { useAi, useProfile } from "./profiles";
 import { Button } from "./ui";
 
 const filled = (c: Card) => Boolean(c.term.trim() || c.reading.trim() || c.meaning.trim());
@@ -174,9 +174,13 @@ function DeckSelect({ lang, selected, onToggle, newDeck, onNewDeck }: {
  */
 export function FlashcardMaker({ text, initial, lang: given, onClose }: { text: string | null; initial?: Card[] | null; lang?: Lang; onClose: () => void }) {
   const { profile, fluency } = useProfile();
+  const ai = useAi();
+  const writing = ai("create");
+  const voices = ai("voice");
   const { lang: active } = useActiveLang();
-  // A reply about the other language makes cards in that language.
-  const lang = given ?? textLang(text ?? initial?.map((c) => `${c.term}${c.reading}`).join(" ") ?? "", active);
+  const { single } = useLearning();
+  // A reply about the other language makes cards in that language, unless only one is learned.
+  const lang = given ?? single ?? textLang(text ?? initial?.map((c) => `${c.term}${c.reading}`).join(" ") ?? "", active);
   const router = useRouter();
   const [cards, setCards] = useState<Card[] | null>(null);
   const [error, setError] = useState("");
@@ -197,12 +201,14 @@ export function FlashcardMaker({ text, initial, lang: given, onClose }: { text: 
     let live = true;
     const drafts = initial
       ? Promise.resolve(initial)
-      : cardsFromText(text ?? "", [], fluency, lang).then((list) => list.map(({ draft, kind }) => normalizeCard({ ...newCard(), ...draft, kind })));
+      : writing
+        ? cardsFromText(text ?? "", [], fluency, lang).then((list) => list.map(({ draft, kind }) => normalizeCard({ ...newCard(), ...draft, kind })))
+        : Promise.resolve([]);
     drafts.then(
       async (drafted) => {
         if (!live) return;
         setCards(drafted);
-        const todo = drafted.filter((c) => incomplete(c, lang)).length;
+        const todo = writing ? drafted.filter((c) => incomplete(c, lang)).length : 0;
         if (!todo) return;
         setFilling(todo);
         await complete(drafted, [], fluency, lang, (card) => {
@@ -215,7 +221,7 @@ export function FlashcardMaker({ text, initial, lang: given, onClose }: { text: 
       (e: unknown) => { if (live) setError(e instanceof Error ? e.message : "Couldn’t make cards from that."); },
     );
     return () => { live = false; };
-  }, [text, initial, fluency, lang, attempt]);
+  }, [text, initial, fluency, lang, attempt, writing]);
 
   const close = () => {
     if (saving) return;
@@ -260,7 +266,7 @@ export function FlashcardMaker({ text, initial, lang: given, onClose }: { text: 
     if (newDeck && !deckName.trim()) return void toast.error("Name the new deck first.");
     const ids = [...selected];
     let list = ready;
-    if (ready.some((c) => incomplete(c, lang))) {
+    if (writing && ready.some((c) => incomplete(c, lang))) {
       setSaving("filling");
       list = await complete(ready, uniqueTags(ids.flatMap((id) => readDeck(deckScope(profile, id)).tags)), fluency, lang);
       setCards((cs) => cs?.map((c) => list.find((done) => done.id === c.id) ?? c) ?? cs);
@@ -275,7 +281,7 @@ export function FlashcardMaker({ text, initial, lang: given, onClose }: { text: 
         await pushNow(deckScope(profile, id));
         ids.push(id);
       }
-      voiceInBackground(list, ids.map((id) => deckScope(profile, id)));
+      if (voices) voiceInBackground(list, ids.map((id) => deckScope(profile, id)));
       toast.success(`Added ${plural(list.length, "card")} to ${destinations === 1 ? (newDeck ? `“${deckName.trim()}”` : "your deck") : `${destinations} decks`}.`, {
         action: ids.length === 1 ? { label: "Open deck", onClick: () => router.push(`/decks/${ids[0]}`) } : undefined,
       });
@@ -327,14 +333,14 @@ export function FlashcardMaker({ text, initial, lang: given, onClose }: { text: 
                   ))}
                 </ul>
                 <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                  <form className="flex flex-1 items-center gap-1 rounded-full border border-line bg-porcelain p-1 pl-3 transition focus-within:border-volt-500/60" onSubmit={(e) => { e.preventDefault(); void addWithAi(); }}>
+                  {writing && <form className="flex flex-1 items-center gap-1 rounded-full border border-line bg-porcelain p-1 pl-3 transition focus-within:border-volt-500/60" onSubmit={(e) => { e.preventDefault(); void addWithAi(); }}>
                     <Sparkles className="size-4 shrink-0 text-muted" />
                     <input className="min-w-0 flex-1 bg-transparent px-1 text-sm outline-none placeholder:text-muted/80" placeholder="Add a card with AI, e.g. “how to say I’m full”" aria-label="Describe a card to add"
                       value={prompt} onChange={(e) => setPrompt(e.target.value)} disabled={adding} />
                     <button type="submit" className="btn btn-shard h-8 px-3 text-xs" disabled={adding || !prompt.trim()}>
                       {adding ? <LoaderCircle className="size-3.5 animate-spin" /> : <Wand2 className="size-3.5" />}Add
                     </button>
-                  </form>
+                  </form>}
                   <Button variant="ghost" onClick={addBlank}><Plus className="size-4" />Blank card</Button>
                 </div>
               </>

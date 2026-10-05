@@ -10,8 +10,8 @@ import { LANG_INFO, LANGS } from "@/lib/lang";
 import { store } from "@/lib/store-client";
 import { BotAvatar, BotTyping, MessageRow, ReplyBar, upsert, type Local } from "./chat-thread";
 import { FlashcardMaker } from "./flashcard-maker";
-import { useBotMode } from "./lang-context";
-import { useProfile } from "./profiles";
+import { useBotMode, useLearning } from "./lang-context";
+import { useAi, useProfile } from "./profiles";
 import { errorText } from "./social";
 
 const POLL_MS = 5_000;
@@ -22,6 +22,7 @@ const HIGHLIGHT_MS = 1_400;
 export function BotThread({ onBack }: { onBack?: () => void } = {}) {
   const { profile } = useProfile();
   const { mode, setMode } = useBotMode();
+  const { single } = useLearning();
   const [ready, setReady] = useState(false);
   const [messages, setMessages] = useState<Local[]>([]);
   const [hasMore, setHasMore] = useState(false);
@@ -35,6 +36,7 @@ export function BotThread({ onBack }: { onBack?: () => void } = {}) {
   const [confirmClear, setConfirmClear] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [cardsFrom, setCardsFrom] = useState<string | null>(null);
+  const writing = useAi()("create");
 
   const scroller = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
@@ -223,7 +225,7 @@ export function BotThread({ onBack }: { onBack?: () => void } = {}) {
             <span className="block truncate text-xs text-second-300">{asking.length ? "Writing…" : "Always Online"}</span>
           </span>
         </div>
-        <div role="radiogroup" aria-label="Language mode" className="ml-auto flex shrink-0 rounded-full bg-porcelain p-0.5"
+        <div role="radiogroup" aria-label="Language mode" className={`ml-auto flex shrink-0 rounded-full bg-porcelain p-0.5 ${single ? "hidden" : ""}`}
           title="When a question doesn’t say which language, Bao assumes this one. You can still ask about either.">
           {LANGS.map((l) => (
             <button key={l} type="button" role="radio" aria-checked={mode === l} aria-label={`${LANG_INFO[l].name} mode`} onClick={() => setMode(l)}
@@ -298,7 +300,7 @@ export function BotThread({ onBack }: { onBack?: () => void } = {}) {
                 onOpenDeck={() => {}}
                 onRetry={() => { setMessages((list) => list.filter((x) => x.id !== m.id)); if (m.payload?.kind === "text") void send(m.payload.body, null); }}
                 onDiscard={() => setMessages((list) => list.filter((x) => x.id !== m.id))}
-                onFlashcards={() => setCardsFrom(m.body)}
+                onFlashcards={writing ? () => setCardsFrom(m.body) : undefined}
               />
             </Fragment>
           );

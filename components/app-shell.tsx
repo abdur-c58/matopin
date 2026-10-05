@@ -11,12 +11,13 @@ import { cardMatches } from "@/lib/cards";
 import { DecksProvider, useDecks } from "./decks-context";
 import { useActiveLang } from "./lang-context";
 import { LanguageMenu, RailLanguageSwitcher } from "./language-switcher";
+import { LearningOnboarding } from "./learning-picker";
 import { LogoMark } from "./logo";
 import { AccountMenu } from "./account-menu";
 import { type PanelKind, QuickPanelsProvider, useOpenPanel } from "./quick-panels";
 import { RailTip, RailTipProvider } from "./rail-tip";
 import { SelectionMenu } from "./selection-menu";
-import { GoogleSignIn, useProfile, useSignedIn } from "./profiles";
+import { GoogleSignIn, useAi, useProfile, useSignedIn } from "./profiles";
 import { useProfileData } from "./use-stats";
 
 export const deckLinks = (id: string) => [
@@ -274,7 +275,7 @@ function GlobalSearch() {
 }
 
 const TITLES: Record<string, [string, string]> = {
-  "/social": ["Social", "Follow people, share decks, and study together"],
+  "/social": ["Social", "Your profile, the people you follow, and decks to discover"],
   "/chat": ["Chats", "Talk with people you study with, and @ask Bao"],
   "/calendar": ["Calendar", "Every day you studied, at a glance"],
   "/stats": ["Statistics", "How your memory is holding up"],
@@ -286,8 +287,10 @@ function TopBar() {
   const { name } = useProfile();
   const { create, filter } = useDecks();
   const { lang } = useActiveLang();
+  const bao = useAi()("bao");
   const key = Object.keys(TITLES).find((k) => isActive(pathname, k));
   const [title, subtitle] = pathname === "/app" ? [`Hello, ${name}!`, "Ready for today’s challenge?"]
+    : isActive(pathname, "/chat") && !bao ? ["Chats", "Talk with people you study with"]
     : isActive(pathname, "/decks") ? ["Your decks", filter === "all" ? "Every deck in this profile, in both languages" : `Every ${LANG_INFO[filter].name} deck in this profile`]
     : isActive(pathname, "/dictionary") ? ["Dictionary", lang === "ja" ? "Look up kanji, kana, romaji or English" : "Look up characters, pinyin or English"]
     : pathname.startsWith("/u/") ? ["Profile", "Decks they share and the people they follow"]
@@ -350,6 +353,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <MobileBar />
           </RailTipProvider>
           <SelectionMenu />
+          <LearningOnboarding />
           <div className="mx-auto max-w-[1400px]">
             <PageTransition>
               <TopBar />

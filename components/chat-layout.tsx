@@ -13,7 +13,7 @@ import { BotThread } from "./bot-thread";
 import { BotAvatar, ChatThread } from "./chat-thread";
 import { GroupAvatar, NewGroupForm } from "./group-chat";
 import { PanelFrame } from "./panel-frame";
-import { useProfile } from "./profiles";
+import { useAi, useProfile } from "./profiles";
 import { errorText } from "./social";
 
 const LIST_POLL_MS = 5_000;
@@ -162,6 +162,7 @@ function ChatList({ activeId, className, onPick }: { activeId: string | null; cl
   const [bot, setBot] = useState<BotSummary | null>(null);
   const [error, setError] = useState("");
   const [showRequests, setShowRequests] = useState(true);
+  const bao = useAi()("bao");
 
   useEffect(() => {
     let live = true;
@@ -185,7 +186,7 @@ function ChatList({ activeId, className, onPick }: { activeId: string | null; cl
         </div>
       )}
       <div className={`min-h-0 flex-1 overflow-y-auto px-2 pb-3 ${onPick ? "pt-2" : "pt-1"}`}>
-        <ul className="mb-1 border-b border-line pb-1"><BotRow bot={bot} active={activeId === BOT_ID} onPick={onPick} /></ul>
+        {bao && <ul className="mb-1 border-b border-line pb-1"><BotRow bot={bot} active={activeId === BOT_ID} onPick={onPick} /></ul>}
         {error && <p className="px-2 py-3 text-sm text-tone-1">{error}</p>}
         {!chats && !error && <p className="px-2 py-3 text-sm text-muted">Loading chats…</p>}
         {requests.length > 0 && (
@@ -202,7 +203,7 @@ function ChatList({ activeId, className, onPick }: { activeId: string | null; cl
           <div className="px-4 py-10 text-center">
             <MessagesSquare className="mx-auto size-8 text-muted" />
             <p className="mt-2 text-sm font-semibold">No chats with people yet</p>
-            <p className="mt-1 text-xs text-muted">Start one with the button above, or from anyone’s profile. Bao is always here meanwhile.</p>
+            <p className="mt-1 text-xs text-muted">Start one with the button above, or from anyone’s profile.{bao && " Bao is always here meanwhile."}</p>
           </div>
         )}
         <ul className="space-y-0.5">{rest.map((c) => <ChatRow key={chatRouteId(c)} chat={c} active={chatRouteId(c) === activeId} onPick={onPick} />)}</ul>
@@ -228,24 +229,44 @@ export function ChatLayout({ children }: { children: React.ReactNode }) {
 /** Chats in the small pop-up window: the list, then one chat at a time with a way back. */
 export function ChatMini({ onClose }: { onClose: () => void }) {
   const [openId, setOpenId] = useState<string | null>(null);
+  const bao = useAi()("bao");
   const back = () => setOpenId(null);
   return (
     <PanelFrame title="Chats" zh="聊天" icon={MessageCircle} onClose={onClose}
       full={openId ? `/chat/${encodeURIComponent(openId)}` : "/chat"} actions={openId ? null : <NewChat onPick={setOpenId} />}>
       {openId == null ? <ChatList activeId={null} className="flex flex-1" onPick={setOpenId} />
-        : openId === BOT_ID ? <BotThread onBack={back} />
+        : openId === BOT_ID ? (bao ? <BotThread onBack={back} /> : <BaoOff />)
         : <ChatThread key={openId} id={openId} onBack={back} />}
     </PanelFrame>
   );
 }
 
 export function NoChatOpen() {
+  const bao = useAi()("bao");
   return (
     <div className="grid flex-1 place-items-center p-8 text-center">
       <div>
         <span className="mx-auto grid size-14 place-items-center rounded-3xl bg-raised text-volt-500"><MessagesSquare className="size-6" /></span>
         <p className="mt-3 font-semibold">Pick a chat</p>
-        <p className="mx-auto mt-1 max-w-xs text-sm text-muted">Send decks, reply and react to messages, and type <span className="rounded bg-second-500/15 px-1 font-semibold text-second-300">@ask</span> to bring Bao in for a Chinese question. Or message Bao directly from the top of the list.</p>
+        <p className="mx-auto mt-1 max-w-xs text-sm text-muted">
+          {bao
+            ? <>Send decks, reply and react to messages, and type <span className="rounded bg-second-500/15 px-1 font-semibold text-second-300">@ask</span> to bring Bao in for a Chinese question. Or message Bao directly from the top of the list.</>
+            : "Send decks, and reply and react to messages."}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/** Where the chat with Bao would be, for an account that has Bao turned off. */
+export function BaoOff() {
+  return (
+    <div className="grid flex-1 place-items-center p-8 text-center">
+      <div>
+        <span className="mx-auto grid size-14 place-items-center rounded-3xl bg-raised text-muted"><Sparkles className="size-6" /></span>
+        <p className="mt-3 font-semibold">Bao is turned off</p>
+        <p className="mx-auto mt-1 max-w-xs text-sm text-muted">You turned off Bao, the study bot, for your account. Turn it back on any time in Settings.</p>
+        <Link href="/settings#ai" className="btn btn-ghost mt-4">Open AI settings</Link>
       </div>
     </div>
   );

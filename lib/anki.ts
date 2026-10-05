@@ -1,9 +1,9 @@
-import JSZip from "jszip";
+import JSZip, { type JSZipObject } from "jszip";
 import { uniqueTags } from "./ai";
 import { DAY, memoryFromSm2, type Rating } from "./fsrs";
 import { DEFAULT_REVIEW, dayKey, MAX_ANSWER_MS, recomputeMemory, type RevlogEntry, type Schedule, type Side, type Store } from "./srs";
 import { detectLanguage, hasCjk, hasKana, isKanaOnly, type Lang, parseBracketFurigana } from "./lang";
-import { looksLikePinyin, newCard, normalizeCard, type Card, type CardField, type CardKind, type Notetype } from "./cards";
+import { CARD_CLIP, looksLikePinyin, newCard, normalizeCard, type Card, type CardAudio, type CardField, type CardKind, type Notetype } from "./cards";
 
 export type AnkiNotetype = { id: number; name: string; fields: string[]; templates: number };
 export type AnkiNote = { id: number; type: number; tags: string; fields: string[] };
@@ -37,8 +37,26 @@ const MAX_REVLOG = 25_000;
 
 export const isAnkiFile = (name: string) => /\.(apkg|colpkg)$/i.test(name);
 
-/** Unzips the package here so media never uploads, then lets the server read the SQLite collection. */
-export async function readAnkiPackage(file: File): Promise<AnkiCollection> {
+/** A package's media files by the name notes use in `[sound:name]`. */
+export type AnkiMedia = Map<string, JSZipObject>;
+
+async function readMedia(zip: JSZip): Promise<AnkiMedia> {
+  const index = zip.file("media");
+  if (!index) return new Map();
+  const res = await fetch("/api/anki?part=media", { method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: await index.async("blob") });
+  const data = (await res.json().catch(() => null)) as { media?: Record<string, string> } | null;
+  if (!res.ok || !data?.media) return new Map();
+  return new Map(Object.entries(data.media).flatMap(([name, entry]) => {
+    const file = zip.file(entry);
+    return file ? [[name, file] as const] : [];
+  }));
+}
+
+/**
+ * Unzips the package here, then lets the server read the SQLite collection. With `withMedia`, the media list is read
+ * too, so recordings can be uploaded later for only the cards that get imported.
+ */
+export async function readAnkiPackage(file: File, withMedia = false): Promise<{ collection: AnkiCollection; media: AnkiMedia }> {
   let zip: JSZip;
   try {
     zip = await JSZip.loadAsync(file);
@@ -53,7 +71,7 @@ export async function readAnkiPackage(file: File): Promise<AnkiCollection> {
   if (data.notes.length === 1 && STUB.test(data.notes[0].fields.join(" "))) {
     throw new Error("That package needs a newer reader. In Anki’s export dialog, tick “Support older Anki versions” and export again.");
   }
-  return data;
+  return { collection: data, media: withMedia ? await readMedia(zip).catch(() => new Map()) : new Map() };
 }
 
 const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: "\"", apos: "'", nbsp: " " };
@@ -206,6 +224,22 @@ export function noteToCard(note: AnkiNote, roles: FieldRole[]): Card {
   });
 }
 
+/** File names of a note's recordings: the first `[sound:]` for the word, and the first for the example. */
+export type Sounds = { word?: string; example?: string };
+const SOUND = /\[sound:([^\]]+)\]/gi;
+const EXAMPLE_ROLES = new Set<FieldRole>(["example", "exampleReading", "exampleMeaning"]);
+
+/** Sounds follow their field's role; a skipped audio field counts as the example when its name says so. */
+export function noteSounds(note: AnkiNote, roles: FieldRole[], fieldNames: string[]): Sounds {
+  const out: Sounds = {};
+  note.fields.forEach((raw, i) => {
+    const role = roles[i] ?? "skip";
+    const side = EXAMPLE_ROLES.has(role) || ((role === "skip" || role === "notes") && /sentence|example|例/i.test(fieldNames[i] ?? "")) ? "example" : "word";
+    for (const match of raw.matchAll(SOUND)) out[side] ??= match[1].trim();
+  });
+  return out;
+}
+
 /** A word with no Chinese or Japanese in it and no reading is a deck's welcome or info note, not vocabulary. */
 export const filledCard = (card: Card) =>
   Boolean(card.term.trim() || card.reading.trim() || card.meaning.trim()) && !(card.term.trim() && !hasCjk(card.term) && !card.reading.trim());
@@ -239,7 +273,8 @@ export const deckLabel = (name: string) => name.split("::").map((part) => part.t
 
 /** `language` is used for decks whose cards don't show which language they are in. */
 export type ImportPlan = { decks: number[]; combine: boolean; roles: Roles; progress: boolean; fallbackName: string; language: Lang };
-export type ImportedDeck = { name: string; notetype: Notetype; cards: Card[]; srs: Store | null; tags: string[]; skipped: number; language: Lang };
+/** `sounds` holds each card's recording file names until `attachAudio` uploads them. */
+export type ImportedDeck = { name: string; notetype: Notetype; cards: Card[]; srs: Store | null; tags: string[]; skipped: number; language: Lang; sounds: Map<string, Sounds> };
 
 function localDay(at: number, days = 0): number {
   const date = new Date(at);
@@ -340,11 +375,14 @@ export function buildDecks(collection: AnkiCollection, plan: ImportPlan, now = D
     const inGroup = new Set(group);
     const notes = collection.notes.filter((n) => plan.roles[n.type] && inGroup.has(homes.get(n.id) ?? -1));
     const cardOf = new Map<number, Card>();
+    const sounds = new Map<string, Sounds>();
     let skipped = 0;
     for (const note of notes) {
       const card = noteToCard(note, plan.roles[note.type]);
-      if (filledCard(card)) cardOf.set(note.id, card);
-      else skipped++;
+      if (!filledCard(card)) { skipped++; continue; }
+      cardOf.set(note.id, card);
+      const found = noteSounds(note, plan.roles[note.type], types.get(note.type)?.fields ?? []);
+      if (found.word || found.example) sounds.set(card.id, found);
     }
     if (!cardOf.size) return [];
     const kept = notes.filter((n) => cardOf.has(n.id));
@@ -367,6 +405,61 @@ export function buildDecks(collection: AnkiCollection, plan: ImportPlan, now = D
       tags: uniqueTags(cards.flatMap((c) => c.tags.split(" "))),
       skipped,
       language: detectLanguage(cards) ?? plan.language,
+      sounds,
     }];
   });
+}
+
+const MAX_CLIP = 4 * 1024 * 1024;
+const UPLOADS_AT_ONCE = 6;
+
+async function uploadClip(file: JSZipObject): Promise<string> {
+  const blob = await file.async("blob");
+  if (blob.size > MAX_CLIP) throw new Error("Too large");
+  const res = await fetch("/api/card-audio", { method: "POST", headers: { "Content-Type": "application/octet-stream" }, body: blob });
+  const data = (await res.json().catch(() => null)) as { clip?: string } | null;
+  if (!res.ok || !data?.clip || !CARD_CLIP.test(data.clip)) throw new Error("Not stored");
+  return data.clip;
+}
+
+/**
+ * Uploads the recordings the decks' cards use and attaches them to those cards. A recording that won't upload is
+ * left out, and its card is voiced here instead. Stops early when nothing uploads at all.
+ */
+export async function attachAudio(decks: ImportedDeck[], media: AnkiMedia, onProgress: (done: number, total: number) => void): Promise<{ attached: number; failed: number }> {
+  const names = [...new Set(decks.flatMap((d) => [...d.sounds.values()].flatMap((s) => [s.word, s.example])))]
+    .filter((name): name is string => !!name && media.has(name));
+  const clips = new Map<string, string>();
+  let next = 0;
+  let done = 0;
+  let failed = 0;
+  const worker = async () => {
+    while (next < names.length) {
+      if (done >= UPLOADS_AT_ONCE && failed === done) return;
+      const name = names[next++];
+      try {
+        clips.set(name, await uploadClip(media.get(name)!));
+      } catch {
+        failed++;
+      }
+      onProgress(++done, names.length);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(UPLOADS_AT_ONCE, names.length) }, worker));
+
+  let attached = 0;
+  for (const deck of decks) {
+    deck.cards = deck.cards.map((card) => {
+      const found = deck.sounds.get(card.id);
+      const word = found?.word && clips.get(found.word);
+      const example = found?.example && clips.get(found.example);
+      const audio: CardAudio = {};
+      if (word && card.term.trim()) audio.word = { clip: word, text: card.term.trim() };
+      if (example && card.example.trim()) audio.example = { clip: example, text: card.example.trim() };
+      if (!audio.word && !audio.example) return card;
+      attached++;
+      return { ...card, audio };
+    });
+  }
+  return { attached, failed: names.length - clips.size };
 }

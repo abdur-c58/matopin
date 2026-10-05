@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Dialog } from "radix-ui";
-import { BookOpen, Check, Eye, EyeOff, Globe, Layers, LoaderCircle, Lock, Plus, UserCheck, UserPlus, Users, X } from "lucide-react";
+import { BookOpen, Check, CopyPlus, Eye, EyeOff, Globe, Layers, LoaderCircle, Lock, UserCheck, UserPlus, Users, X } from "lucide-react";
 import { toast } from "sonner";
-import { ROLE_LABELS, VISIBILITY_LABELS, type DeckPreview, type Person, type SharedDeck, type Visibility } from "@/lib/social";
+import { deckStats, ROLE_LABELS, VISIBILITY_LABELS, type DeckPreview, type Person, type SharedDeck, type Visibility } from "@/lib/social";
 import { store } from "@/lib/store-client";
 import { pullDecks } from "@/lib/sync";
 import { PersonAvatar } from "./avatar";
@@ -69,40 +69,46 @@ export function PersonRow({ person, self, onChange }: { person: Person; self: bo
   );
 }
 
-/** Follows a public deck and brings it into this profile's deck list. */
-export function useFollowDeck() {
+/** Saves the viewer's own copy of a deck and brings it into their deck list. Returns the deck as it is now. */
+export function useSaveCopy() {
   const { profile } = useProfile();
-  return async (deckId: string) => {
-    await store("followDeck", { id: deckId, on: true });
+  const router = useRouter();
+  return async (deck: SharedDeck) => {
+    const { copyId, deck: next } = await store<{ copyId: string; deck: SharedDeck }>("copyDeck", { id: deck.id });
     await pullDecks(profile);
+    toast.success(`Saved a copy of ${deck.name}. It's yours to change.`, { action: { label: "Open", onClick: () => router.push(`/decks/${copyId}`) } });
+    return next;
   };
 }
 
-function DeckAction({ deck, onFollowed, wide = false }: { deck: SharedDeck; onFollowed: (id: string) => void; wide?: boolean }) {
-  const follow = useFollowDeck();
+function SaveCopyButton({ deck, onSaved, className }: { deck: SharedDeck; onSaved: (deck: SharedDeck) => void; className: string }) {
+  const save = useSaveCopy();
   const [busy, setBusy] = useState(false);
-  const size = wide ? "w-full" : "h-9 px-3.5";
-  if (deck.role === "owner") return <Link href={`/decks/${deck.id}/settings`} className={`btn btn-secondary ${size}`}>Your deck</Link>;
-  if (deck.role) return <Link href={`/decks/${deck.id}/review`} className={`btn btn-shard ${size}`}><BookOpen className="size-4" />Study</Link>;
   return (
-    <button type="button" className={`btn btn-primary ${size}`} disabled={busy} onClick={async () => {
+    <button type="button" className={className} disabled={busy} onClick={async () => {
       setBusy(true);
       try {
-        await follow(deck.id);
-        onFollowed(deck.id);
-        toast.success(`${deck.name} is in your decks now.`);
+        onSaved(await save(deck));
       } catch (e) {
-        toast.error(errorText(e, "Couldn't follow this deck."));
+        toast.error(errorText(e, "Couldn't save this deck."));
       } finally {
         setBusy(false);
       }
     }}>
-      {busy ? <LoaderCircle className="size-4 animate-spin" /> : <Plus className="size-4" />}Follow deck
+      {busy ? <LoaderCircle className="size-4 animate-spin" /> : <CopyPlus className="size-4" />}{deck.copyId ? "Save another copy" : "Save a copy"}
     </button>
   );
 }
 
-export function DeckTile({ deck, onFollowed, showOwner = true }: { deck: SharedDeck; onFollowed: (id: string) => void; showOwner?: boolean }) {
+function DeckAction({ deck, onSaved, wide = false }: { deck: SharedDeck; onSaved: (deck: SharedDeck) => void; wide?: boolean }) {
+  const size = wide ? "w-full" : "h-9 px-3.5";
+  if (deck.role === "owner") return <Link href={`/decks/${deck.id}/settings`} className={`btn btn-secondary ${size}`}>Your deck</Link>;
+  if (deck.copyId) return <Link href={`/decks/${deck.copyId}`} className={`btn btn-shard ${size}`}><Layers className="size-4" />Your copy</Link>;
+  if (deck.role === "collaborator") return <Link href={`/decks/${deck.id}/review`} className={`btn btn-shard ${size}`}><BookOpen className="size-4" />Study</Link>;
+  return <SaveCopyButton deck={deck} onSaved={onSaved} className={`btn btn-primary ${size}`} />;
+}
+
+export function DeckTile({ deck, onSaved, showOwner = true }: { deck: SharedDeck; onSaved: (deck: SharedDeck) => void; showOwner?: boolean }) {
   const [previewing, setPreviewing] = useState(false);
   return (
     <li className="surface flex flex-col p-5">
@@ -110,7 +116,7 @@ export function DeckTile({ deck, onFollowed, showOwner = true }: { deck: SharedD
         <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-raised text-volt-500"><Layers className="size-5" /></span>
         <div className="min-w-0 flex-1">
           <button type="button" className="block max-w-full truncate text-left text-base font-bold transition hover:text-volt-500" onClick={() => setPreviewing(true)}>{deck.name}</button>
-          <p className="text-xs text-muted">{plural(deck.cards, "card")} · {plural(deck.followers, "member")}</p>
+          <p className="text-xs text-muted">{deckStats(deck)}</p>
         </div>
         <VisibilityBadge visibility={deck.visibility} className="shrink-0" />
       </div>
@@ -121,14 +127,14 @@ export function DeckTile({ deck, onFollowed, showOwner = true }: { deck: SharedD
       )}
       <div className="mt-auto grid grid-cols-2 gap-2 pt-5">
         <button type="button" className="btn btn-ghost h-9" onClick={() => setPreviewing(true)}><Eye className="size-4" />Preview</button>
-        <DeckAction deck={deck} onFollowed={onFollowed} />
+        <DeckAction deck={deck} onSaved={onSaved} />
       </div>
-      <DeckPreviewDialog deckId={previewing ? deck.id : null} onClose={() => setPreviewing(false)} onFollowed={onFollowed} />
+      <DeckPreviewDialog deckId={previewing ? deck.id : null} onClose={() => setPreviewing(false)} onSaved={onSaved} />
     </li>
   );
 }
 
-export function DeckPreviewDialog({ deckId, onClose, onFollowed }: { deckId: string | null; onClose: () => void; onFollowed: (id: string) => void }) {
+export function DeckPreviewDialog({ deckId, onClose, onSaved }: { deckId: string | null; onClose: () => void; onSaved: (deck: SharedDeck) => void }) {
   const [deck, setDeck] = useState<DeckPreview | null>(null);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -160,8 +166,9 @@ export function DeckPreviewDialog({ deckId, onClose, onFollowed }: { deckId: str
               <div className="flex items-center gap-2 pr-10"><VisibilityBadge visibility={shown.visibility} />{shown.role && <span className="text-xs text-muted">{ROLE_LABELS[shown.role]}</span>}</div>
               <Dialog.Title className="mt-2 pr-10 text-xl font-bold">{shown.name}</Dialog.Title>
               <button type="button" className="mt-1 flex w-fit items-center gap-2 text-sm text-muted transition hover:text-ink" onClick={() => { onClose(); router.push(`/u/${shown.owner.id}`); }}>
-                <PersonAvatar person={shown.owner} className="size-6 text-[11px]" />by <span className="font-semibold text-ink">{shown.owner.name}</span> · {plural(shown.cards, "card")}
+                <PersonAvatar person={shown.owner} className="size-6 text-[11px]" />by <span className="font-semibold text-ink">{shown.owner.name}</span>
               </button>
+              <p className="mt-1 text-xs text-muted">{deckStats(shown)}</p>
               <ul className="mt-4 min-h-0 flex-1 divide-y divide-line overflow-y-auto rounded-2xl border border-line">
                 {shown.preview.length === 0 && <li className="p-6 text-center text-sm text-muted">No cards yet.</li>}
                 {shown.preview.map((c, i) => (
@@ -172,13 +179,17 @@ export function DeckPreviewDialog({ deckId, onClose, onFollowed }: { deckId: str
                 ))}
               </ul>
               {shown.cards > shown.preview.length && <p className="mt-2 text-xs text-muted">Showing the first {shown.preview.length} cards.</p>}
-              <div className="mt-4">
-                {shown.role ? (
-                  <Link href={shown.role === "owner" ? `/decks/${shown.id}` : `/decks/${shown.id}/review`} className="btn btn-shard w-full" onClick={onClose}>
-                    {shown.role === "owner" ? <><Layers className="size-4" />Open your deck</> : <><Check className="size-4" />In your decks · Study</>}
-                  </Link>
+              <div className="mt-4 grid gap-2">
+                {shown.role === "owner" ? (
+                  <Link href={`/decks/${shown.id}`} className="btn btn-shard w-full" onClick={onClose}><Layers className="size-4" />Open your deck</Link>
                 ) : (
-                  <DeckAction deck={shown} wide onFollowed={(id) => { setDeck({ ...shown, role: "follower", followers: shown.followers + 1 }); onFollowed(id); }} />
+                  <>
+                    {shown.role === "collaborator" && <Link href={`/decks/${shown.id}/review`} className="btn btn-shard w-full" onClick={onClose}><Check className="size-4" />Collaborating · Study</Link>}
+                    {shown.copyId && <Link href={`/decks/${shown.copyId}`} className="btn btn-shard w-full" onClick={onClose}><Layers className="size-4" />Open your copy</Link>}
+                    <SaveCopyButton deck={shown} onSaved={(next) => { setDeck({ ...next, preview: shown.preview }); onSaved(next); }}
+                      className={`btn w-full ${shown.role || shown.copyId ? "btn-ghost" : "btn-primary"}`} />
+                    {!shown.copyId && <p className="text-center text-xs text-muted">Your copy is private and yours to edit. {shown.owner.name}’s deck stays as it is.</p>}
+                  </>
                 )}
               </div>
             </>

@@ -62,10 +62,14 @@ export const loadJdictExamples = (id: number, offset: number, signal?: AbortSign
 
 export type Pronunciation = { clips: { url: string; credit: string }[] };
 
-/** Japanese words and sentences: `reading` is the kana, which Fish Audio is given for kanji-only text. */
-export function loadPronunciationJa(text: string, reading: string, sentence?: number) {
+/**
+ * Japanese words and sentences: `reading` is the kana, which Fish Audio is given for kanji-only text. The server
+ * leaves Fish Audio out when the account has AI voices off; `ai` keeps the two answers apart in caches.
+ */
+export function loadPronunciationJa(text: string, reading: string, sentence: number | undefined, ai: boolean) {
   const params = new URLSearchParams({ lang: "ja", text, reading });
   if (sentence) params.set("sentence", String(sentence));
+  if (!ai) params.set("ai", "0");
   return cached<Pronunciation>(`/api/dictionary/audio?${params}`, undefined, (r) => !r.clips.length);
 }
 
@@ -73,13 +77,14 @@ export function loadPronunciationJa(text: string, reading: string, sentence?: nu
  * The recordings for a word, character or Tatoeba sentence (with its words); the server fetches and stores any it
  * doesn't have yet.
  */
-export function loadPronunciation(text: string, pinyin: string, sentence?: { id: number; words: string[] }) {
+export function loadPronunciation(text: string, pinyin: string, sentence: { id: number; words: string[] } | undefined, ai: boolean) {
   const params = new URLSearchParams({ text, pinyin });
   if (sentence) {
     params.set("sentence", String(sentence.id));
     for (const w of sentence.words) params.append("w", w);
     params.set("v", "fish");
   }
+  if (!ai) params.set("ai", "0");
   return cached<Pronunciation>(`/api/dictionary/audio?${params}`, undefined, (r) => !r.clips.length);
 }
 

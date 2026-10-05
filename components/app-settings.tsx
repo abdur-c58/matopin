@@ -7,7 +7,9 @@ import type { Person, ProfileView } from "@/lib/social";
 import { store } from "@/lib/store-client";
 import { entriesOf, formatDuration, studyMs } from "@/lib/stats";
 import { FLUENCY_LABELS } from "@/lib/cards";
+import { AiPanel } from "./ai-settings";
 import { Avatar } from "./avatar";
+import { LearningPanel } from "./learning-picker";
 import { ProfileButton, useProfile } from "./profiles";
 import { ThemePanel } from "./theme-picker";
 import { Chips, Panel } from "./ui";
@@ -15,6 +17,8 @@ import { useGoal, useProfileData } from "./use-stats";
 
 const PRESETS = [20, 50, 100, 200];
 const GOAL_ID = "daily-goal";
+const LEARNING_ID = "learning";
+const AI_ID = "ai";
 
 /** Arriving from the dashboard's "Change goal" link scrolls to the goal and flashes it so it's easy to spot. */
 function useSpotlight(id: string) {
@@ -89,6 +93,8 @@ function useSocialCounts(profile: string) {
 
 export function AppSettings() {
   const { profile, name, email, avatar, avatarCrop, color, bio, fluency } = useProfile();
+  useSpotlight(LEARNING_ID);
+  useSpotlight(AI_ID);
   const data = useProfileData();
   const social = useSocialCounts(profile);
   const entries = data ? entriesOf(data.decks) : [];
@@ -121,6 +127,10 @@ export function AppSettings() {
       </Panel>
 
       <GoalForm />
+
+      <LearningPanel id={LEARNING_ID} className="lg:col-span-12" />
+
+      <AiPanel id={AI_ID} className="lg:col-span-12" />
 
       <ThemePanel className="lg:col-span-5" />
 

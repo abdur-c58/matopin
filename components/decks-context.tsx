@@ -7,13 +7,18 @@ import { toast } from "sonner";
 import { createDeck, DECKS_CHANGED, deckScope, deleteLocalDeck, summarizeDecks, type DeckSummary } from "@/lib/decks";
 import { LANG_INFO, LANGS, type Lang } from "@/lib/lang";
 import { pushNow, removeRemote } from "@/lib/sync";
-import { useActiveLang } from "./lang-context";
+import { useActiveLang, useLearning } from "./lang-context";
 import { useProfile } from "./profiles";
 
 export type DeckFilter = Lang | "all";
 
 type DecksContext = {
+  /** Decks in the languages being learned. */
   decks: DeckSummary[] | null;
+  /** Decks in a language this profile no longer learns. They keep their cards and progress, out of the way. */
+  archived: DeckSummary[];
+  /** Every deck, archived or not, for finding one by id. */
+  allDecks: DeckSummary[] | null;
   /** Makes a deck in `lang`, the filtered language, or (when every deck is shown) the language the learner picks. */
   create: (lang?: Lang) => Promise<void>;
   requestDelete: (deck: DeckSummary) => void;
@@ -35,9 +40,12 @@ export const dueTotal = (deck: DeckSummary) => deck.due.new + deck.due.learning 
 export function DecksProvider({ children }: { children: React.ReactNode }) {
   const { profile } = useProfile();
   const { lang: active } = useActiveLang();
+  const { single } = useLearning();
   const router = useRouter();
   const pathname = usePathname();
-  const [decks, setDecks] = useState<DeckSummary[] | null>(null);
+  const [all, setDecks] = useState<DeckSummary[] | null>(null);
+  const decks = all && single ? all.filter((d) => d.language === single) : all;
+  const archived = all && single ? all.filter((d) => d.language !== single) : [];
   const [deleting, setDeleting] = useState<DeckSummary | null>(null);
   const [removing, setRemoving] = useState(false);
   const [picked, setPicked] = useState<{ filter: DeckFilter; for: Lang } | null>(null);
@@ -45,7 +53,7 @@ export function DecksProvider({ children }: { children: React.ReactNode }) {
   const [choice, setChoice] = useState<Lang>(active);
   const leaving = deleting != null && deleting.role !== "owner";
   // Switching the language being learned resets the list to that language.
-  const filter: DeckFilter = picked && picked.for === active ? picked.filter : active;
+  const filter: DeckFilter = single ?? (picked && picked.for === active ? picked.filter : active);
   const setFilter = useCallback((next: DeckFilter) => setPicked({ filter: next, for: active }), [active]);
 
   useEffect(() => {
@@ -87,7 +95,7 @@ export function DecksProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <Ctx.Provider value={{ decks, create, requestDelete: setDeleting, filter, setFilter }}>
+    <Ctx.Provider value={{ decks, archived, allDecks: all, create, requestDelete: setDeleting, filter, setFilter }}>
       {children}
       <Dialog.Root open={asking} onOpenChange={setAsking}>
         <Dialog.Portal>

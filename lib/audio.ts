@@ -9,11 +9,17 @@ export type ListenPart = "word" | "example";
 /** Generated clips last for the tab's lifetime, so the deck editor and review share them. */
 const clips = new Map<string, Promise<Blob>>();
 
+async function ownClip(name: string): Promise<Blob> {
+  const res = await fetch(`/api/card-audio/${name}`);
+  if (!res.ok) throw new Error("Couldn’t load this card’s recording.");
+  return res.blob();
+}
+
 export function loadClip(line: Spoken): Promise<Blob> {
-  const id = `${line.lang}${line.voice}\n${line.text}`;
+  const id = line.clip ?? `${line.lang}${line.voice}\n${line.text}`;
   let clip = clips.get(id);
   if (!clip) {
-    clip = speak(line.text, { lang: line.lang, voice: line.voice });
+    clip = line.clip ? ownClip(line.clip) : speak(line.text, { lang: line.lang, voice: line.voice });
     clips.set(id, clip);
     clip.catch(() => clips.delete(id));
   }

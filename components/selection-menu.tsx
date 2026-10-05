@@ -8,8 +8,8 @@ import { audioError, playBlob } from "@/lib/audio";
 import { MAX_QUERY } from "@/lib/dictionary";
 import { hasCjk, isLang, LANG_INFO, type Lang, textLang } from "@/lib/lang";
 import { FlashcardMaker } from "./flashcard-maker";
-import { useActiveLang } from "./lang-context";
-import { useProfile } from "./profiles";
+import { useActiveLang, useLearning } from "./lang-context";
+import { useAi, useProfile } from "./profiles";
 import { useLookUp } from "./quick-panels";
 
 const MAX_TEXT = 1500;
@@ -91,7 +91,9 @@ const BUTTON = "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl px-2.5 
  */
 export function SelectionMenu() {
   const { prefs } = useProfile();
+  const ai = useAi();
   const { lang: active } = useActiveLang();
+  const { single } = useLearning();
   const lookUp = useLookUp();
   const menu = useRef<HTMLDivElement>(null);
   const touch = useRef(false);
@@ -188,7 +190,7 @@ export function SelectionMenu() {
   const text = picked.text.slice(0, MAX_TEXT);
   const speakable = hasCjk(text);
   // Kana is always Japanese; hanzi alone goes with the language the page marks it as, else what the learner is studying.
-  const lang = textLang(text, picked.tagged ?? active);
+  const lang = single ?? textLang(text, picked.tagged ?? active);
   const translation = translated?.text === text && translated.lang === lang ? translated : null;
 
   const copy = async (value: string) => {
@@ -241,24 +243,26 @@ export function SelectionMenu() {
               <BookA className="size-3.5" />Look up
             </button>
           )}
-          {speakable && (
+          {speakable && ai("voice") && (
             <button type="button" className={BUTTON} onClick={() => void hear(text)} aria-pressed={listening != null}>
               {listening === "loading" ? <LoaderCircle className="size-3.5 animate-spin" /> : listening === "playing" ? <Square className="size-3 fill-current" /> : <Volume2 className="size-3.5" />}
               {listening === "playing" ? "Stop" : "Listen"}
             </button>
           )}
-          {speakable && (
+          {speakable && ai("create") && (
             <button type="button" className={BUTTON} onClick={() => { setCardsFrom({ text, lang }); setPicked(null); }}>
               <Layers className="size-3.5" />Cards
             </button>
           )}
-          <button type="button" className={`${BUTTON} ${translation ? "bg-raised text-ink" : ""}`} disabled={translation != null && !translation.result && !translation.error}
-            onClick={() => void translate()} title="Translate with AI">
-            {translation && !translation.result && !translation.error ? <LoaderCircle className="size-3.5 animate-spin" /> : <Languages className="size-3.5" />}
-            Translate<Sparkles className="size-3 text-second-300" aria-label="uses AI" />
-          </button>
+          {ai("translate") && (
+            <button type="button" className={`${BUTTON} ${translation ? "bg-raised text-ink" : ""}`} disabled={translation != null && !translation.result && !translation.error}
+              onClick={() => void translate()} title="Translate with AI">
+              {translation && !translation.result && !translation.error ? <LoaderCircle className="size-3.5 animate-spin" /> : <Languages className="size-3.5" />}
+              Translate<Sparkles className="size-3 text-second-300" aria-label="uses AI" />
+            </button>
+          )}
         </div>
-        {translation && (translation.result || translation.error) && (
+        {ai("translate") && translation && (translation.result || translation.error) && (
           <div className="mt-1 max-h-64 overflow-y-auto border-t border-line px-3 pt-2.5 pb-2">
             {translation.error ? <p className="text-sm text-tone-1">{translation.error}</p> : translation.result && (
               <TranslationView result={translation.result} lang={lang} copied={copied} onCopy={(v) => void copy(v)} />

@@ -1,17 +1,19 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CalendarDays, Layers, LoaderCircle, MessageCircle, MessageCircleOff, Pencil, Users } from "lucide-react";
+import { CalendarDays, Layers, LoaderCircle, MessageCircle, MessageCircleOff, Pencil, UserSearch, Users } from "lucide-react";
 import { toast } from "sonner";
-import type { ChatLink, Person, ProfileView, PublicProfile } from "@/lib/social";
+import type { ChatLink, Person, ProfileView, PublicProfile, SharedDeck } from "@/lib/social";
 import { store } from "@/lib/store-client";
 import { PersonAvatar } from "./avatar";
 import { GuestProfile } from "./guest-profile";
 import { ProfileDialog, useProfile, useSignedIn } from "./profiles";
+import { ReachStats } from "./reach-stats";
+import { FindPeopleDialog, PublicDecks } from "./social-page";
 import { DeckTile, errorText, FollowButton, PersonRow } from "./social";
 import { Chips, Panel } from "./ui";
 
-type Tab = "decks" | "followers" | "following";
+type Tab = "decks" | "followers" | "following" | "discover";
 
 /** `guest` is what the server found for a visitor who isn't signed in; null if the profile doesn't exist. */
 export function ProfilePage({ id, guest }: { id: string; guest: PublicProfile | null }) {
@@ -26,6 +28,7 @@ function MemberProfile({ id }: { id: string }) {
   const [tab, setTab] = useState<Tab>("decks");
   const [editing, setEditing] = useState(false);
   const [enabling, setEnabling] = useState(false);
+  const [finding, setFinding] = useState(false);
 
   useEffect(() => {
     let live = true;
@@ -74,7 +77,7 @@ function MemberProfile({ id }: { id: string }) {
       setEnabling(false);
     }
   }
-  const markFollowed = (deckId: string) => setView((v) => v && { ...v, decks: v.decks.map((d) => (d.id === deckId ? { ...d, role: "follower", followers: d.followers + 1 } : d)) });
+  const markSaved = (next: SharedDeck) => setView((v) => v && { ...v, decks: v.decks.map((d) => (d.id === next.id ? next : d)) });
   const joined = new Date(person.joinedAt).toLocaleDateString(undefined, { month: "long", year: "numeric" });
   const stats: [Tab, number, string][] = [["followers", person.followers, "Followers"], ["following", person.following, "Following"], ["decks", view.decks.length, self ? "Shared decks" : "Public decks"]];
 
@@ -99,13 +102,14 @@ function MemberProfile({ id }: { id: string }) {
                   <span className="block text-xs text-muted">{label}</span>
                 </button>
               ))}
+              <ReachStats reach={view.person.reach} />
             </div>
           </div>
           <div className="flex shrink-0 gap-2">
             {self ? (
               <>
+                <button type="button" className="btn btn-primary" onClick={() => setFinding(true)}><UserSearch className="size-4" />Find people</button>
                 <button type="button" className="btn btn-shard" onClick={() => setEditing(true)}><Pencil className="size-4" />Edit profile</button>
-                <Link href="/decks" className="btn btn-ghost"><Layers className="size-4" />Your decks</Link>
               </>
             ) : (
               <>
@@ -127,24 +131,32 @@ function MemberProfile({ id }: { id: string }) {
       </section>
 
       <Chips<Tab> label="Profile sections" value={tab} onChange={setTab}
-        options={[{ value: "decks", label: self ? "Shared decks" : "Public decks" }, { value: "followers", label: "Followers" }, { value: "following", label: "Following" }]} />
+        options={[
+          { value: "decks", label: self ? "Shared decks" : "Public decks" }, { value: "followers", label: "Followers" }, { value: "following", label: "Following" },
+          ...(self ? [{ value: "discover" as const, label: "Discover decks" }] : []),
+        ]} />
+
+      {tab === "discover" && self && <PublicDecks />}
 
       {tab === "decks" && (view.decks.length ? (
         <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {view.decks.map((deck) => <DeckTile key={deck.id} deck={deck} showOwner={false} onFollowed={markFollowed} />)}
+          {view.decks.map((deck) => <DeckTile key={deck.id} deck={deck} showOwner={false} onSaved={markSaved} />)}
         </ul>
       ) : (
         <Panel className="text-center">
           <Layers className="mx-auto size-8 text-muted" />
           <p className="mt-2 font-semibold">{self ? "You haven’t shared a deck yet" : `${person.name} hasn’t shared a public deck yet`}</p>
-          <p className="mx-auto mt-1 max-w-sm text-sm text-muted">{self ? "Open a deck’s settings and set it to Public for anyone to follow, or Collab to invite people with a link." : "Follow them to see their decks first when they do."}</p>
+          <p className="mx-auto mt-1 max-w-sm text-sm text-muted">{self ? "Open a deck’s settings and set it to Public for anyone to import, or Collab to invite people with a link." : "Follow them to see their decks first when they do."}</p>
           {self && <Link href="/decks" className="btn btn-shard mt-4">Choose a deck</Link>}
         </Panel>
       ))}
-      {tab !== "decks" && (
+      {(tab === "followers" || tab === "following") && (
         <Panel title={<span className="flex items-center gap-2"><Users className="size-4 text-volt-500" />{tab === "followers" ? "Followers" : "Following"}</span>}>
           {(tab === "followers" ? view.followers : view.following).length === 0 ? (
-            <p className="text-sm text-muted">{tab === "followers" ? (self ? "No one follows you yet." : "No followers yet.") : (self ? "You aren’t following anyone yet. Find people in Social." : "Not following anyone yet.")}</p>
+            <div className="text-sm text-muted">
+              {tab === "followers" ? (self ? "No one follows you yet." : "No followers yet.") : (self ? "You aren’t following anyone yet." : "Not following anyone yet.")}
+              {self && <button type="button" className="btn btn-shard mt-3 flex" onClick={() => setFinding(true)}><UserSearch className="size-4" />Find people</button>}
+            </div>
           ) : (
             <ul className="grid gap-1 md:grid-cols-2">
               {(tab === "followers" ? view.followers : view.following).map((p) => <PersonRow key={p.id} person={p} self={p.id === profile} onChange={changePerson} />)}
@@ -154,6 +166,7 @@ function MemberProfile({ id }: { id: string }) {
       )}
 
       {self && <ProfileDialog open={editing} onOpenChange={setEditing} />}
+      {self && <FindPeopleDialog open={finding} onOpenChange={setFinding} />}
     </main>
   );
 }

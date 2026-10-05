@@ -4,19 +4,19 @@ import Link from "next/link";
 import { Check, Copy, EyeOff, Globe, Link2, LoaderCircle, Lock, RefreshCw, UserMinus, Users } from "lucide-react";
 import { toast } from "sonner";
 import { notifyDecks, readMeta, writeMeta } from "@/lib/decks";
-import { inviteUrl, ROLE_LABELS, VISIBILITY_LABELS, type MemberRole, type Sharing, type Visibility } from "@/lib/social";
+import { inviteUrl, VISIBILITY_LABELS, type Sharing, type Visibility } from "@/lib/social";
 import { store } from "@/lib/store-client";
 import { PersonAvatar } from "./avatar";
 import { errorText } from "./social";
 
 const OPTIONS: { value: Visibility; label: string; detail: string; icon: typeof Lock }[] = [
   { value: "private", label: "Private", detail: "Only you can see and study it.", icon: Lock },
-  { value: "public", label: "Public", detail: "Anyone can find it in Social and follow it to study.", icon: Globe },
-  { value: "unlisted", label: "Unlisted", detail: "Hidden from Social. Anyone you send it to in a chat can follow it.", icon: EyeOff },
+  { value: "public", label: "Public", detail: "Anyone can find it in Social and save their own copy.", icon: Globe },
+  { value: "unlisted", label: "Unlisted", detail: "Hidden from Social. Anyone you send it to in a chat can save a copy.", icon: EyeOff },
   { value: "collab", label: "Collab", detail: "Hidden. People with your invite link join and can edit cards.", icon: Users },
 ];
 
-/** The owner's controls: who can see the deck, the collab invite link, and everyone following or collaborating. */
+/** The owner's controls: who can see the deck, the collab invite link, collaborators, and saves and remixes. */
 export function DeckSharing({ deckId, scope }: { deckId: string; scope: string }) {
   const [sharing, setSharing] = useState<Sharing | null>(null);
   const [error, setError] = useState("");
@@ -50,7 +50,7 @@ export function DeckSharing({ deckId, scope }: { deckId: string; scope: string }
 
   const share = (visibility: Visibility, reset = false) => run(reset ? "reset" : visibility, () => store<Sharing>("deckShare", { id: deckId, visibility, reset }),
     reset ? "New invite link made. The old one no longer works." : `Deck is ${VISIBILITY_LABELS[visibility].toLowerCase()} now.`);
-  const setRole = (member: string, role: MemberRole | null) => run(member, () => store<Sharing>("deckMember", { id: deckId, member, role }), role ? undefined : "Removed from the deck.");
+  const remove = (member: string) => run(member, () => store<Sharing>("deckMember", { id: deckId, member, role: null }), "Removed from the deck.");
 
   async function copy(code: string) {
     try {
@@ -98,14 +98,24 @@ export function DeckSharing({ deckId, scope }: { deckId: string; scope: string }
         </div>
       )}
 
+      <div className="grid grid-cols-2 gap-2">
+        {([["Imports", sharing.saves, "People who saved their own copy"], ["Remixes", sharing.remixes, "People who changed the cards in their copy"]] as const).map(([label, value, hint]) => (
+          <div key={label} className="rounded-2xl border border-line px-3 py-2.5" title={hint}>
+            <p className="text-xl font-bold tabular-nums">{value.toLocaleString()}</p>
+            <p className="text-xs text-muted">{label}</p>
+          </div>
+        ))}
+        <p className="col-span-2 text-xs text-muted">Each person counts once. Copies are theirs to change; your deck stays as it is.</p>
+      </div>
+
       <div>
-        <span className="label">Members · {sharing.members.length}</span>
+        <span className="label">Collaborators · {sharing.members.length}</span>
         {sharing.visibility === "private" && sharing.members.length > 0 && (
-          <p className="mb-2 rounded-xl bg-raised px-3 py-2 text-xs text-muted">While the deck is private, members can’t open it. They get it back if you share it again.</p>
+          <p className="mb-2 rounded-xl bg-raised px-3 py-2 text-xs text-muted">While the deck is private, collaborators can’t open it. They get it back if you share it again.</p>
         )}
         {sharing.members.length === 0 ? (
           <p className="rounded-xl border border-dashed border-line px-3 py-4 text-center text-sm text-muted">
-            {sharing.visibility === "public" ? "No one follows this deck yet." : sharing.visibility === "unlisted" ? "Send it to someone in a chat and they can follow it." : sharing.visibility === "collab" ? "Send the invite link to start collaborating." : "Share the deck to let people follow or collaborate."}
+            {sharing.visibility === "collab" ? "Send the invite link to start collaborating." : "Make the deck Collab to invite people to edit it with you."}
           </p>
         ) : (
           <ul className="divide-y divide-line rounded-xl border border-line">
@@ -118,18 +128,9 @@ export function DeckSharing({ deckId, scope }: { deckId: string; scope: string }
                     <span className="block text-xs text-muted">Joined {new Date(m.joinedAt).toLocaleDateString(undefined, { dateStyle: "medium" })}</span>
                   </span>
                 </Link>
-                <div role="radiogroup" aria-label={`Role for ${m.name}`} className="inline-flex rounded-lg border border-line p-0.5">
-                  {(["follower", "collaborator"] as const).map((role) => (
-                    <button key={role} type="button" role="radio" aria-checked={m.role === role} disabled={busy != null}
-                      onClick={() => { if (m.role !== role) void setRole(m.id, role); }}
-                      className={`h-7 rounded-md px-2.5 text-xs font-medium transition-colors ${m.role === role ? "bg-volt-600 text-on-volt hover:bg-volt-700" : "text-muted hover:bg-volt-50 hover:text-ink"}`}>
-                      {ROLE_LABELS[role]}
-                    </button>
-                  ))}
-                </div>
                 {removing === m.id ? (
                   <span className="flex gap-1">
-                    <button type="button" className="btn h-8 bg-tone-1 px-3 text-xs text-white hover:bg-tone-1/90" disabled={busy != null} onClick={() => { setRemoving(null); void setRole(m.id, null); }}>Remove</button>
+                    <button type="button" className="btn h-8 bg-tone-1 px-3 text-xs text-white hover:bg-tone-1/90" disabled={busy != null} onClick={() => { setRemoving(null); void remove(m.id); }}>Remove</button>
                     <button type="button" className="btn btn-ghost h-8 px-3 text-xs" onClick={() => setRemoving(null)}>Keep</button>
                   </span>
                 ) : (
@@ -141,7 +142,7 @@ export function DeckSharing({ deckId, scope }: { deckId: string; scope: string }
             ))}
           </ul>
         )}
-        <p className="mt-1.5 text-xs text-muted">Followers study the cards; collaborators can also edit them. Everyone keeps their own review progress.</p>
+        <p className="mt-1.5 text-xs text-muted">Collaborators edit this deck with you. Everyone keeps their own review progress, and a collaborator can still save a copy of their own.</p>
       </div>
     </>
   );
