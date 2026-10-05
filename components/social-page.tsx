@@ -2,18 +2,18 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Dialog } from "radix-ui";
-import { Compass, LoaderCircle, MessageCircle, Search, X } from "lucide-react";
+import { LoaderCircle, MessageCircle, Search, X } from "lucide-react";
 import type { Person, SharedDeck } from "@/lib/social";
 import { store } from "@/lib/store-client";
 import { PersonAvatar } from "./avatar";
 import { DeckTile, errorText, FollowButton, plural } from "./social";
-import { Chips, Panel } from "./ui";
+import { Chips } from "./ui";
 
 type DeckFilter = "all" | "following" | "joined";
 
 function SearchBox({ value, onChange, label, autoFocus = false }: { value: string; onChange: (v: string) => void; label: string; autoFocus?: boolean }) {
   return (
-    <label className="flex h-10 items-center gap-2 rounded-full border border-line bg-porcelain pr-4 pl-3 transition focus-within:border-volt-500/60">
+    <label className="flex h-10 items-center gap-2 rounded-lg border border-line bg-porcelain pr-4 pl-3 transition focus-within:border-volt-500/60">
       <Search className="size-4 shrink-0 text-muted" />
       <input className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted/80" placeholder={label} aria-label={label} value={value} autoFocus={autoFocus}
         onChange={(e) => onChange(e.target.value)} onKeyDown={(e) => { if (e.key === "Escape" && value) { e.stopPropagation(); onChange(""); } }} />
@@ -38,7 +38,7 @@ export function PublicDecks() {
     return () => { live = false; };
   }, []);
 
-  if (error) return <Panel><p className="text-sm text-tone-1">{error}</p></Panel>;
+  if (error) return <p className="text-sm text-tone-1">{error}</p>;
 
   const following = new Set(people?.filter((p) => p.isFollowing).map((p) => p.id));
   const q = query.trim().toLowerCase();
@@ -49,22 +49,16 @@ export function PublicDecks() {
 
   return (
     <section className="space-y-4">
-      <div className="surface flex flex-wrap items-center justify-between gap-3 p-4">
-        <h2 className="flex items-center gap-2 text-base font-semibold"><Compass className="size-4 text-volt-500" />Public decks</h2>
-        <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
-          <Chips<DeckFilter> label="Filter public decks" value={filter} onChange={setFilter}
-            options={[{ value: "all", label: "All" }, { value: "following", label: "From people you follow" }, { value: "joined", label: "Imported" }]} />
-          <div className="w-full sm:w-60"><SearchBox value={query} onChange={setQuery} label="Search decks or people" /></div>
-        </div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Chips<DeckFilter> label="Filter public decks" value={filter} onChange={setFilter}
+          options={[{ value: "all", label: "All" }, { value: "following", label: "From people you follow" }, { value: "joined", label: "Imported" }]} />
+        <div className="w-full sm:w-60"><SearchBox value={query} onChange={setQuery} label="Search decks or people" /></div>
       </div>
       {!decks && <p className="text-sm text-muted">Loading decks…</p>}
       {decks && shown.length === 0 && (
-        <div className="surface p-10 text-center">
-          <p className="font-semibold">{decks.length === 0 ? "No public decks yet" : "Nothing matches"}</p>
-          <p className="mx-auto mt-1 max-w-sm text-sm text-muted">
-            {decks.length === 0 ? "Make one of your decks public in its settings and it shows up here for everyone to import." : "Try another search or filter."}
-          </p>
-        </div>
+        <p className="max-w-md text-sm text-muted">
+          {decks.length === 0 ? "No public decks yet. Make one of your decks public in its settings and it shows up here for everyone to import." : "Nothing matches. Try another search or filter."}
+        </p>
       )}
       <ul className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
         {shown.map((deck) => <DeckTile key={deck.id} deck={deck} onSaved={markSaved} />)}
@@ -114,7 +108,7 @@ export function FindPeopleDialog({ open, onOpenChange }: { open: boolean; onOpen
               <li className="p-6 text-center text-sm text-muted">{query.trim() ? "No one matches that name." : "No one else is here yet."}</li>
             )}
             {people?.map((p) => (
-              <li key={p.id} className="flex items-center gap-3 rounded-2xl p-2 transition hover:bg-raised/60">
+              <li key={p.id} className="flex items-center gap-3 rounded-lg p-2 transition hover:bg-raised/60">
                 <Link href={`/u/${p.id}`} className="flex min-w-0 flex-1 items-center gap-3" onClick={() => onOpenChange(false)}>
                   <PersonAvatar person={p} className="size-10 text-base" />
                   <span className="min-w-0">

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { BookA, Check, Copy, Layers, Lightbulb, LoaderCircle, Square, Volume2 } from "lucide-react";
+import { BookA, LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import { speak } from "@/lib/ai-client";
 import { audioError, playBlob } from "@/lib/audio";
@@ -116,12 +116,12 @@ function CardActions({ note, onCards }: { note: Note; onCards: () => void }) {
     <div className="flex flex-wrap gap-0.5 border-t border-line p-1.5">
       {ai("voice") && (
         <button type="button" className={button} onClick={() => void hear()}>
-          {listening === "loading" ? <LoaderCircle className="size-3.5 animate-spin" /> : listening === "playing" ? <Square className="size-3 fill-current" /> : <Volume2 className="size-3.5" />}Listen
+          {listening === "loading" && <LoaderCircle className="size-3.5 animate-spin" />}{listening === "playing" ? "Stop" : "Listen"}
         </button>
       )}
-      <button type="button" className={button} onClick={() => lookUp(note.text, note.lang)}><BookA className="size-3.5" />Dictionary</button>
-      <button type="button" className={button} onClick={() => void copy()}>{copied ? <Check className="size-3.5 text-volt-500" /> : <Copy className="size-3.5" />}Copy</button>
-      {ai("create") && <button type="button" className={button} onClick={onCards}><Layers className="size-3.5" />Cards</button>}
+      <button type="button" className={button} onClick={() => lookUp(note.text, note.lang)}>Dictionary</button>
+      <button type="button" className={button} onClick={() => void copy()}>{copied ? "Copied" : "Copy"}</button>
+      {ai("create") && <button type="button" className={button} onClick={onCards}>Cards</button>}
     </div>
   );
 }
@@ -157,7 +157,7 @@ function NoteCard({ note, onCards }: { note: Note; onCards: () => void }) {
       )}
       {note.tip && (
         <p className="flex gap-2 border-t border-line px-3.5 py-2.5 text-xs leading-snug text-muted">
-          <Lightbulb className="mt-px size-3.5 shrink-0 text-volt-500" />{note.tip}
+          {note.tip}
         </p>
       )}
       <CardActions note={note} onCards={onCards} />

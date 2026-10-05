@@ -1,7 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Brain, Clock, Flame, Repeat } from "lucide-react";
 import {
   byHour, cardStates, entriesOf, forecast, formatDuration, lastDays, ratingCounts, retention, startOfDay, streaks, studyMs,
   type DeckData,
@@ -17,16 +16,13 @@ const RANGES: { value: Range; label: string }[] = [
 
 const pct = (n: number | null) => (n == null ? "—" : `${Math.round(n * 100)}%`);
 
-function Tile({ icon: Icon, label, value, note, accent }: { icon: typeof Brain; label: string; value: string; note: string; accent?: boolean }) {
+function Tile({ label, value, note, accent }: { label: string; value: string; note: string; accent?: boolean }) {
   return (
-    <section className={`rounded-3xl p-5 ${accent ? "bg-volt-500 text-on-volt" : "surface"}`}>
-      <div className="flex items-center justify-between">
-        <p className={`text-sm ${accent ? "font-medium text-on-volt/70" : "text-muted"}`}>{label}</p>
-        <span className={`grid size-9 place-items-center rounded-full ${accent ? "bg-on-volt/10" : "bg-raised text-muted"}`}><Icon className="size-4" /></span>
-      </div>
-      <p className="mt-3 text-3xl font-bold tracking-tight tabular-nums">{value}</p>
-      <p className={`mt-1 text-xs ${accent ? "text-on-volt/70" : "text-muted"}`}>{note}</p>
-    </section>
+    <div>
+      <p className="text-sm text-muted">{label}</p>
+      <p className={`mt-1 text-3xl font-bold tracking-tight tabular-nums ${accent ? "text-volt-500" : ""}`}>{value}</p>
+      <p className="mt-1 text-xs text-muted">{note}</p>
+    </div>
   );
 }
 
@@ -105,20 +101,20 @@ export function StatsPage() {
     ] }));
 
   return (
-    <main className="space-y-4 px-4 pt-5 pb-10 md:px-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <main className="space-y-8 px-4 pt-6 pb-10 md:px-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line">
         <Chips<Range> label="Time range" value={range} onChange={setRange} options={RANGES} />
-        <p className="text-xs text-muted">Studied on {active} of {count} days</p>
+        <p className="pb-2 text-xs text-muted">Studied on {active} of {count} days</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 [&>*]:min-w-0">
-        <Tile accent icon={Repeat} label="Reviews" value={recent.length.toLocaleString()} note={`${(recent.length / count).toFixed(1)} per day on average`} />
-        <Tile icon={Brain} label="Retention" value={pct(retention(recent))} note="Reviews you remembered" />
-        <Tile icon={Clock} label="Study time" value={formatDuration(studyMs(recent))} note={recent.length ? `${Math.round(studyMs(recent) / recent.length / 1000)}s per card` : "No reviews yet"} />
-        <Tile icon={Flame} label="Streak" value={`${current} day${current === 1 ? "" : "s"}`} note={`Longest ${longest} day${longest === 1 ? "" : "s"}`} />
+      <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2 xl:grid-cols-4 [&>*]:min-w-0">
+        <Tile accent label="Reviews" value={recent.length.toLocaleString()} note={`${(recent.length / count).toFixed(1)} per day on average`} />
+        <Tile label="Retention" value={pct(retention(recent))} note="Reviews you remembered" />
+        <Tile label="Study time" value={formatDuration(studyMs(recent))} note={recent.length ? `${Math.round(studyMs(recent) / recent.length / 1000)}s per card` : "No reviews yet"} />
+        <Tile label="Streak" value={`${current} day${current === 1 ? "" : "s"}`} note={`Longest ${longest} day${longest === 1 ? "" : "s"}`} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-12 [&>*]:min-w-0">
+      <div className="grid gap-x-8 gap-y-10 lg:grid-cols-12 [&>*]:min-w-0">
         <Panel title="Reviews per day" className="lg:col-span-8" action={<Legend items={[{ label: "Review", color: COLORS.volt }, { label: "Learning", color: COLORS.orange }, { label: "Relearning", color: COLORS.purple }]} />}>
           <BarChart bars={bars} height={200} />
         </Panel>

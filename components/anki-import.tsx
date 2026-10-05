@@ -2,7 +2,7 @@
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Dialog } from "radix-ui";
-import { FileUp, History, Layers, LoaderCircle, TriangleAlert, Volume2, X } from "lucide-react";
+import { FileUp, LoaderCircle, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   ANKI_ACCEPT, attachAudio, buildDecks, cleanField, deckChoices, deckLabel, FIELD_ROLES, filledCard, guessRoles, isAnkiFile, noteSounds, noteToCard, readAnkiPackage,
@@ -168,7 +168,7 @@ export function AnkiImport({ open, onOpenChange }: { open: boolean; onOpenChange
                 onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
                 onDragLeave={() => setDragging(false)}
                 onDrop={(e) => { e.preventDefault(); setDragging(false); void pick(e.dataTransfer.files[0]); }}
-                className={`flex min-h-48 w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed p-6 text-center transition ${dragging ? "border-volt-500 bg-volt-50" : "border-line hover:border-volt-500/60"}`}
+                className={`flex min-h-48 w-full flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed p-6 text-center transition ${dragging ? "border-volt-500 bg-volt-50" : "border-line hover:border-volt-500/60"}`}
               >
                 <span className="grid size-12 place-items-center rounded-full bg-raised text-volt-500">
                   {reading ? <LoaderCircle className="size-6 animate-spin" /> : <FileUp className="size-6" />}
@@ -194,7 +194,6 @@ export function AnkiImport({ open, onOpenChange }: { open: boolean; onOpenChange
                         <li key={deck.id}>
                           <label className="flex cursor-pointer items-center gap-3 px-3 py-2.5">
                             <input type="checkbox" className="size-4 accent-volt-600" checked={loaded.decks.has(deck.id)} onChange={() => toggleDeck(deck.id)} />
-                            <Layers className="size-4 shrink-0 text-muted" />
                             <span className="min-w-0 flex-1 truncate text-sm font-medium">{deckLabel(deck.name)}</span>
                             <span className="shrink-0 text-xs text-muted tabular-nums">{plural(deck.notes, "note")}{deck.studied ? ` · ${deck.studied.toLocaleString()} studied` : ""}</span>
                           </label>
@@ -272,7 +271,7 @@ export function AnkiImport({ open, onOpenChange }: { open: boolean; onOpenChange
                 <label className={`flex items-start gap-3 rounded-xl border border-line p-3 ${studied ? "cursor-pointer" : "opacity-60"}`}>
                   <input type="checkbox" className="mt-0.5 size-4 accent-volt-600" disabled={!studied} checked={progress && studied > 0} onChange={(e) => setProgress(e.target.checked)} />
                   <span>
-                    <span className="flex items-center gap-1.5 text-sm font-medium"><History className="size-4" />Keep my Anki review progress</span>
+                    <span className="flex items-center gap-1.5 text-sm font-medium">Keep my Anki review progress</span>
                     <span className="mt-0.5 block text-xs text-muted">
                       {studied
                         ? `${plural(studied, "studied card")} keep their due dates, intervals, and review history. Off starts every card as new.`
@@ -283,14 +282,14 @@ export function AnkiImport({ open, onOpenChange }: { open: boolean; onOpenChange
 
                 {withAudio > 0 && (
                   <p className="flex items-start gap-2 rounded-xl bg-raised px-3 py-2.5 text-sm text-muted">
-                    <Volume2 className="mt-0.5 size-4 shrink-0 text-volt-500" />
+                    
                     {plural(withAudio, "card")} {withAudio === 1 ? "keeps its" : "keep their"} audio from Anki. Editing a card’s text switches it to a generated voice.
                   </p>
                 )}
 
                 {noPinyin > 0 && (
                   <p className="flex items-start gap-2 rounded-xl bg-raised px-3 py-2.5 text-sm text-muted">
-                    <TriangleAlert className="mt-0.5 size-4 shrink-0 text-tone-2" />
+                    
                     {plural(noPinyin, "card")} {noPinyin === 1 ? "has" : "have"} no {readingName}. They still import, and you can add it while editing cards.
                   </p>
                 )}
@@ -299,7 +298,7 @@ export function AnkiImport({ open, onOpenChange }: { open: boolean; onOpenChange
               <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-4">
                 <Button variant="ghost" disabled={importing} onClick={reset}>Choose another file</Button>
                 <Button variant="primary" disabled={importing || !usable.length || !loaded.decks.size} onClick={() => void run()}>
-                  {importing ? <LoaderCircle className="size-4 animate-spin" /> : <FileUp className="size-4" />}
+                  {importing && <LoaderCircle className="size-4 animate-spin" />}
                   {usable.length ? `Import ${plural(usable.length, "card")}${deckCount > 1 ? ` into ${deckCount} decks` : ""}` : "Nothing to import"}
                 </Button>
               </div>

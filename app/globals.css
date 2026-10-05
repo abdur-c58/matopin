@@ -65,6 +65,18 @@
   ::selection { @apply bg-volt-100; }
   button:not(:disabled), [role="button"]:not([aria-disabled="true"]), [role="tab"], [role="radio"], [role="menuitem"], [role="menuitemradio"], [role="option"], label:has(> input[type="checkbox"]), summary { cursor: pointer; }
 
+  input[type="checkbox"] {
+    @apply relative grid size-[18px] shrink-0 appearance-none place-items-center rounded-[5px] border-[1.5px] border-muted/60 bg-transparent transition-colors duration-150;
+    @apply hover:border-ink checked:border-volt-500 checked:bg-volt-500 checked:hover:border-volt-700 checked:hover:bg-volt-700 disabled:cursor-not-allowed disabled:opacity-40;
+  }
+  /* The tick is a mask so it takes the theme's on-accent colour. */
+  input[type="checkbox"]::before {
+    content: ""; width: 75%; height: 75%; background-color: var(--on-accent); transform: scale(0.4); opacity: 0;
+    transition: transform 0.16s cubic-bezier(0.2, 0.9, 0.3, 1.4), opacity 0.1s;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+  input[type="checkbox"]:checked::before { transform: none; opacity: 1; }
+
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
@@ -82,33 +94,27 @@
 }
 
 @layer components {
-  .btn { @apply inline-flex h-10 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold whitespace-nowrap transition duration-150 select-none active:scale-[0.97] disabled:pointer-events-none disabled:opacity-45; }
+  .btn { @apply inline-flex h-10 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold whitespace-nowrap transition-colors duration-150 select-none disabled:pointer-events-none disabled:opacity-45; }
   .btn-primary { @apply bg-volt-600 text-on-volt hover:bg-volt-700; }
   .btn-second { @apply bg-second-500 text-on-second hover:bg-second-600; }
-  .btn-secondary { @apply border border-line bg-raised text-ink hover:border-ink/20 hover:bg-raised/70; }
+  .btn-secondary { @apply border border-line text-ink hover:border-ink/25 hover:bg-raised; }
   .btn-ghost { @apply text-muted hover:bg-raised hover:text-ink; }
-  .btn-shard {
-    @apply relative isolate overflow-hidden border border-line bg-linear-to-r from-raised to-raised text-ink transition-all duration-300 ease-in-out;
-    @apply hover:scale-105 hover:border-volt-500 hover:from-volt-900 hover:to-volt-800 hover:text-zinc-100 hover:shadow-md active:scale-[0.98];
-  }
-  .btn-shard::after {
-    content: "";
-    @apply pointer-events-none absolute inset-0 -z-10 w-[200%] -translate-x-full bg-linear-to-r from-transparent via-volt-500/30 to-transparent transition-transform duration-500 ease-in-out;
-  }
-  .btn-shard:hover::after { @apply translate-x-0; }
-  .btn-shard-second { @apply border-second-500 from-second-500 to-second-500 text-on-second hover:border-second-300 hover:from-second-500 hover:to-second-600 hover:text-on-second; }
-  .btn-shard-second::after { @apply via-on-second/20; }
-  .btn-shard.icon-btn { @apply border-transparent from-transparent to-transparent text-muted transition-all duration-300 hover:scale-110 hover:border-volt-500 hover:from-volt-900 hover:to-volt-800 hover:text-zinc-100; }
+  .btn-shard { @apply border border-line text-ink hover:border-ink/25 hover:bg-raised; }
+  .btn-shard-second { @apply border-transparent bg-second-500 text-on-second hover:border-transparent hover:bg-second-600; }
+  .btn-shard.icon-btn { @apply border-transparent text-muted hover:text-ink; }
   .btn-danger { @apply bg-tone-1 text-white hover:bg-tone-1/90; }
   .btn-danger-outline { @apply border border-tone-1/40 text-tone-1 hover:bg-tone-1/10; }
-  .icon-btn { @apply inline-grid size-9 place-items-center rounded-full text-muted transition duration-150 hover:bg-raised hover:text-ink active:scale-90 disabled:opacity-40; }
-  .field { @apply h-10 w-full rounded-xl border border-line bg-porcelain px-3 text-sm text-ink transition duration-150 outline-none placeholder:text-muted/70 hover:border-ink/20 focus:border-volt-500/70 focus:ring-4 focus:ring-volt-500/10 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-line; }
+  .icon-btn { @apply inline-grid size-9 place-items-center rounded-lg text-muted transition-colors duration-150 hover:bg-raised hover:text-ink disabled:opacity-40; }
+  .field { @apply h-10 w-full rounded-lg border border-line bg-porcelain px-3 text-sm text-ink transition duration-150 outline-none placeholder:text-muted/70 hover:border-ink/20 focus:border-volt-500/70 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-line; }
   .label { @apply mb-1.5 block text-xs font-medium text-muted; }
-  .surface { @apply rounded-3xl border border-line/60 bg-surface shadow-card; }
-  .chip { @apply inline-flex h-8 items-center rounded-full border border-line px-3.5 text-xs font-semibold text-muted transition hover:text-ink; }
-  .chip-on { @apply border-volt-500 bg-volt-500 text-on-volt hover:border-volt-700 hover:bg-volt-700 hover:text-on-volt; }
-  .overlay { @apply fixed inset-0 z-40 bg-black/60 backdrop-blur-[2px] data-[state=open]:animate-fade; }
-  .popup { @apply z-50 rounded-3xl border border-line bg-surface shadow-pop data-[state=open]:animate-pop; }
+  .surface { @apply rounded-xl border border-line bg-surface; }
+  .chip { @apply inline-flex h-7 items-center rounded-md border border-line px-2.5 text-xs font-medium text-muted transition-colors hover:border-ink/25 hover:text-ink; }
+  .chip-on { @apply border-ink bg-ink text-porcelain hover:border-ink hover:text-porcelain; }
+  /* Section tabs and filters: plain words, the chosen one underlined. */
+  .tab { @apply -mb-px inline-flex h-9 items-center border-b-2 border-transparent text-sm font-medium text-muted transition-colors hover:text-ink; }
+  .tab-on { @apply border-volt-500 text-ink; }
+  .overlay { @apply fixed inset-0 z-40 bg-black/60 data-[state=open]:animate-fade; }
+  .popup { @apply z-50 rounded-xl border border-line bg-surface shadow-pop data-[state=open]:animate-pop; }
 }
 
 /* Japanese text gets Japanese glyph shapes (Chinese fonts draw kanji like 直 or 骨 differently). Outside the

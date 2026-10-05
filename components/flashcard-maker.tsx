@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Dialog, Popover } from "radix-ui";
-import { Check, ChevronDown, Layers, LoaderCircle, Plus, RotateCw, Sparkles, Trash2, Wand2, X } from "lucide-react";
+import { Check, ChevronDown, LoaderCircle, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { cardFromPrompt, cardsFromText, fillCard } from "@/lib/ai-client";
 import { applyDraft, canFill, needsFill, uniqueTags } from "@/lib/ai";
@@ -88,7 +88,7 @@ function CardEditor({ card, lang, open, onToggle, onChange, onRemove }: {
   const fields = details(lang).filter((d) => !d.example || hasExample(card));
   const extra = fields.filter((d) => card[d.field].trim()).length;
   return (
-    <li className="rounded-2xl border border-line bg-surface p-3 transition focus-within:border-volt-500/50">
+    <li className="rounded-lg border border-line bg-surface p-3 transition focus-within:border-volt-500/50">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.4fr)]">
         <input className="field h-10 text-lg" aria-label={info.termLabel} placeholder={lang === "ja" ? "日本語" : "汉字"} value={card.term} onChange={(e) => onChange({ term: e.target.value })} spellCheck={false} />
         <input className="field h-10 text-sm" aria-label={info.readingLabel} placeholder={lang === "ja" ? "にほんご" : "pīnyīn"} value={card.reading} onChange={(e) => onChange({ reading: e.target.value })} spellCheck={false} />
@@ -159,7 +159,7 @@ function DeckSelect({ lang, selected, onToggle, newDeck, onNewDeck }: {
           <div className="mt-1 border-t border-line pt-1">
             <button type="button" className={item} aria-pressed={newDeck} onClick={() => onNewDeck(!newDeck)}>
               <span className={box(newDeck)}>{newDeck && <Check className="size-3" />}</span>
-              <Plus className="size-4 text-volt-500" /><span className="font-medium">New {LANG_INFO[lang].name} deck</span>
+              <span className="font-medium">New {LANG_INFO[lang].name} deck</span>
             </button>
           </div>
         </Popover.Content>
@@ -308,19 +308,19 @@ export function FlashcardMaker({ text, initial, lang: given, onClose }: { text: 
 
           <div className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
             {error ? (
-              <div className="grid place-items-center rounded-2xl bg-raised/50 p-8 text-center">
+              <div className="grid place-items-center rounded-lg bg-raised/50 p-8 text-center">
                 <p className="text-sm font-semibold">Couldn’t make cards</p>
                 <p className="mt-1 text-sm text-muted">{error}</p>
-                <Button className="mt-3" onClick={retry}><RotateCw className="size-4" />Try again</Button>
+                <Button className="mt-3" onClick={retry}>Try again</Button>
               </div>
             ) : !cards ? (
               <div className="space-y-2" role="status" aria-label="Making cards">
                 <p className="mb-3 flex items-center gap-2 text-sm text-muted"><LoaderCircle className="size-4 animate-spin" />Reading the reply and drafting cards…</p>
-                {[0, 1, 2].map((i) => <div key={i} className="h-24 animate-pulse rounded-2xl bg-raised/60" style={{ animationDelay: `${i * 120}ms` }} />)}
+                {[0, 1, 2].map((i) => <div key={i} className="h-24 animate-pulse rounded-lg bg-raised/60" style={{ animationDelay: `${i * 120}ms` }} />)}
               </div>
             ) : (
               <>
-                {cards.length === 0 && <p className="rounded-2xl bg-raised/50 p-5 text-center text-sm text-muted">There wasn’t any {LANG_INFO[lang].name} to turn into cards here. Add your own below.</p>}
+                {cards.length === 0 && <p className="rounded-lg bg-raised/50 p-5 text-center text-sm text-muted">There wasn’t any {LANG_INFO[lang].name} to turn into cards here. Add your own below.</p>}
                 {cards.length > 0 && (
                   <p className="mb-2 flex items-center gap-2 text-xs text-muted" role="status">
                     {filling ? <><LoaderCircle className="size-3.5 animate-spin" />Filling in examples and notes for {plural(filling, "card")}…</> : `${plural(cards.length, "card")} from ${initial ? "the dictionary" : "this reply"}`}
@@ -334,14 +334,13 @@ export function FlashcardMaker({ text, initial, lang: given, onClose }: { text: 
                 </ul>
                 <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                   {writing && <form className="flex flex-1 items-center gap-1 rounded-full border border-line bg-porcelain p-1 pl-3 transition focus-within:border-volt-500/60" onSubmit={(e) => { e.preventDefault(); void addWithAi(); }}>
-                    <Sparkles className="size-4 shrink-0 text-muted" />
                     <input className="min-w-0 flex-1 bg-transparent px-1 text-sm outline-none placeholder:text-muted/80" placeholder="Add a card with AI, e.g. “how to say I’m full”" aria-label="Describe a card to add"
                       value={prompt} onChange={(e) => setPrompt(e.target.value)} disabled={adding} />
                     <button type="submit" className="btn btn-shard h-8 px-3 text-xs" disabled={adding || !prompt.trim()}>
-                      {adding ? <LoaderCircle className="size-3.5 animate-spin" /> : <Wand2 className="size-3.5" />}Add
+                      {adding && <LoaderCircle className="size-3.5 animate-spin" />}Add
                     </button>
                   </form>}
-                  <Button variant="ghost" onClick={addBlank}><Plus className="size-4" />Blank card</Button>
+                  <Button variant="ghost" onClick={addBlank}>Blank card</Button>
                 </div>
               </>
             )}
@@ -350,7 +349,7 @@ export function FlashcardMaker({ text, initial, lang: given, onClose }: { text: 
           <div className="mt-4 border-t border-line pt-4">
             <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
               <div className="min-w-0 space-y-2">
-                <span className="label flex items-center gap-1.5"><Layers className="size-3.5" />Add to</span>
+                <span className="label flex items-center gap-1.5">Add to</span>
                 <DeckSelect lang={lang} selected={selected} newDeck={newDeck} onNewDeck={setNewDeck}
                   onToggle={(id) => setSelected((s) => { const next = new Set(s); if (next.has(id)) next.delete(id); else next.add(id); return next; })} />
                 {newDeck && (
@@ -358,7 +357,7 @@ export function FlashcardMaker({ text, initial, lang: given, onClose }: { text: 
                 )}
               </div>
               <Button variant="primary" className="h-10" disabled={Boolean(saving) || filling > 0 || !ready.length || !destinations || (newDeck && !deckName.trim())} onClick={() => void save()}>
-                {saving || filling ? <LoaderCircle className="size-4 animate-spin" /> : <Plus className="size-4" />}
+                {saving || filling && <LoaderCircle className="size-4 animate-spin" />}
                 {saving === "filling" ? "Filling in details…" : filling ? "Finishing cards…" : ready.length ? `Add ${plural(ready.length, "card")}` : "Add cards"}
                 {!saving && !filling && destinations > 1 ? ` to ${destinations} decks` : ""}
               </Button>

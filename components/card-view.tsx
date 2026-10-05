@@ -1,5 +1,4 @@
 "use client";
-import { Pencil } from "lucide-react";
 import { splitTags } from "@/lib/ai";
 import { CARD_KIND_LABELS, type Card, type Clips, dialogueTurns, hasExample, isConversation, target, toneOf } from "@/lib/cards";
 import { hasKana } from "@/lib/lang";
@@ -64,7 +63,7 @@ export function CardView({ cards, selectedId, clips, onSelect, onEdit }: {
       <div className="surface space-y-3 p-10 text-center">
         <p className="text-lg font-medium">No cards yet</p>
         <p className="text-sm text-muted">{onEdit ? "Switch to edit mode to add words, phrases, or sentences, or import a CSV." : "The owner hasn’t added any cards yet."}</p>
-        {onEdit && <Button variant="primary" onClick={onEdit}><Pencil className="size-4" />Add cards</Button>}
+        {onEdit && <Button variant="primary" onClick={onEdit}>Add cards</Button>}
       </div>
     );
   }

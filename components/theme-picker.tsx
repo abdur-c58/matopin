@@ -1,7 +1,7 @@
 "use client";
 import { useRef, useState } from "react";
 import { Popover } from "radix-ui";
-import { Check, Palette, Pipette } from "lucide-react";
+import { Check, Pipette } from "lucide-react";
 import { toast } from "sonner";
 import { ACCENT_PRESETS, applyAccent, applySecond, hexToHsv, SECOND_PRESETS, hsvToHex, normalizeHex, textOn, type Hsv } from "@/lib/theme";
 import { useProfile } from "./profiles";
@@ -52,7 +52,7 @@ function ColorPicker({ initial, onChange }: { initial: string; onChange: (hex: s
         {...area}
         role="slider" tabIndex={0} aria-label="Saturation and brightness" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(hsv.s * 100)} aria-valuetext={`Saturation ${Math.round(hsv.s * 100)}%, brightness ${Math.round(hsv.v * 100)}%`}
         onKeyDown={(e) => nudge(e, (dx, dy) => update({ ...hsv, s: clamp(hsv.s + dx), v: clamp(hsv.v + dy) }))}
-        className="relative h-40 cursor-crosshair touch-none rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ink"
+        className="relative h-40 cursor-crosshair touch-none rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ink"
         style={{ background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(${hsv.h} 100% 50%))` }}
       >
         <span className="pointer-events-none absolute size-4 -translate-1/2 rounded-full border-2 border-white shadow-[0_0_0_1px_rgb(0_0_0/0.4)]" style={{ left: `${hsv.s * 100}%`, top: `${(1 - hsv.v) * 100}%`, background: hex }} />
@@ -151,7 +151,7 @@ export function ThemePanel({ className = "" }: { className?: string }) {
     void setPrefs(patch).catch((e) => toast.error(e instanceof Error ? e.message : "Couldn't save the theme."));
 
   return (
-    <Panel title={<span className="flex items-center gap-2"><Palette className="size-4 text-volt-500" />Theme colours</span>} className={className}>
+    <Panel title="Theme colours" className={className}>
       <p className="text-sm text-muted">Changes the colours across the app, on every device.</p>
       <p className="mt-4 mb-2 text-sm font-semibold">Highlight</p>
       <ColourChoice label="Highlight colour" value={prefs.accent} presets={ACCENT_PRESETS} apply={applyAccent} onSave={(hex) => save({ accent: hex })} />

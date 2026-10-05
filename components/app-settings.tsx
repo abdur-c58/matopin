@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Keyboard, Target, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import type { Person, ProfileView } from "@/lib/social";
 import { store } from "@/lib/store-client";
@@ -31,7 +30,7 @@ function useSpotlight(id: string) {
     el.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "center" });
     const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#d7f25a";
     const off = "0 0 0 0 transparent, 0 0 0 0 transparent";
-    const on = `0 0 0 4px ${accent}, 0 0 32px 4px color-mix(in srgb, ${accent} 35%, transparent)`;
+    const on = `0 0 0 2px ${accent}, 0 0 0 0 transparent`;
     el.animate(
       [{ boxShadow: off }, { boxShadow: on, offset: 0.15 }, { boxShadow: on, offset: 0.75 }, { boxShadow: off }],
       { duration: 1400, delay: still ? 0 : 300, easing: "ease-in-out" },
@@ -56,7 +55,7 @@ function GoalForm() {
   }
 
   return (
-    <Panel id={GOAL_ID} title={<span className="flex items-center gap-2"><Target className="size-4 text-volt-500" />Daily goal</span>} className="lg:col-span-7">
+    <Panel id={GOAL_ID} title="Daily goal" className="lg:col-span-7">
       <p className="text-sm text-muted">How many reviews you aim for each day. The dashboard ring fills as you go.</p>
       <div className="mt-4">
         <Chips<string> label="Goal presets" value={PRESETS.includes(goal) && draft == null ? String(goal) : ""} onChange={(v) => save(Number(v))} options={PRESETS.map((n) => ({ value: String(n), label: `${n} reviews` }))} />
@@ -101,7 +100,7 @@ export function AppSettings() {
   const cards = data?.decks.reduce((s, d) => s + d.cards.length, 0) ?? 0;
 
   return (
-    <main className="grid gap-4 px-4 pt-5 pb-10 md:px-8 lg:grid-cols-12">
+    <main className="grid gap-x-8 gap-y-10 px-4 pt-6 pb-10 md:px-8 lg:grid-cols-12">
       <Panel className="lg:col-span-5">
         <div className="flex items-center gap-4">
           <Avatar name={name} avatar={avatar} crop={avatarCrop} color={color} className="size-16 text-2xl" />
@@ -111,18 +110,15 @@ export function AppSettings() {
             {email && <p className="mt-0.5 truncate text-xs text-muted">{email}</p>}
           </div>
         </div>
-        <p className={`mt-4 text-sm ${bio ? "" : "text-muted"}`}>{bio || "No bio yet. Add one so people in Social know what you’re learning."}</p>
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          {[["Followers", social?.followers], ["Following", social?.following], ["Public decks", social?.publicDecks]].map(([label, value]) => (
-            <Link key={label} href={`/u/${profile}`} className="rounded-2xl bg-raised p-3 transition hover:bg-ink/10">
-              <span className="block text-lg font-bold tabular-nums">{value ?? "—"}</span>
-              <span className="block text-xs text-muted">{label}</span>
-            </Link>
+        {bio && <p className="mt-4 text-sm">{bio}</p>}
+        <Link href={`/u/${profile}`} className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted transition-colors hover:text-ink">
+          {[["followers", social?.followers], ["following", social?.following], ["public decks", social?.publicDecks]].map(([label, value]) => (
+            <span key={label}><span className="font-semibold text-ink tabular-nums">{value ?? "—"}</span> {label}</span>
           ))}
-        </div>
+        </Link>
         <div className="mt-4 flex flex-wrap gap-2">
           <ProfileButton />
-          <Link href={`/u/${profile}`} className="btn btn-ghost"><UserRound className="size-4" />View profile</Link>
+          <Link href={`/u/${profile}`} className="btn btn-ghost">View profile</Link>
         </div>
       </Panel>
 
@@ -135,19 +131,19 @@ export function AppSettings() {
       <ThemePanel className="lg:col-span-5" />
 
       <Panel title="Your data" className="lg:col-span-7">
-        <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {[["Decks", data?.decks.length ?? "—"], ["Cards", cards], ["Reviews", entries.length.toLocaleString()], ["Time studied", formatDuration(studyMs(entries))]].map(([label, value]) => (
-            <div key={label} className="rounded-2xl bg-raised p-3">
+            <div key={label}>
               <dt className="text-xs text-muted">{label}</dt>
               <dd className="text-xl font-bold tabular-nums">{value}</dd>
             </div>
           ))}
         </dl>
         <p className="mt-3 text-xs text-muted">Decks and review history are saved to your profile in Supabase. Each deck’s scheduling options live in its own settings.</p>
-        <Link href="/decks" className="btn btn-shard mt-4">Manage decks</Link>
+        <Link href="/decks" className="btn btn-secondary mt-4">Manage decks</Link>
       </Panel>
 
-      <Panel title={<span className="flex items-center gap-2"><Keyboard className="size-4 text-volt-500" />Keyboard shortcuts</span>} className="lg:col-span-12">
+      <Panel title="Keyboard shortcuts" className="lg:col-span-12">
         <ul className="grid divide-line sm:grid-cols-2 sm:gap-x-8 [&>li]:border-b [&>li]:border-line">
           {SHORTCUTS.map(([keys, what]) => (
             <li key={what} className="flex items-center justify-between gap-4 py-2.5 text-sm">

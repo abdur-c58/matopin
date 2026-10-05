@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Dialog, Tabs } from "radix-ui";
-import { ArrowLeft, ArrowRight, BookA, Check, Copy, ExternalLink, Info, LoaderCircle, Play, Plus, X } from "lucide-react";
+import { ArrowRight, Check, Copy, ExternalLink, LoaderCircle, Play, X } from "lucide-react";
 import { toast } from "sonner";
 import { DictError, isAbort, loadJdictEntry, loadJdictExamples, loadPronunciationJa, searchJdict } from "@/lib/dictionary-client";
 import { HANDWRITING_CREDITS, JA_AUDIO_CREDITS, JA_NOTES } from "@/lib/dictionary-credits";
@@ -115,7 +115,7 @@ function KanjiStrokes({ char, size = 136, delay = 0 }: { char: string; size?: nu
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="relative rounded-2xl border border-line bg-porcelain" style={{ width: size, height: size }}>
+      <div className="relative rounded-lg border border-line bg-porcelain" style={{ width: size, height: size }}>
         <RiceGrid />
         {paths && (
           <svg ref={svg} viewBox="0 0 109 109" className="relative size-full p-1.5" role="img" aria-label={`Stroke order for ${char}`}>
@@ -143,7 +143,7 @@ function KanjiStrokes({ char, size = 136, delay = 0 }: { char: string; size?: nu
 function ResultRow({ item, index, active, selected, onOpen }: { item: JDictSummary; index: number; active: boolean; selected: boolean; onOpen: () => void }) {
   return (
     <button type="button" id={`dict-option-${index}`} role="option" aria-selected={selected} onClick={onOpen}
-      className={`relative flex w-full flex-col items-start gap-0.5 rounded-2xl py-2.5 pr-3 pl-4 text-left transition ${selected ? "bg-raised" : active ? "bg-raised/60" : "hover:bg-raised/50"}`}>
+      className={`relative flex w-full flex-col items-start gap-0.5 rounded-lg py-2.5 pr-3 pl-4 text-left transition ${selected ? "bg-raised" : active ? "bg-raised/60" : "hover:bg-raised/50"}`}>
       <span className={`absolute top-3 bottom-3 left-1 w-1 rounded-full transition ${selected ? "bg-volt-500" : "bg-transparent"}`} />
       <span className="flex w-full min-w-0 items-baseline gap-2">
         <span className="font-hanzi text-2xl leading-tight" lang="ja">{item.headword}</span>
@@ -165,7 +165,7 @@ function ResultsList({ s, selected, recent, onSearch, onOpen }: {
   if (s.shown.error) return <Problem error={s.shown.error} onRetry={s.reload} />;
   if (!s.groups.length) {
     return s.fresh && (
-      <div className="rounded-2xl bg-raised/50 p-6 text-center">
+      <div className="rounded-lg bg-raised/50 p-6 text-center">
         <p className="text-sm font-semibold">Nothing for “{s.q}”</p>
         <p className="mt-1 text-sm text-muted">Check the spelling, try kana or romaji, or search a shorter part.</p>
       </div>
@@ -187,7 +187,7 @@ function ResultsList({ s, selected, recent, onSearch, onOpen }: {
 
 function ExampleRow({ ex }: { ex: JDictExample }) {
   return (
-    <li className="rounded-2xl px-3 py-3 transition hover:bg-raised/40">
+    <li className="rounded-lg px-3 py-3 transition hover:bg-raised/40">
       <div className="flex items-start gap-2">
         <p className="min-w-0 flex-1 text-xl leading-loose">
           {ex.ruby ? <RubyPieces pieces={ex.ruby} rt="text-[11px]" /> : <span className="font-hanzi" lang="ja">{ex.japanese}</span>}
@@ -232,7 +232,7 @@ function Examples({ id }: { id: number }) {
   if (!pages) {
     return (
       <div className="space-y-3" role="status" aria-label="Loading examples">
-        {[0, 1, 2].map((i) => <div key={i} className="h-20 animate-pulse rounded-2xl bg-raised/60" style={{ animationDelay: `${i * 100}ms` }} />)}
+        {[0, 1, 2].map((i) => <div key={i} className="h-20 animate-pulse rounded-lg bg-raised/60" style={{ animationDelay: `${i * 100}ms` }} />)}
       </div>
     );
   }
@@ -267,7 +267,7 @@ function KanjiPanel({ k, index, focused, compact, onSearch }: { k: JKanji; index
     k.radical && { label: "Radical", value: `no. ${k.radical}` },
   ].filter((s): s is { label: string; value: string } => Boolean(s));
   return (
-    <div id={`dict-char-${index}`} className={`flex gap-4 rounded-3xl border transition ${compact ? "flex-row p-3" : "flex-col p-4 sm:flex-row"} ${focused ? "border-volt-500/60 bg-volt-50" : "border-line"}`}>
+    <div id={`dict-char-${index}`} className={`flex gap-4 rounded-xl border transition ${compact ? "flex-row p-3" : "flex-col p-4 sm:flex-row"} ${focused ? "border-volt-500/60 bg-volt-50" : "border-line"}`}>
       <KanjiStrokes char={k.character} delay={index * 600} size={compact ? 104 : 136} />
       <div className="min-w-0 flex-1 space-y-2.5">
         <div className="flex items-center gap-2">
@@ -360,7 +360,7 @@ function SenseList({ senses, onSearch }: { senses: JSense[]; onSearch: (q: strin
 function EntrySkeleton() {
   return (
     <div className="space-y-6" role="status" aria-label="Loading entry">
-      <div className="h-24 w-48 animate-pulse rounded-2xl bg-raised" />
+      <div className="h-24 w-48 animate-pulse rounded-lg bg-raised" />
       <div className="space-y-2.5">
         {[0, 1, 2].map((i) => <div key={i} className="h-4 animate-pulse rounded-lg bg-raised/60" style={{ width: `${75 - i * 15}%` }} />)}
       </div>
@@ -406,7 +406,7 @@ function EntryView({ id, compact = false, onSearch, onOpen, onBack, onAdd }: {
 
   const back = (
     <button type="button" className={`mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-ink ${compact ? "" : "md:hidden"}`} onClick={onBack}>
-      <ArrowLeft className="size-4" />Results
+      Results
     </button>
   );
   if (!state) return <>{back}<EntrySkeleton /></>;
@@ -462,7 +462,7 @@ function EntryView({ id, compact = false, onSearch, onOpen, onBack, onAdd }: {
             {copied ? <Check className="size-4 text-volt-500" /> : <Copy className="size-4" />}
           </button>
           <Button variant="primary" className="h-11" disabled={adding} onClick={() => void add()}>
-            {adding ? <LoaderCircle className="size-4 animate-spin" /> : <Plus className="size-4" />}Add to deck
+            {adding && <LoaderCircle className="size-4 animate-spin" />}Add to deck
           </Button>
         </div>
       </header>
@@ -498,7 +498,7 @@ function EntryView({ id, compact = false, onSearch, onOpen, onBack, onAdd }: {
           </div>
           {kanji.length > 1 && (
             <p className="mt-3 flex gap-1.5 text-xs text-muted">
-              <Info className="mt-px size-3.5 shrink-0" />
+              
               These are the meanings of each kanji on its own. A word’s meaning isn’t always the sum of its kanji.
             </p>
           )}
@@ -627,7 +627,7 @@ export function JDictPage() {
           ) : (
             <div className="surface grid min-h-[28rem] place-items-center p-8 text-center">
               <div className="max-w-sm">
-                <div className="relative mx-auto grid size-28 place-items-center rounded-3xl border border-line bg-porcelain">
+                <div className="relative mx-auto grid size-28 place-items-center rounded-xl border border-line bg-porcelain">
                   <RiceGrid />
                   <span className="relative font-hanzi text-6xl text-volt-500/40" lang="ja">語</span>
                 </div>
@@ -680,7 +680,7 @@ export function JDictMini({ initialQuery = "", onClose }: { initialQuery?: strin
   if (selected) params.set("id", String(selected));
 
   return (
-    <PanelFrame title="Dictionary" zh="辞書" zhLang="ja" icon={BookA} full={`/dictionary?${params}`} onClose={onClose}>
+    <PanelFrame title="Dictionary" zh="辞書" zhLang="ja" full={`/dictionary?${params}`} onClose={onClose}>
       {selected ? (
         <div ref={body} className="min-h-0 flex-1 overflow-y-auto p-4">
           <EntryView key={selected} compact id={selected} onSearch={search} onOpen={open} onBack={() => setSelected(null)} onAdd={(card) => setDraft([card])} />

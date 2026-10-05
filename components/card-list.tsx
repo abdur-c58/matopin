@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ChevronDown, LoaderCircle, Mic, Plus, Search, Sparkles, Trash2, WandSparkles } from "lucide-react";
+import { ChevronDown, LoaderCircle, Mic, Search, Trash2 } from "lucide-react";
 import type { WordMatch } from "@/lib/ai";
 import { LANG_INFO, type Lang } from "@/lib/lang";
 import { CARD_KIND_LABELS, CARD_KINDS, type Card, type CardField, type CardKind, type Clips, hasExample, target, toneOf } from "@/lib/cards";
@@ -226,14 +226,14 @@ export function EditTools({ busy, onCreate, onFill, onAdd, onClear }: {
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
             placeholder="e.g. the word for busy, or how to say I'm hungry"
           />
-          <Button variant="primary" className="mt-2 w-full" disabled={busy || !prompt.trim()} type="submit"><WandSparkles className="size-4" />Create card</Button>
+          <Button variant="primary" className="mt-2 w-full" disabled={busy || !prompt.trim()} type="submit">Create card</Button>
         </form>
       )}
       <div className={`grid gap-2 ${onFill ? "grid-cols-2" : ""}`}>
-        {onFill && <Button disabled={busy} onClick={onFill} title={`Fill missing fields for every card with ${lang === "ja" ? "a word or reading" : "pinyin"}`}><Sparkles className="size-4" />Fill details</Button>}
-        <Button onClick={onAdd}><Plus className="size-4" />Add card</Button>
+        {onFill && <Button disabled={busy} onClick={onFill} title={`Fill missing fields for every card with ${lang === "ja" ? "a word or reading" : "pinyin"}`}>Fill details</Button>}
+        <Button onClick={onAdd}>Add card</Button>
       </div>
-      <Button variant="danger-outline" className="w-full" disabled={busy} onClick={onClear}><Trash2 className="size-4" />Clear all</Button>
+      <Button variant="danger-outline" className="w-full" disabled={busy} onClick={onClear}>Clear all</Button>
     </section>
   );
 }

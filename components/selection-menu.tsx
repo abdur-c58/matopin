@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { BookA, Check, Copy, Languages, Layers, LoaderCircle, Sparkles, Square, Volume2 } from "lucide-react";
+import { Check, Copy, LoaderCircle, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import type { Translation } from "@/lib/ai";
 import { speak, translateText } from "@/lib/ai-client";
@@ -232,32 +232,32 @@ export function SelectionMenu() {
   return (
     <>
       <div ref={menu} role="toolbar" aria-label="Highlighted text"
-        className="fixed top-0 left-0 z-[60] w-max max-w-[min(28rem,calc(100vw-1rem))] animate-pop rounded-2xl border border-line bg-surface/95 p-1 shadow-pop backdrop-blur-xl"
+        className="fixed top-0 left-0 z-[60] w-max max-w-[min(28rem,calc(100vw-1rem))] animate-pop rounded-lg border border-line bg-surface/95 p-1 shadow-pop backdrop-blur-xl"
         style={{ visibility: "hidden" }}>
         <div className="flex items-center gap-0.5 overflow-x-auto [scrollbar-width:none]" onPointerDown={keep}>
           <button type="button" className={BUTTON} onClick={() => void copy(picked.text)}>
-            {copied === picked.text ? <Check className="size-3.5 text-volt-500" /> : <Copy className="size-3.5" />}Copy
+            {copied === picked.text ? "Copied" : "Copy"}
           </button>
           {text.length <= MAX_QUERY && (
             <button type="button" className={BUTTON} onClick={() => { lookUp(text, lang); setPicked(null); }}>
-              <BookA className="size-3.5" />Look up
+              Look up
             </button>
           )}
           {speakable && ai("voice") && (
             <button type="button" className={BUTTON} onClick={() => void hear(text)} aria-pressed={listening != null}>
-              {listening === "loading" ? <LoaderCircle className="size-3.5 animate-spin" /> : listening === "playing" ? <Square className="size-3 fill-current" /> : <Volume2 className="size-3.5" />}
+              {listening === "loading" && <LoaderCircle className="size-3.5 animate-spin" />}
               {listening === "playing" ? "Stop" : "Listen"}
             </button>
           )}
           {speakable && ai("create") && (
             <button type="button" className={BUTTON} onClick={() => { setCardsFrom({ text, lang }); setPicked(null); }}>
-              <Layers className="size-3.5" />Cards
+              Cards
             </button>
           )}
           {ai("translate") && (
             <button type="button" className={`${BUTTON} ${translation ? "bg-raised text-ink" : ""}`} disabled={translation != null && !translation.result && !translation.error}
               onClick={() => void translate()} title="Translate with AI">
-              {translation && !translation.result && !translation.error ? <LoaderCircle className="size-3.5 animate-spin" /> : <Languages className="size-3.5" />}
+              {translation && !translation.result && !translation.error && <LoaderCircle className="size-3.5 animate-spin" />}
               Translate<Sparkles className="size-3 text-second-300" aria-label="uses AI" />
             </button>
           )}

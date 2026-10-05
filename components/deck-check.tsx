@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { Dialog } from "radix-ui";
-import { ArrowRight, Check, LoaderCircle, SpellCheck } from "lucide-react";
+import { ArrowRight, LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import { CHECK_BATCH } from "@/lib/ai";
 import { checkCards } from "@/lib/ai-client";
@@ -83,7 +83,7 @@ export function useDeckCheck({ cards, lang, disabled, onApply }: { cards: Card[]
 
   const button = (
     <Button variant="shard" disabled={disabled || Boolean(progress)} onClick={() => void scan()} title="Check every card for mistakes with AI">
-      {progress ? <LoaderCircle className="size-4 animate-spin" /> : <SpellCheck className="size-4" />}
+      {progress && <LoaderCircle className="size-4 animate-spin" />}
       {progress ? `Checking ${progress.done}/${progress.total}` : "Check cards"}
     </Button>
   );
@@ -106,7 +106,7 @@ export function useDeckCheck({ cards, lang, disabled, onApply }: { cards: Card[]
             {[...groups.values()].map((list) => {
               const card = list[0].card;
               return (
-                <section key={card.id} className="rounded-2xl border border-line bg-raised/40 p-3">
+                <section key={card.id} className="rounded-lg border border-line bg-raised/40 p-3">
                   <h3 className="flex items-baseline gap-2">
                     <span className="font-hanzi text-xl" lang={LANG_INFO[lang].speech}>{card.term || card.reading}</span>
                     {card.term && <span className="text-sm text-muted">{card.reading}</span>}
@@ -136,7 +136,7 @@ export function useDeckCheck({ cards, lang, disabled, onApply }: { cards: Card[]
           <div className="mt-5 flex justify-end gap-2">
             <Button variant="ghost" onClick={() => setFound(null)}>Leave as is</Button>
             <Button variant="primary" disabled={!picked.size} onClick={apply}>
-              <Check className="size-4" />Update {picked.size} field{picked.size === 1 ? "" : "s"}
+              Update {picked.size} field{picked.size === 1 ? "" : "s"}
             </Button>
           </div>
         </Dialog.Content>

@@ -37,7 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${urbanist.variable} ${pinyin.variable} ${notoSc.variable} ${notoJp.variable} ${GeistMono.variable}`}>
       <body>
-        <Toaster theme="dark" position="bottom-right" toastOptions={{ classNames: { toast: "!rounded-2xl !border-line !bg-surface !text-ink !shadow-pop" } }} />
+        <Toaster theme="dark" position="bottom-right" toastOptions={{ classNames: { toast: "!rounded-lg !border-line !bg-surface !text-ink !shadow-pop" } }} />
         {children}
         <TitleTips />
         <Analytics />

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSelectedLayoutSegment } from "next/navigation";
 import { Dialog } from "radix-ui";
-import { ChevronDown, Inbox, MessageCircle, MessageCirclePlus, MessagesSquare, Search, Sparkles, Users, X } from "lucide-react";
+import { ChevronDown, MessageCirclePlus, MessagesSquare, Search, Sparkles, X } from "lucide-react";
 import { BOT_ID, BOT_NAME, groupRoute, groupTitle, previewText, type BotSummary, type ChatSummary } from "@/lib/chat";
 import { shortTime } from "@/lib/chat-client";
 import type { Person } from "@/lib/social";
@@ -125,7 +125,7 @@ function NewChat({ onPick }: { onPick?: OnPick }) {
             {(["chat", "group"] as const).map((m) => (
               <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => setMode(m)}
                 className={`flex h-8 items-center justify-center gap-1.5 rounded-full text-sm font-semibold transition ${mode === m ? "bg-surface text-ink shadow-pop" : "text-muted hover:text-ink"}`}>
-                {m === "chat" ? <MessageCircle className="size-4" /> : <Users className="size-4" />}{m === "chat" ? "One person" : "Group"}
+                {m === "chat" ? "One person" : "Group"}
               </button>
             ))}
           </div>
@@ -181,7 +181,7 @@ function ChatList({ activeId, className, onPick }: { activeId: string | null; cl
     <aside className={`min-h-0 flex-col ${className}`}>
       {!onPick && (
         <div className="flex items-center justify-between gap-2 px-4 pt-4 pb-2">
-          <h2 className="flex items-center gap-2 text-base font-semibold"><MessagesSquare className="size-4 text-volt-500" />Chats</h2>
+          <h2 className="flex items-center gap-2 text-base font-semibold">Chats</h2>
           <NewChat />
         </div>
       )}
@@ -192,7 +192,7 @@ function ChatList({ activeId, className, onPick }: { activeId: string | null; cl
         {requests.length > 0 && (
           <section className="mb-2 rounded-2xl bg-raised/50 p-1">
             <button type="button" className="flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-xs font-semibold text-muted hover:text-ink" aria-expanded={showRequests} onClick={() => setShowRequests((s) => !s)}>
-              <Inbox className="size-3.5" />Message requests
+              Message requests
               <span className="grid h-5 min-w-5 place-items-center rounded-full bg-tone-2/20 px-1.5 text-[11px] text-tone-2">{requests.length}</span>
               <ChevronDown className={`ml-auto size-3.5 transition ${showRequests ? "rotate-180" : ""}`} />
             </button>
@@ -201,7 +201,6 @@ function ChatList({ activeId, className, onPick }: { activeId: string | null; cl
         )}
         {chats && rest.length === 0 && requests.length === 0 && (
           <div className="px-4 py-10 text-center">
-            <MessagesSquare className="mx-auto size-8 text-muted" />
             <p className="mt-2 text-sm font-semibold">No chats with people yet</p>
             <p className="mt-1 text-xs text-muted">Start one with the button above, or from anyone’s profile.{bao && " Bao is always here meanwhile."}</p>
           </div>
@@ -232,7 +231,7 @@ export function ChatMini({ onClose }: { onClose: () => void }) {
   const bao = useAi()("bao");
   const back = () => setOpenId(null);
   return (
-    <PanelFrame title="Chats" zh="聊天" icon={MessageCircle} onClose={onClose}
+    <PanelFrame title="Chats" zh="聊天" onClose={onClose}
       full={openId ? `/chat/${encodeURIComponent(openId)}` : "/chat"} actions={openId ? null : <NewChat onPick={setOpenId} />}>
       {openId == null ? <ChatList activeId={null} className="flex flex-1" onPick={setOpenId} />
         : openId === BOT_ID ? (bao ? <BotThread onBack={back} /> : <BaoOff />)

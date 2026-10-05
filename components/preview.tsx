@@ -1,9 +1,10 @@
 "use client";
 import { AnimatePresence, motion } from "motion/react";
-import { LoaderCircle, MessageSquareText, Volume2 } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 import { hasKana, LANG_INFO } from "@/lib/lang";
 import { CARD_KIND_LABELS, type Card, dialogueTurns, exampleLines, exampleSpoken, hasExample, isConversation, rubyPieces, toneOf, wordSpoken } from "@/lib/cards";
 import { useCardLang } from "./lang-context";
+import { useAi } from "./profiles";
 import { Button } from "./ui";
 
 /** Tone-coloured pinyin. Kana readings have no tones, so they stay plain. */
@@ -93,9 +94,11 @@ export function Preview({ card, listening, onListen, speed, speeds, onSpeed }: {
   speed: number; speeds: number[]; onSpeed: (speed: number) => void;
 }) {
   const lang = useCardLang();
-  const hasWord = wordSpoken(card, lang).length > 0;
-  const showExample = hasExample(card);
-  const exampleReady = exampleSpoken(card, lang).length > 0;
+  const voices = useAi()("voice");
+  const hasWord = wordSpoken(card, lang, voices).length > 0;
+  const showExample = hasExample(card) && (voices || exampleSpoken(card, lang, false).length > 0);
+  const exampleReady = exampleSpoken(card, lang, voices).length > 0;
+  const audible = voices || hasWord || exampleReady;
   return (
     <section className="surface p-5" aria-label="Card preview">
       <AnimatePresence mode="wait">
@@ -114,13 +117,14 @@ export function Preview({ card, listening, onListen, speed, speeds, onSpeed }: {
           <ExampleBlock card={card} />
         </motion.div>
       </AnimatePresence>
+      {audible && <>
       <div className={`mt-5 grid gap-2 ${showExample ? "grid-cols-2" : "grid-cols-1"}`}>
         <Button variant="shard" disabled={!hasWord || Boolean(listening)} onClick={() => onListen("word")}>
-          {listening === "word" ? <LoaderCircle className="size-4 animate-spin" /> : <Volume2 className="size-4" />}{card.kind === "term" ? "Word" : CARD_KIND_LABELS[card.kind]}
+          {listening === "word" && <LoaderCircle className="size-4 animate-spin" />}Play {card.kind === "term" ? "word" : CARD_KIND_LABELS[card.kind].toLowerCase()}
         </Button>
         {showExample && (
           <Button variant="shard" disabled={!exampleReady || Boolean(listening)} onClick={() => onListen("example")} title={exampleReady ? undefined : `This card has no ${LANG_INFO[lang].name} example`}>
-            {listening === "example" ? <LoaderCircle className="size-4 animate-spin" /> : <MessageSquareText className="size-4" />}Example
+            {listening === "example" && <LoaderCircle className="size-4 animate-spin" />}Play example
           </Button>
         )}
       </div>
@@ -137,6 +141,7 @@ export function Preview({ card, listening, onListen, speed, speeds, onSpeed }: {
           ))}
         </div>
       </div>
+      </>}
     </section>
   );
 }

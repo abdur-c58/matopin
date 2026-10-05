@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Dialog } from "radix-ui";
-import { BookOpen, Check, CopyPlus, Eye, EyeOff, Globe, Layers, LoaderCircle, Lock, UserCheck, UserPlus, Users, X } from "lucide-react";
+import { EyeOff, Globe, LoaderCircle, Lock, UserCheck, Users, X } from "lucide-react";
 import { toast } from "sonner";
 import { deckStats, ROLE_LABELS, VISIBILITY_LABELS, type DeckPreview, type Person, type SharedDeck, type Visibility } from "@/lib/social";
 import { store } from "@/lib/store-client";
@@ -46,20 +46,20 @@ export function FollowButton({ person, onChange, className = "" }: { person: Per
   }
   return (
     <button type="button" className={`btn btn-primary h-9 px-3.5 ${className}`} disabled={busy} onClick={() => void toggle()}>
-      {busy ? <LoaderCircle className="size-4 animate-spin" /> : <UserPlus className="size-4" />}{person.followsYou ? "Follow back" : "Follow"}
+      {busy && <LoaderCircle className="size-4 animate-spin" />}{person.followsYou ? "Follow back" : "Follow"}
     </button>
   );
 }
 
 export function PersonRow({ person, self, onChange }: { person: Person; self: boolean; onChange: (next: Person) => void }) {
   return (
-    <li className="flex items-center gap-3 rounded-2xl p-2 transition hover:bg-raised/60">
+    <li className="flex items-center gap-3 rounded-lg p-2 transition hover:bg-raised/60">
       <Link href={`/u/${person.id}`} className="flex min-w-0 flex-1 items-center gap-3 rounded-xl">
         <PersonAvatar person={person} className="size-11 text-base" />
         <span className="min-w-0">
           <span className="flex items-center gap-2">
             <span className="truncate font-semibold hover:text-volt-500">{person.name}</span>
-            {person.followsYou && !self && <span className="shrink-0 rounded-full bg-raised px-2 py-0.5 text-[11px] text-muted">Follows you</span>}
+            {person.followsYou && !self && <span className="shrink-0 text-xs text-muted">Follows you</span>}
           </span>
           <span className="block truncate text-xs text-muted">{person.bio || `${plural(person.followers, "follower")} · ${plural(person.publicDecks, "public deck")}`}</span>
         </span>
@@ -95,7 +95,7 @@ function SaveCopyButton({ deck, onSaved, className }: { deck: SharedDeck; onSave
         setBusy(false);
       }
     }}>
-      {busy ? <LoaderCircle className="size-4 animate-spin" /> : <CopyPlus className="size-4" />}{deck.copyId ? "Save another copy" : "Save a copy"}
+      {busy && <LoaderCircle className="size-4 animate-spin" />}{deck.copyId ? "Save another copy" : "Save a copy"}
     </button>
   );
 }
@@ -103,8 +103,8 @@ function SaveCopyButton({ deck, onSaved, className }: { deck: SharedDeck; onSave
 function DeckAction({ deck, onSaved, wide = false }: { deck: SharedDeck; onSaved: (deck: SharedDeck) => void; wide?: boolean }) {
   const size = wide ? "w-full" : "h-9 px-3.5";
   if (deck.role === "owner") return <Link href={`/decks/${deck.id}/settings`} className={`btn btn-secondary ${size}`}>Your deck</Link>;
-  if (deck.copyId) return <Link href={`/decks/${deck.copyId}`} className={`btn btn-shard ${size}`}><Layers className="size-4" />Your copy</Link>;
-  if (deck.role === "collaborator") return <Link href={`/decks/${deck.id}/review`} className={`btn btn-shard ${size}`}><BookOpen className="size-4" />Study</Link>;
+  if (deck.copyId) return <Link href={`/decks/${deck.copyId}`} className={`btn btn-shard ${size}`}>Your copy</Link>;
+  if (deck.role === "collaborator") return <Link href={`/decks/${deck.id}/review`} className={`btn btn-shard ${size}`}>Study</Link>;
   return <SaveCopyButton deck={deck} onSaved={onSaved} className={`btn btn-primary ${size}`} />;
 }
 
@@ -113,7 +113,6 @@ export function DeckTile({ deck, onSaved, showOwner = true }: { deck: SharedDeck
   return (
     <li className="surface flex flex-col p-5">
       <div className="flex items-start gap-3">
-        <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-raised text-volt-500"><Layers className="size-5" /></span>
         <div className="min-w-0 flex-1">
           <button type="button" className="block max-w-full truncate text-left text-base font-bold transition hover:text-volt-500" onClick={() => setPreviewing(true)}>{deck.name}</button>
           <p className="text-xs text-muted">{deckStats(deck)}</p>
@@ -126,7 +125,7 @@ export function DeckTile({ deck, onSaved, showOwner = true }: { deck: SharedDeck
         </Link>
       )}
       <div className="mt-auto grid grid-cols-2 gap-2 pt-5">
-        <button type="button" className="btn btn-ghost h-9" onClick={() => setPreviewing(true)}><Eye className="size-4" />Preview</button>
+        <button type="button" className="btn btn-ghost h-9" onClick={() => setPreviewing(true)}>Preview</button>
         <DeckAction deck={deck} onSaved={onSaved} />
       </div>
       <DeckPreviewDialog deckId={previewing ? deck.id : null} onClose={() => setPreviewing(false)} onSaved={onSaved} />
@@ -169,7 +168,7 @@ export function DeckPreviewDialog({ deckId, onClose, onSaved }: { deckId: string
                 <PersonAvatar person={shown.owner} className="size-6 text-[11px]" />by <span className="font-semibold text-ink">{shown.owner.name}</span>
               </button>
               <p className="mt-1 text-xs text-muted">{deckStats(shown)}</p>
-              <ul className="mt-4 min-h-0 flex-1 divide-y divide-line overflow-y-auto rounded-2xl border border-line">
+              <ul className="mt-4 min-h-0 flex-1 divide-y divide-line overflow-y-auto rounded-lg border border-line">
                 {shown.preview.length === 0 && <li className="p-6 text-center text-sm text-muted">No cards yet.</li>}
                 {shown.preview.map((c, i) => (
                   <li key={i} className="flex items-baseline gap-3 px-4 py-2.5">
@@ -181,11 +180,11 @@ export function DeckPreviewDialog({ deckId, onClose, onSaved }: { deckId: string
               {shown.cards > shown.preview.length && <p className="mt-2 text-xs text-muted">Showing the first {shown.preview.length} cards.</p>}
               <div className="mt-4 grid gap-2">
                 {shown.role === "owner" ? (
-                  <Link href={`/decks/${shown.id}`} className="btn btn-shard w-full" onClick={onClose}><Layers className="size-4" />Open your deck</Link>
+                  <Link href={`/decks/${shown.id}`} className="btn btn-shard w-full" onClick={onClose}>Open your deck</Link>
                 ) : (
                   <>
-                    {shown.role === "collaborator" && <Link href={`/decks/${shown.id}/review`} className="btn btn-shard w-full" onClick={onClose}><Check className="size-4" />Collaborating · Study</Link>}
-                    {shown.copyId && <Link href={`/decks/${shown.copyId}`} className="btn btn-shard w-full" onClick={onClose}><Layers className="size-4" />Open your copy</Link>}
+                    {shown.role === "collaborator" && <Link href={`/decks/${shown.id}/review`} className="btn btn-shard w-full" onClick={onClose}>Collaborating · Study</Link>}
+                    {shown.copyId && <Link href={`/decks/${shown.copyId}`} className="btn btn-shard w-full" onClick={onClose}>Open your copy</Link>}
                     <SaveCopyButton deck={shown} onSaved={(next) => { setDeck({ ...next, preview: shown.preview }); onSaved(next); }}
                       className={`btn w-full ${shown.role || shown.copyId ? "btn-ghost" : "btn-primary"}`} />
                     {!shown.copyId && <p className="text-center text-xs text-muted">Your copy is private and yours to edit. {shown.owner.name}’s deck stays as it is.</p>}

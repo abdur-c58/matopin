@@ -2,7 +2,7 @@
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Dialog } from "radix-ui";
-import { Languages, LoaderCircle, X } from "lucide-react";
+import { LoaderCircle, X } from "lucide-react";
 import { toast } from "sonner";
 import { CONVERT_BATCH, uniqueTags } from "@/lib/ai";
 import { convertCards } from "@/lib/ai-client";
@@ -150,7 +150,7 @@ export function DeckConvert({ deck, onOpenChange }: { deck: DeckSummary | null; 
               ? <Button disabled={stopping} onClick={stop}>Stop</Button>
               : <Button onClick={() => onOpenChange(false)}>Cancel</Button>}
             <Button variant="primary" disabled={running || !cards.length || !name.trim()} onClick={() => void run()}>
-              {running ? <LoaderCircle className="size-4 animate-spin" /> : <Languages className="size-4" />}
+              {running && <LoaderCircle className="size-4 animate-spin" />}
               Make {LANG_INFO[to].name} deck
             </Button>
           </div>

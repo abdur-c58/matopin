@@ -124,7 +124,7 @@ export function HandwritingPad({ onPick, onClose, compact = false, lang = "zh" }
   const candidates = result?.candidates ?? [];
 
   return (
-    <div className="mt-3 animate-panel rounded-2xl border border-line bg-raised/40 p-3">
+    <div className="mt-3 animate-panel rounded-lg border border-line bg-raised/40 p-3">
       <div className={`relative mx-auto aspect-square w-full overflow-hidden rounded-xl border border-line bg-porcelain ${compact ? "max-w-[12rem]" : "max-w-[18rem]"}`}>
         <RiceGrid />
         <canvas ref={canvas} aria-label={`Writing area: draw a ${lang === "ja" ? "kanji, kana" : "Chinese character"} or word`} className="absolute inset-0 size-full cursor-crosshair touch-none text-ink"

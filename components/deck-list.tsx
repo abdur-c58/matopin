@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { Archive as ArchiveIcon, ArrowLeft, BookOpen, Check, FileUp, Languages, Layers, LogOut, Plus, Rows3, Settings2, Trash2 } from "lucide-react";
+import { Languages, Layers, LogOut, Settings2, Trash2 } from "lucide-react";
 import type { DeckSummary } from "@/lib/decks";
 import { LANG_INFO, LANGS } from "@/lib/lang";
 import { ROLE_LABELS } from "@/lib/social";
@@ -34,7 +34,7 @@ function DeckCard({ deck, mature, kept, showLang, onDelete, onConvert }: {
   return (
     <li className="surface flex flex-col p-5">
       <div className="flex items-start gap-3">
-        <span className={`grid size-11 shrink-0 place-items-center rounded-2xl ${due ? "bg-second-500 text-on-second" : "bg-raised text-volt-500"}`}><Layers className="size-5" /></span>
+        <span className={`grid size-11 shrink-0 place-items-center rounded-lg ${due ? "bg-second-500 text-on-second" : "bg-raised text-volt-500"}`}><Layers className="size-5" /></span>
         <div className="min-w-0 flex-1">
           <Link href={`/decks/${deck.id}/review`} className="block truncate text-base font-bold hover:text-volt-500">{deck.name}</Link>
           <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted">
@@ -66,14 +66,14 @@ function DeckCard({ deck, mature, kept, showLang, onDelete, onConvert }: {
       <div className="mt-5 grid grid-cols-2 gap-2">
         {deck.cards === 0 ? (
           deck.role === "follower"
-            ? <Link href={`/decks/${deck.id}`} className="btn btn-ghost col-span-2"><Rows3 className="size-4" />No cards yet</Link>
-            : <Link href={`/decks/${deck.id}`} className="btn btn-primary col-span-2"><Plus className="size-4" />Add cards</Link>
+            ? <Link href={`/decks/${deck.id}`} className="btn btn-ghost col-span-2">No cards yet</Link>
+            : <Link href={`/decks/${deck.id}`} className="btn btn-primary col-span-2">Add cards</Link>
         ) : (
           <>
             <Link href={`/decks/${deck.id}/review`} className="btn btn-shard">
-              {due ? <><BookOpen className="size-4" />Study {due}</> : <><Check className="size-4" />Done today</>}
+              {due ? <>Study {due}</> : <>Done today</>}
             </Link>
-            <Link href={`/decks/${deck.id}`} className="btn btn-ghost"><Rows3 className="size-4" />Cards</Link>
+            <Link href={`/decks/${deck.id}`} className="btn btn-ghost">Cards</Link>
           </>
         )}
       </div>
@@ -110,13 +110,13 @@ function ArchiveView({ decks, detail, onDelete, onBack }: {
     <>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="flex items-center gap-2 text-lg font-bold"><ArchiveIcon className="size-5 text-volt-500" />Archive</h2>
+          <h2 className="text-lg font-bold">Archive</h2>
           <p className="text-sm text-muted">
             Decks in a language you aren’t learning right now. Their cards and progress are kept, and you can still open and study them.{" "}
             <Link href="/settings#learning" className="font-semibold text-ink hover:text-volt-500">Learn {learning === "both" ? "another language" : "both languages"}</Link> to bring them back.
           </p>
         </div>
-        <Button variant="ghost" onClick={onBack}><ArrowLeft className="size-4" />Back to decks</Button>
+        <Button variant="ghost" onClick={onBack}>Back to decks</Button>
       </div>
       {decks.length === 0 ? (
         <p className="surface p-10 text-center text-sm text-muted">Nothing in the archive.</p>
@@ -161,8 +161,7 @@ export function DeckList() {
     <main className="px-4 pt-5 pb-10 md:px-8">
       {archived.length > 0 && (
         <button type="button" onClick={() => setArchiveOpen(true)}
-          className="mb-4 flex w-full items-center gap-3 rounded-2xl border border-line bg-raised/50 px-4 py-2.5 text-left text-sm transition hover:bg-raised">
-          <ArchiveIcon className="size-4 shrink-0 text-muted" />
+          className="mb-4 flex w-full items-center gap-3 rounded-lg border border-line bg-raised/50 px-4 py-2.5 text-left text-sm transition hover:bg-raised">
           <span className="min-w-0 flex-1"><span className="font-semibold">{archived.length} {archived.length === 1 ? "deck" : "decks"} in the archive</span> <span className="text-muted">from a language you aren’t learning now</span></span>
           <span className="shrink-0 font-semibold text-volt-600">View</span>
         </button>
@@ -173,7 +172,7 @@ export function DeckList() {
             {single ? <LangBadge lang={single} className="h-8 px-3 text-sm" /> : <LanguageSwitch value={language} onChange={setLanguage} counts={counts} />}
             <div className="flex flex-wrap items-center gap-3">
               <p className="text-sm text-muted">{totalDue ? <><span className="font-semibold text-ink tabular-nums">{totalDue}</span> card{totalDue === 1 ? "" : "s"} to study today</> : "You’re all caught up for now."}</p>
-              <Button variant="shard" onClick={() => setImporting(true)}><FileUp className="size-4" />Import from Anki</Button>
+              <Button variant="shard" onClick={() => setImporting(true)}>Import from Anki</Button>
             </div>
           </div>
           {inLanguage.length > 0 && (
@@ -185,14 +184,14 @@ export function DeckList() {
       {!decks && <p className="text-sm text-muted">Loading decks…</p>}
       {decks && inLanguage.length === 0 && (
         <section className="surface space-y-3 p-10 text-center">
-          <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-volt-500 text-on-volt">
+          <span className="mx-auto grid size-14 place-items-center rounded-lg bg-volt-500 text-on-volt">
             {language === "all" ? <Layers className="size-7" /> : <span className="font-hanzi text-2xl">{LANG_INFO[language].badge}</span>}
           </span>
           <p className="text-lg font-bold">No {languageName}decks yet</p>
           <p className="mx-auto max-w-sm text-sm text-muted">A deck holds your words, phrases, and sentences. Add cards, study them here with spaced repetition, or move decks between here and Anki.</p>
           <div className="flex flex-wrap justify-center gap-2">
-            <Button variant="primary" onClick={() => void create()}><Plus className="size-4" />Create your first {languageName}deck</Button>
-            <Button onClick={() => setImporting(true)}><FileUp className="size-4" />Import from Anki</Button>
+            <Button variant="primary" onClick={() => void create()}>Create your first {languageName}deck</Button>
+            <Button onClick={() => setImporting(true)}>Import from Anki</Button>
           </div>
         </section>
       )}
@@ -201,8 +200,7 @@ export function DeckList() {
           {shown.map((deck) => <DeckCard key={deck.id} deck={deck} showLang={language === "all"} mature={detail.get(deck.id)?.mature ?? 0} kept={detail.get(deck.id)?.kept ?? null} onDelete={() => requestDelete(deck)} onConvert={single || !converts ? null : () => setConverting(deck)} />)}
           {filter === "all" && (
             <li>
-              <button type="button" onClick={() => void create()} className="flex size-full min-h-56 flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-line text-sm font-semibold text-muted transition hover:border-volt-500/60 hover:text-ink">
-                <span className="grid size-11 place-items-center rounded-full bg-raised"><Plus className="size-5" /></span>
+              <button type="button" onClick={() => void create()} className="flex size-full min-h-56 flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-line text-sm font-semibold text-muted transition hover:border-volt-500/60 hover:text-ink">
                 New deck
               </button>
             </li>

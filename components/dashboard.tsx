@@ -1,7 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, BookOpen, Flame, Layers, Plus, Sparkles } from "lucide-react";
 import { dayKey } from "@/lib/srs";
 import {
   cardStates, dueToday, entriesOf, formatDuration, groupByDay, lastDays, MATURE_DAYS, startOfDay, streaks, studyMs,
@@ -72,14 +71,14 @@ function ActiveDays({ decks, now }: { decks: DeckData[]; now: number }) {
   const counts = useMemo(() => new Map([...groupByDay(entries)].map(([k, d]) => [k, d.reviews])), [entries]);
   const { current, longest } = streaks(entries, now);
   return (
-    <section className="rounded-3xl bg-volt-500 p-5 text-on-volt lg:col-span-4">
+    <section className="rounded-xl bg-volt-500 p-5 text-on-volt lg:col-span-4">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-base font-semibold">Your active days</h2>
         <MonthNav month={month} onMonth={setMonth} light latest={firstOfMonth(now)} />
       </div>
       <MonthCalendar month={month} counts={counts} now={now} />
-      <div className="mt-4 flex items-center justify-between rounded-2xl bg-on-volt/10 px-4 py-2.5 text-sm">
-        <span className="flex items-center gap-2 font-semibold"><Flame className="size-4" />{current}-day streak</span>
+      <div className="mt-4 flex items-center justify-between rounded-lg bg-on-volt/10 px-4 py-2.5 text-sm">
+        <span className="flex items-center gap-2 font-semibold">{current}-day streak</span>
         <span className="text-on-volt/70">Best {longest}</span>
       </div>
     </section>
@@ -145,25 +144,16 @@ function MyDecks({ decks }: { decks: DeckData[] }) {
             <li key={deck.id}>
               <Link
                 href={`/decks/${deck.id}/review`}
-                className={`group flex h-36 flex-col justify-between rounded-3xl p-4 transition hover:-translate-y-0.5 ${featured ? "bg-second-500 text-on-second" : "bg-raised hover:bg-raised/70"}`}
+                className={`flex h-28 flex-col justify-between rounded-lg border p-4 transition-colors ${featured ? "border-second-500 bg-second-500 text-on-second hover:bg-second-600" : "border-line hover:border-ink/25"}`}
               >
-                <div className="flex items-start justify-between">
-                  <span className={`grid size-10 place-items-center rounded-2xl ${featured ? "bg-on-second/15" : "bg-surface"}`}>
-                    {n ? <BookOpen className="size-[18px]" /> : <Sparkles className="size-[18px] text-volt-500" />}
-                  </span>
-                  <ArrowUpRight className={`size-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 ${featured ? "" : "text-muted"}`} />
-                </div>
-                <div className="min-w-0">
-                  <p className="truncate font-semibold">{deck.name}</p>
-                  <p className={`text-xl font-bold tabular-nums ${featured ? "" : n ? "text-volt-500" : "text-muted"}`}>{n ? `${n} due` : "Done"}</p>
-                </div>
+                <p className="line-clamp-2 font-semibold">{deck.name}</p>
+                <p className={`text-xl font-bold tabular-nums ${featured ? "" : n ? "text-volt-500" : "text-muted"}`}>{n ? `${n} due` : "Done"}</p>
               </Link>
             </li>
           );
         })}
         <li>
-          <button type="button" onClick={() => void create()} className="flex h-36 w-full flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-line text-sm text-muted transition hover:border-volt-500/60 hover:text-ink">
-            <span className="grid size-10 place-items-center rounded-full bg-raised"><Plus className="size-5" /></span>
+          <button type="button" onClick={() => void create()} className="flex h-28 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-line text-sm text-muted transition-colors hover:border-ink/25 hover:text-ink">
             New deck
           </button>
         </li>
@@ -185,19 +175,15 @@ export function Dashboard() {
   const learning = decks.filter((d) => !away.has(d.id));
 
   return (
-    <main className="grid gap-4 px-4 pt-5 pb-10 md:px-8 lg:grid-cols-12 [&>*]:min-w-0">
+    <main className="grid gap-x-8 gap-y-10 px-4 pt-6 pb-10 md:px-8 lg:grid-cols-12 [&>*]:min-w-0">
       {learning.length === 0 && (
-        <section className="surface flex flex-wrap items-center gap-4 p-5 lg:col-span-12">
-          <span className="grid size-12 place-items-center rounded-2xl bg-volt-500 text-on-volt"><Layers className="size-6" /></span>
-          <div className="min-w-0 flex-1">
-            <p className="font-semibold">Start with your first deck</p>
-            <p className="text-sm text-muted">Add words, phrases, or sentences, and your progress shows up here as you study.</p>
-          </div>
-        </section>
+        <p className="text-sm text-muted lg:col-span-12">
+          <span className="font-semibold text-ink">Start with your first deck.</span> Add words, phrases, or sentences, and your progress shows up here as you study.
+        </p>
       )}
       <StudyActivity decks={decks} now={now} goal={goal} />
       <ActiveDays decks={decks} now={now} />
-      <div className="grid gap-4 lg:col-span-4">
+      <div className="grid gap-10 lg:col-span-4">
         <DailyGoal decks={decks} now={now} goal={goal} />
         <Mastery decks={decks} />
       </div>

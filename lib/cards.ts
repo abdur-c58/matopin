@@ -168,27 +168,29 @@ const spoken = (text: string, speaker: Speaker, lang: Lang, voice: Voice, say = 
   ({ key: clipKey(text.trim(), speaker), text: say.trim(), speaker, lang, voice });
 const kanaFor = (text: string, reading: string) => (!hasKana(text) && reading.trim() && isKanaOnly(reading) ? reading : text);
 
-/** `lang` is the deck's language, so kanji-only Japanese isn't voiced as Mandarin. */
-export function wordSpoken(c: Card, lang: Lang): Spoken[] {
+/** `lang` is the deck's language, so kanji-only Japanese isn't voiced as Mandarin. With `voices` off, only the card's own recordings are spoken. */
+export function wordSpoken(c: Card, lang: Lang, voices = true): Spoken[] {
   const own = c.audio?.word;
   if (own && own.text === c.term.trim()) return [{ ...spoken(own.text, "A", lang, voiceFor(own.text)), clip: own.clip }];
+  if (!voices) return [];
   const text = c.term.trim() ? target(c) : "";
   return text ? [spoken(text, "A", lang, voiceFor(text), text === c.term.trim() ? kanaFor(text, c.reading) : text)] : [];
 }
 
 /** A conversation's two speakers always get different voices (lib/voice.ts). */
-export function exampleSpoken(c: Card, lang: Lang): Spoken[] {
+export function exampleSpoken(c: Card, lang: Lang, voices = true): Spoken[] {
   if (!hasExample(c)) return [];
   const own = c.audio?.example;
   if (own && own.text === c.example.trim()) return [{ ...spoken(own.text, "A", lang, voiceFor(own.text)), clip: own.clip }];
+  if (!voices) return [];
   const conversation = isConversation(c.example);
   return exampleLines(c.example, c.exampleReading).filter((line) => hasCjk(line.hanzi))
     .map((line) => spoken(line.hanzi, line.speaker, lang,
       conversation ? conversationVoice(c.example, line.speaker) : voiceFor(line.hanzi), kanaFor(line.hanzi, line.pinyin)));
 }
 
-export function spokenTexts(c: Card, withExample: boolean, lang: Lang): Spoken[] {
-  const all = [...wordSpoken(c, lang), ...(withExample ? exampleSpoken(c, lang) : [])];
+export function spokenTexts(c: Card, withExample: boolean, lang: Lang, voices = true): Spoken[] {
+  const all = [...wordSpoken(c, lang, voices), ...(withExample ? exampleSpoken(c, lang, voices) : [])];
   return all.filter((line, i) => all.findIndex((other) => other.key === line.key) === i);
 }
 

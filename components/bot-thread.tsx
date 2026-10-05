@@ -2,7 +2,7 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Dialog, DropdownMenu } from "radix-ui";
-import { ArrowLeft, HeartHandshake, Languages, LoaderCircle, MoreHorizontal, RotateCw, SendHorizontal, Trash2 } from "lucide-react";
+import { ArrowLeft, LoaderCircle, MoreHorizontal, SendHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { BOT_ID, BOT_NAME, BOT_STARTERS, MAX_MESSAGE, previewText, type BotThread as Thread, type Message, type Reaction } from "@/lib/chat";
 import { dayLabel } from "@/lib/chat-client";
@@ -240,7 +240,7 @@ export function BotThread({ onBack }: { onBack?: () => void } = {}) {
           <DropdownMenu.Portal>
             <DropdownMenu.Content align="end" sideOffset={8} collisionPadding={12} className="popup w-56 p-1.5">
               <DropdownMenu.Item disabled={!messages.length} className="flex h-10 cursor-pointer items-center gap-3 rounded-xl px-3 text-sm text-tone-1 outline-none data-[disabled]:cursor-default data-[disabled]:opacity-40 data-[highlighted]:bg-tone-1/10" onSelect={() => setConfirmClear(true)}>
-                <Trash2 className="size-4" />Clear chat
+                Clear chat
               </DropdownMenu.Item>
             </DropdownMenu.Content>
           </DropdownMenu.Portal>
@@ -275,8 +275,8 @@ export function BotThread({ onBack }: { onBack?: () => void } = {}) {
                 In {LANG_INFO[mode].name} mode, questions that could be about either language are answered for {LANG_INFO[mode].name}.
               </p>
               <p className="mt-2 flex items-center justify-center gap-4 text-xs text-muted">
-                <span className="flex items-center gap-1"><Languages className="size-3.5" />Mandarin & Japanese</span>
-                <span className="flex items-center gap-1"><HeartHandshake className="size-3.5" />Wellbeing</span>
+                <span className="flex items-center gap-1">Mandarin & Japanese</span>
+                <span className="flex items-center gap-1">Wellbeing</span>
               </p>
             </div>
           </div>
@@ -308,7 +308,7 @@ export function BotThread({ onBack }: { onBack?: () => void } = {}) {
         {retryable && !asking.length && (
           <p className="mt-2 flex items-center justify-end gap-2 px-5 text-[11px] text-muted">
             Not answered yet
-            <button type="button" className="inline-flex items-center gap-0.5 font-semibold text-second-300 underline-offset-2 hover:underline" onClick={() => void ask(retryable.id)}><RotateCw className="size-3" />Ask again</button>
+            <button type="button" className="inline-flex items-center gap-0.5 font-semibold text-second-300 underline-offset-2 hover:underline" onClick={() => void ask(retryable.id)}>Ask again</button>
           </p>
         )}
         {asking.length > 0 && <BotTyping lang={mode} />}
@@ -341,7 +341,7 @@ export function BotThread({ onBack }: { onBack?: () => void } = {}) {
             <div className="mt-5 flex justify-end gap-2">
               <Dialog.Close className="btn btn-secondary" disabled={clearing}>Cancel</Dialog.Close>
               <button type="button" className="btn bg-tone-1 text-white hover:bg-tone-1/90" disabled={clearing} onClick={() => void clearChat()}>
-                {clearing ? <LoaderCircle className="size-4 animate-spin" /> : <Trash2 className="size-4" />}Clear chat
+                {clearing && <LoaderCircle className="size-4 animate-spin" />}Clear chat
               </button>
             </div>
           </Dialog.Content>

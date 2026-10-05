@@ -3,10 +3,7 @@ import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Dialog, DropdownMenu, Popover } from "radix-ui";
-import {
-  ArrowLeft, BookOpen, Check, CheckCheck, CornerUpLeft, Eye, EyeOff, Globe, Layers, LoaderCircle, Lock, LogOut, MessageCircleOff,
-  MoreHorizontal, Plus, RotateCw, Search, SendHorizontal, Sparkles, Trash2, UserRound, Users, X,
-} from "lucide-react";
+import { ArrowLeft, Check, CheckCheck, CornerUpLeft, Layers, LoaderCircle, MoreHorizontal, Search, SendHorizontal, Sparkles, Users, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   BOT_NAME, groupIdOf, groupTitle, isAsk, MAX_MESSAGE, noticeSubjectId, noticeText, previewText,
@@ -89,13 +86,12 @@ export function BotTyping({ lang }: { lang: Lang }) {
 
 function DeckBubble({ deck, onOpen }: { deck: ChatDeck | null; onOpen: (id: string) => void }) {
   if (!deck || deck.unavailable) {
-    return <div className="flex items-center gap-2 rounded-3xl border border-dashed border-line px-4 py-3 text-sm text-muted"><Lock className="size-4" />This deck isn’t available any more.</div>;
+    return <div className="flex items-center gap-2 rounded-3xl border border-dashed border-line px-4 py-3 text-sm text-muted">This deck isn’t available any more.</div>;
   }
   const owner = deck.role === "owner";
   return (
     <div className="w-72 max-w-full overflow-hidden rounded-3xl border border-line bg-surface text-ink">
       <button type="button" className="flex w-full items-start gap-3 p-3.5 text-left transition hover:bg-raised/50" onClick={() => onOpen(deck.id)}>
-        <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-raised text-volt-500"><Layers className="size-5" /></span>
         <span className="min-w-0 flex-1">
           <span className="block truncate font-bold">{deck.name}</span>
           <span className="block truncate text-xs text-muted">{plural(deck.cards, "card")} · by {deck.owner.name}</span>
@@ -103,11 +99,11 @@ function DeckBubble({ deck, onOpen }: { deck: ChatDeck | null; onOpen: (id: stri
         <VisibilityBadge visibility={deck.visibility} className="shrink-0" />
       </button>
       <div className="grid grid-cols-2 gap-2 border-t border-line p-2">
-        <button type="button" className="btn btn-ghost h-9" onClick={() => onOpen(deck.id)}><Eye className="size-4" />Preview</button>
-        {owner ? <Link href={`/decks/${deck.id}`} className="btn btn-shard h-9"><Layers className="size-4" />Open</Link>
-          : deck.copyId ? <Link href={`/decks/${deck.copyId}`} className="btn btn-shard h-9"><Layers className="size-4" />Your copy</Link>
-          : deck.role === "collaborator" ? <Link href={`/decks/${deck.id}/review`} className="btn btn-shard h-9"><BookOpen className="size-4" />Study</Link>
-          : <button type="button" className="btn btn-primary h-9" onClick={() => onOpen(deck.id)}><Plus className="size-4" />Get deck</button>}
+        <button type="button" className="btn btn-ghost h-9" onClick={() => onOpen(deck.id)}>Preview</button>
+        {owner ? <Link href={`/decks/${deck.id}`} className="btn btn-shard h-9">Open</Link>
+          : deck.copyId ? <Link href={`/decks/${deck.copyId}`} className="btn btn-shard h-9">Your copy</Link>
+          : deck.role === "collaborator" ? <Link href={`/decks/${deck.id}/review`} className="btn btn-shard h-9">Study</Link>
+          : <button type="button" className="btn btn-primary h-9" onClick={() => onOpen(deck.id)}>Get deck</button>}
       </div>
     </div>
   );
@@ -204,14 +200,14 @@ export function MessageRow({ m, mine, grouped, people, showName = false, active,
         {bot && onFlashcards && hasCjk(m.body) && (
           <button type="button" onClick={onFlashcards}
             className="mt-1.5 inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium text-muted transition hover:bg-raised hover:text-ink">
-            <Layers className="size-3.5" />Create flashcards out of this response
+            Create flashcards out of this response
           </button>
         )}
         {m.local === "failed" ? (
           <p className="mt-1 flex items-center gap-2 text-[11px] text-tone-1">
             {m.error || "Didn’t send."}
-            <button type="button" className="inline-flex items-center gap-0.5 font-semibold underline-offset-2 hover:underline" onClick={onRetry}><RotateCw className="size-3" />Retry</button>
-            <button type="button" className="inline-flex items-center gap-0.5 font-semibold underline-offset-2 hover:underline" onClick={onDiscard}><Trash2 className="size-3" />Delete</button>
+            <button type="button" className="inline-flex items-center gap-0.5 font-semibold underline-offset-2 hover:underline" onClick={onRetry}>Retry</button>
+            <button type="button" className="inline-flex items-center gap-0.5 font-semibold underline-offset-2 hover:underline" onClick={onDiscard}>Delete</button>
           </p>
         ) : m.local === "sending" ? (
           <p className="mt-1 text-[11px] text-muted">Sending…</p>
@@ -264,7 +260,6 @@ function DeckPicker({ onPick, disabled }: { onPick: (deck: DeckSummary) => void;
             {shown.map((d) => (
               <li key={d.id}>
                 <button type="button" className="flex w-full items-center gap-2.5 rounded-2xl px-2 py-2 text-left transition hover:bg-raised" onClick={() => { setOpen(false); onPick(d); }}>
-                  <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-raised text-volt-500"><Layers className="size-4" /></span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-semibold">{d.name}</span>
                     <span className="block text-xs text-muted">{plural(d.cards, "card")}{d.role !== "owner" && d.ownerName ? ` · by ${d.ownerName}` : ""}</span>
@@ -283,21 +278,21 @@ function DeckPicker({ onPick, disabled }: { onPick: (deck: DeckSummary) => void;
 function PrivateDeckAlert({ deck, name, busy, onShare, onCancel }: { deck: DeckSummary; name: string; busy: Visibility | null; onShare: (v: "unlisted" | "public") => void; onCancel: () => void }) {
   const owner = deck.role === "owner";
   const options = [
-    { value: "unlisted" as const, label: "Make unlisted & send", detail: "Hidden from Social. Only people you send it to can open it.", icon: EyeOff },
-    { value: "public" as const, label: "Make public & send", detail: "Anyone can find it in Social and save a copy.", icon: Globe },
+    { value: "unlisted" as const, label: "Make unlisted & send", detail: "Hidden from Social. Only people you send it to can open it." },
+    { value: "public" as const, label: "Make public & send", detail: "Anyone can find it in Social and save a copy." },
   ];
   return (
     <div role="alertdialog" aria-labelledby="private-deck-title" aria-describedby="private-deck-detail" className="mb-2 animate-pop rounded-3xl border border-tone-2/40 bg-tone-2/10 p-4">
-      <p id="private-deck-title" className="flex items-center gap-2 font-semibold"><Lock className="size-4 text-tone-2" />“{deck.name}” is private</p>
+      <p id="private-deck-title" className="font-semibold">“{deck.name}” is private</p>
       <p id="private-deck-detail" className="mt-1 text-sm text-muted">
         {owner ? `${name} can’t open private decks, so it wasn’t sent. Share it and it sends right away.` : "Its owner keeps it private, so it can’t be sent."}
       </p>
       {owner && (
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          {options.map(({ value, label, detail, icon: Icon }) => (
+          {options.map(({ value, label, detail }) => (
             <button key={value} type="button" disabled={busy != null} onClick={() => onShare(value)}
               className="rounded-2xl border border-line bg-surface p-3 text-left transition hover:border-volt-500/60 hover:bg-raised disabled:opacity-60">
-              <span className="flex items-center gap-2 text-sm font-semibold">{busy === value ? <LoaderCircle className="size-4 animate-spin" /> : <Icon className="size-4 text-volt-500" />}{label}</span>
+              <span className="flex items-center gap-2 text-sm font-semibold">{busy === value && <LoaderCircle className="size-4 animate-spin" />}{label}</span>
               <span className="mt-1 block text-xs text-muted">{detail}</span>
             </button>
           ))}
@@ -318,16 +313,16 @@ function AllowBotDialog({ open, name, group, busy, onAllow, onClose }: { open: b
           <Dialog.Title className="mt-4 text-lg font-semibold">Let Bao read this chat?</Dialog.Title>
           <Dialog.Description className="mt-1 text-sm text-muted">Your message hasn’t been sent yet. To answer well, the bot needs to see the conversation.</Dialog.Description>
           <ul className="mt-4 space-y-2.5 text-sm">
-            <li className="flex gap-2.5"><Eye className="mt-0.5 size-4 shrink-0 text-second-300" />It reads this chat’s recent messages each time someone types @ask, which takes up its context.</li>
-            <li className="flex gap-2.5"><Layers className="mt-0.5 size-4 shrink-0 text-second-300" />It saves a short summary of older messages as this chat’s memory, so it doesn’t re-read everything (and use more tokens) each time.</li>
-            <li className="flex gap-2.5"><Sparkles className="mt-0.5 size-4 shrink-0 text-second-300" />It only answers questions about Chinese, or about how you’re feeling.</li>
-            <li className="flex gap-2.5"><UserRound className="mt-0.5 size-4 shrink-0 text-second-300" />{group
+            <li className="flex gap-2.5">It reads this chat’s recent messages each time someone types @ask, which takes up its context.</li>
+            <li className="flex gap-2.5">It saves a short summary of older messages as this chat’s memory, so it doesn’t re-read everything (and use more tokens) each time.</li>
+            <li className="flex gap-2.5">It only answers questions about Chinese, or about how you’re feeling.</li>
+            <li className="flex gap-2.5">{group
               ? "Everyone in the group will see that you added it. Anyone in it can remove it, which also erases its memory."
               : `${name} will see that you added it. Either of you can remove it, which also erases its memory.`}</li>
           </ul>
           <div className="mt-6 flex justify-end gap-2">
             <Dialog.Close className="btn btn-ghost" disabled={busy}>Not now</Dialog.Close>
-            <button type="button" className="btn btn-second" disabled={busy} onClick={onAllow}>{busy ? <LoaderCircle className="size-4 animate-spin" /> : <Sparkles className="size-4" />}Allow & send</button>
+            <button type="button" className="btn btn-second" disabled={busy} onClick={onAllow}>{busy && <LoaderCircle className="size-4 animate-spin" />}Allow & send</button>
           </div>
         </Dialog.Content>
       </Dialog.Portal>
@@ -678,22 +673,22 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
             <DropdownMenu.Content align="end" sideOffset={8} collisionPadding={12} className="popup w-64 p-1.5">
               {person ? (
                 <DropdownMenu.Item asChild className="flex h-10 cursor-pointer items-center gap-3 rounded-xl px-3 text-sm outline-none data-[highlighted]:bg-raised">
-                  <Link href={`/u/${person.id}`}><UserRound className="size-4 text-muted" />View profile</Link>
+                  <Link href={`/u/${person.id}`}>View profile</Link>
                 </DropdownMenu.Item>
               ) : (
                 <DropdownMenu.Item className="flex h-10 cursor-pointer items-center gap-3 rounded-xl px-3 text-sm outline-none data-[highlighted]:bg-raised" onSelect={() => setInfo(true)}>
-                  <Users className="size-4 text-muted" />Members and settings
+                  Members and settings
                 </DropdownMenu.Item>
               )}
               {chat && bothAccepted && (bao || chat.aiEnabled) && (
                 <DropdownMenu.Item className="flex h-10 cursor-pointer items-center gap-3 rounded-xl px-3 text-sm outline-none data-[highlighted]:bg-raised" onSelect={() => (chat.aiEnabled ? void setBot(false) : setConfirmAi(true))}>
-                  <Sparkles className="size-4 text-second-300" />{chat.aiEnabled ? "Remove Bao" : "Add Bao"}
+                  {chat.aiEnabled ? "Remove Bao" : "Add Bao"}
                 </DropdownMenu.Item>
               )}
               {person && chat && chat.myStatus !== "pending" && (
                 <DropdownMenu.Item className={`flex h-10 cursor-pointer items-center gap-3 rounded-xl px-3 text-sm outline-none ${chat.myStatus === "declined" ? "data-[highlighted]:bg-raised" : "text-tone-1 data-[highlighted]:bg-tone-1/10"}`}
                   onSelect={() => void respond(chat.myStatus === "declined")}>
-                  <MessageCircleOff className="size-4" />{chat.myStatus === "declined" ? "Turn messages back on" : `Turn off messages from ${title}`}
+                  {chat.myStatus === "declined" ? "Turn messages back on" : `Turn off messages from ${title}`}
                 </DropdownMenu.Item>
               )}
             </DropdownMenu.Content>
@@ -752,10 +747,10 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
             <p className="mt-1 text-sm text-muted">Join to send messages. If you decline, you leave the group.</p>
             <div className="mt-3 flex justify-center gap-2">
               <button type="button" className="btn btn-danger-outline" disabled={busy != null} onClick={() => void respond(false)}>
-                {busy === "decline" ? <LoaderCircle className="size-4 animate-spin" /> : <LogOut className="size-4" />}Decline
+                {busy === "decline" && <LoaderCircle className="size-4 animate-spin" />}Decline
               </button>
               <button type="button" className="btn btn-primary" disabled={busy != null} onClick={() => void respond(true)}>
-                {busy === "accept" ? <LoaderCircle className="size-4 animate-spin" /> : <Check className="size-4" />}Join
+                {busy === "accept" && <LoaderCircle className="size-4 animate-spin" />}Join
               </button>
             </div>
           </div>
@@ -765,10 +760,10 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
             <p className="mt-1 text-sm text-muted">Accept to reply. If you turn messages off, they can’t message you until you turn them back on from their profile.</p>
             <div className="mt-3 flex justify-center gap-2">
               <button type="button" className="btn btn-danger-outline" disabled={busy != null} onClick={() => void respond(false)}>
-                {busy === "decline" ? <LoaderCircle className="size-4 animate-spin" /> : <MessageCircleOff className="size-4" />}Turn off
+                {busy === "decline" && <LoaderCircle className="size-4 animate-spin" />}Turn off
               </button>
               <button type="button" className="btn btn-primary" disabled={busy != null} onClick={() => void respond(true)}>
-                {busy === "accept" ? <LoaderCircle className="size-4 animate-spin" /> : <Check className="size-4" />}Accept
+                {busy === "accept" && <LoaderCircle className="size-4 animate-spin" />}Accept
               </button>
             </div>
           </div>

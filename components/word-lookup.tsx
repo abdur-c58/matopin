@@ -1,7 +1,7 @@
 "use client";
 import { useRef } from "react";
 import { Dialog } from "radix-ui";
-import { LoaderCircle, Search, X } from "lucide-react";
+import { LoaderCircle, X } from "lucide-react";
 import type { WordMatch } from "@/lib/ai";
 import { isPinyin, looksLikePinyin } from "@/lib/cards";
 import { useCardLang } from "./lang-context";
@@ -76,7 +76,7 @@ export function WordLookup({ open, onOpenChange, pinyin, meaning, clue, onClue, 
               spellCheck={false}
             />
             <Button variant="primary" disabled={looking || !query} type="submit">
-              {looking ? <LoaderCircle className="size-4 animate-spin" /> : <Search className="size-4" />}
+              {looking && <LoaderCircle className="size-4 animate-spin" />}
               Search
             </Button>
           </form>

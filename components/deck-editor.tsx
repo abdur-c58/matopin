@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { Dialog, Tabs } from "radix-ui";
-import { Check, Download, Eye, FileText, Pencil, Search, Trash2, Volume2, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { PLAYBACK_SPEEDS } from "@/lib/prefs";
 import { useDeckEditor } from "@/lib/use-deck-editor";
@@ -126,24 +126,24 @@ export function DeckEditor({ scope }: { scope: string }) {
               {simplifiedToggle}
               {z.dirty && <span className="text-xs font-medium text-tone-2">Unsaved changes</span>}
               <Button variant="ghost" disabled={z.busy} onClick={leaveEditing}>{z.dirty ? "Cancel" : "Done"}</Button>
-              <Button variant="primary" disabled={z.busy || !z.dirty} onClick={z.saveEdits}><Check className="size-4" />Save changes</Button>
+              <Button variant="primary" disabled={z.busy || !z.dirty} onClick={z.saveEdits}>Save changes</Button>
             </div>
           ) : (
             <div className="flex flex-wrap items-center gap-2">
               {tab === "import" && simplifiedToggle}
               {tab === "cards" && !readOnly && z.filledCount > 0 && ai("check") && check.button}
-              {ai("voice") && <Button variant="shard" disabled={z.busy} onClick={() => void z.voice(z.filled)} title="Generate audio for every card"><Volume2 className="size-4" />Voice all</Button>}
-              <Button variant="shard" onClick={z.exportCsv}><FileText className="size-4" />CSV</Button>
-              <Button variant="shard" onClick={z.exportDeck}><Download className="size-4" />Export to Anki</Button>
-              {tab === "cards" && !readOnly && <Button variant="primary" onClick={z.startEditing}><Pencil className="size-4" />Edit cards</Button>}
+              {ai("voice") && <Button variant="shard" disabled={z.busy} onClick={() => void z.voice(z.filled)} title="Generate audio for every card">Voice all</Button>}
+              <Button variant="shard" onClick={z.exportCsv}>CSV</Button>
+              <Button variant="shard" onClick={z.exportDeck}>Export to Anki</Button>
+              {tab === "cards" && !readOnly && <Button variant="primary" onClick={z.startEditing}>Edit cards</Button>}
             </div>
           )}
         </div>
         <Tabs.Content value="cards" asChild>
           <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
             {readOnly && (
-              <p className="mb-3 flex items-center gap-2 rounded-2xl bg-raised px-4 py-3 text-sm text-muted">
-                <Eye className="size-4 shrink-0" />You follow this deck, so its cards are read-only. Your review progress is your own.
+              <p className="mb-3 flex items-center gap-2 rounded-lg bg-raised px-4 py-3 text-sm text-muted">
+                You follow this deck, so its cards are read-only. Your review progress is your own.
               </p>
             )}
             {z.filledCount > 0 && (
@@ -207,7 +207,7 @@ export function DeckEditor({ scope }: { scope: string }) {
             <div className="mt-5 flex justify-end gap-2">
               <Button variant="ghost" onClick={() => closeDiscard(false)}>Keep editing</Button>
               <Button variant="danger" onClick={() => finishLeaving(z.discardEdits)}>Discard</Button>
-              <Button variant="primary" onClick={() => finishLeaving(z.saveEdits)}><Check className="size-4" />Save</Button>
+              <Button variant="primary" onClick={() => finishLeaving(z.saveEdits)}>Save</Button>
             </div>
           </Dialog.Content>
         </Dialog.Portal>
@@ -226,7 +226,7 @@ export function DeckEditor({ scope }: { scope: string }) {
               <input id="clear-confirm" className="field" value={clearTyped} onChange={(e) => setClearTyped(e.target.value)} autoComplete="off" spellCheck={false} />
               <div className="mt-5 flex justify-end gap-2">
                 <Button variant="ghost" onClick={() => setConfirmClear(false)}>Cancel</Button>
-                <Button variant="danger" type="submit" disabled={clearTyped.trim() !== deckName}><Trash2 className="size-4" />Clear all cards</Button>
+                <Button variant="danger" type="submit" disabled={clearTyped.trim() !== deckName}>Clear all cards</Button>
               </div>
             </form>
           </Dialog.Content>

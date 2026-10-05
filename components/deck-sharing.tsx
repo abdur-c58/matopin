@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Check, Copy, EyeOff, Globe, Link2, LoaderCircle, Lock, RefreshCw, UserMinus, Users } from "lucide-react";
+import { Check, EyeOff, Globe, LoaderCircle, Lock, UserMinus, Users } from "lucide-react";
 import { toast } from "sonner";
 import { notifyDecks, readMeta, writeMeta } from "@/lib/decks";
 import { inviteUrl, VISIBILITY_LABELS, type Sharing, type Visibility } from "@/lib/social";
@@ -73,7 +73,7 @@ export function DeckSharing({ deckId, scope }: { deckId: string; scope: string }
           return (
             <button key={value} type="button" role="radio" aria-checked={on} disabled={busy != null}
               onClick={() => { if (!on) void share(value); }}
-              className={`rounded-2xl border p-3 text-left transition disabled:cursor-wait ${on ? "border-volt-500 bg-volt-50" : "border-line hover:border-ink/25 hover:bg-raised"}`}>
+              className={`rounded-lg border p-3 text-left transition disabled:cursor-wait ${on ? "border-volt-500 bg-volt-50" : "border-line hover:border-ink/25 hover:bg-raised"}`}>
               <span className="flex items-center gap-2 text-sm font-semibold">
                 {busy === value ? <LoaderCircle className="size-4 animate-spin" /> : <Icon className={`size-4 ${on ? "text-volt-500" : "text-muted"}`} />}{label}
                 {on && <Check className="ml-auto size-4 text-volt-500" />}
@@ -86,12 +86,12 @@ export function DeckSharing({ deckId, scope }: { deckId: string; scope: string }
 
       {sharing.visibility === "collab" && sharing.inviteCode && (
         <div>
-          <span className="label flex items-center gap-1.5"><Link2 className="size-3.5" />Invite link</span>
+          <span className="label flex items-center gap-1.5">Invite link</span>
           <div className="flex gap-2">
             <input className="field min-w-0 flex-1 font-mono text-xs" readOnly value={inviteUrl(sharing.inviteCode)} onFocus={(e) => e.currentTarget.select()} aria-label="Invite link" />
-            <button type="button" className="btn btn-shard shrink-0" onClick={() => void copy(sharing.inviteCode!)}>{copied ? <Check className="size-4" /> : <Copy className="size-4" />}{copied ? "Copied" : "Copy"}</button>
+            <button type="button" className="btn btn-shard shrink-0" onClick={() => void copy(sharing.inviteCode!)}>{copied ? "Copied" : "Copy"}</button>
             <button type="button" className="btn btn-ghost shrink-0" disabled={busy != null} onClick={() => void share("collab", true)} title="Make a new link so the old one stops working">
-              {busy === "reset" ? <LoaderCircle className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}New link
+              {busy === "reset" && <LoaderCircle className="size-4 animate-spin" />}New link
             </button>
           </div>
           <p className="mt-1 text-xs text-muted">Anyone with this link can join as a collaborator. Make a new link to stop old ones working; people who already joined stay until you remove them.</p>
@@ -100,7 +100,7 @@ export function DeckSharing({ deckId, scope }: { deckId: string; scope: string }
 
       <div className="grid grid-cols-2 gap-2">
         {([["Imports", sharing.saves, "People who saved their own copy"], ["Remixes", sharing.remixes, "People who changed the cards in their copy"]] as const).map(([label, value, hint]) => (
-          <div key={label} className="rounded-2xl border border-line px-3 py-2.5" title={hint}>
+          <div key={label} className="rounded-lg border border-line px-3 py-2.5" title={hint}>
             <p className="text-xl font-bold tabular-nums">{value.toLocaleString()}</p>
             <p className="text-xs text-muted">{label}</p>
           </div>

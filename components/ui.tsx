@@ -5,9 +5,9 @@ import type { ButtonHTMLAttributes, InputHTMLAttributes } from "react";
 
 export function Panel({ id, title, action, className = "", children }: { id?: string; title?: React.ReactNode; action?: React.ReactNode; className?: string; children: React.ReactNode }) {
   return (
-    <section id={id} className={`surface p-5 ${className}`}>
+    <section id={id} className={`border-t border-line pt-4 ${className}`}>
       {(title || action) && (
-        <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           {title && <h2 className="text-base font-semibold">{title}</h2>}
           {action}
         </div>
@@ -19,9 +19,9 @@ export function Panel({ id, title, action, className = "", children }: { id?: st
 
 export function Chips<T extends string>({ value, onChange, options, label }: { value: T; onChange: (v: T) => void; options: { value: T; label: string }[]; label: string }) {
   return (
-    <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={label}>
+    <div className="flex flex-wrap gap-x-5 gap-y-1" role="radiogroup" aria-label={label}>
       {options.map((o) => (
-        <button key={o.value} type="button" role="radio" aria-checked={value === o.value} className={`chip ${value === o.value ? "chip-on" : ""}`} onClick={() => onChange(o.value)}>{o.label}</button>
+        <button key={o.value} type="button" role="radio" aria-checked={value === o.value} className={`tab ${value === o.value ? "tab-on" : ""}`} onClick={() => onChange(o.value)}>{o.label}</button>
       ))}
     </div>
   );

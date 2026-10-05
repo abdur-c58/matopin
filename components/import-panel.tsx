@@ -1,7 +1,7 @@
 "use client";
 import { Fragment, useRef, useState } from "react";
 import { Dialog, Popover } from "radix-ui";
-import { ChevronDown, CircleHelp, ListPlus, LoaderCircle, Plus, Search, SpellCheck, Trash2, Upload, X } from "lucide-react";
+import { ChevronDown, CircleHelp, LoaderCircle, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { sanitizeDraft, type CardDraft, type WordMatch } from "@/lib/ai";
 import { formatRows } from "@/lib/ai-client";
@@ -388,16 +388,16 @@ export function ImportPanel({ fluency, simplified, onImport, onLookup }: {
       <div className="mt-4 flex flex-wrap gap-2">
         {writing && (
           <span className="inline-flex items-center gap-0.5">
-            <Button variant="primary" disabled={!ready || Boolean(formatting) || importing} onClick={() => void format()}><SpellCheck className="size-4" />{formatting || "Format"}</Button>
+            <Button variant="primary" disabled={!ready || Boolean(formatting) || importing} onClick={() => void format()}>{formatting || "Format"}</Button>
             <FormatHelp lang={lang} />
           </span>
         )}
         <Button variant={writing ? undefined : "primary"} disabled={!ready || Boolean(formatting) || importing} onClick={() => add(rows.filter(hasPinyin).map((row) => rowCard(row.cells, row.kind)))}>
-          {importing && !review ? <LoaderCircle className="size-4 animate-spin" /> : <ListPlus className="size-4" />}{writing ? "Add without formatting" : "Add cards"}
+          {importing && !review && <LoaderCircle className="size-4 animate-spin" />}{writing ? "Add without formatting" : "Add cards"}
         </Button>
-        <Button variant="ghost" onClick={() => { setRows((current) => [...current, emptyRow()]); focusCell(rows.length, 0); }}><Plus className="size-4" />Add row</Button>
+        <Button variant="ghost" onClick={() => { setRows((current) => [...current, emptyRow()]); focusCell(rows.length, 0); }}>Add row</Button>
         <Button variant="ghost" disabled={readingAnki} onClick={() => file.current?.click()}>
-          {readingAnki ? <LoaderCircle className="size-4 animate-spin" /> : <Upload className="size-4" />}{readingAnki ? "Reading Anki deck…" : "Upload file"}
+          {readingAnki && <LoaderCircle className="size-4 animate-spin" />}{readingAnki ? "Reading Anki deck…" : "Upload file"}
         </Button>
         <input ref={file} type="file" accept={`.csv,.tsv,.txt,${ANKI_ACCEPT}`} hidden onChange={(e) => { const picked = e.target.files?.[0]; if (picked) void loadFile(picked); e.target.value = ""; }} />
       </div>

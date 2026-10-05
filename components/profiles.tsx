@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { signIn, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { Dialog } from "radix-ui";
-import { Camera, Check, LoaderCircle, LogOut, Settings2, Trash2, Upload, X } from "lucide-react";
+import { Camera, Check, LoaderCircle, X } from "lucide-react";
 import { toast } from "sonner";
 import { AVATAR_ACCEPT, AVATAR_COLORS, DEFAULT_AVATAR_COLOR, loadAvatarSource, renderAvatar, type AvatarColor, type AvatarCrop, type AvatarSource } from "@/lib/avatar";
 import { APP_NAME } from "@/lib/brand";
@@ -203,7 +203,7 @@ export function ProfileButton() {
   return (
     <>
       <button type="button" className="btn btn-shard" aria-label={`Manage profile ${name}`} onClick={() => setOpen(true)}>
-        <Settings2 className="size-4 shrink-0" />Manage profile
+        Manage profile
       </button>
       <ProfileDialog open={open} onOpenChange={setOpen} />
     </>
@@ -308,10 +308,10 @@ export function ProfileDialog({ open, onOpenChange }: { open: boolean; onOpenCha
               <div className="min-w-0 space-y-2">
                 <div className="flex flex-wrap gap-2">
                   <button type="button" className="btn btn-shard h-9 px-3.5" disabled={reading} onClick={() => file.current?.click()}>
-                    <Upload className="size-4" />{draft.avatar ? "Change photo" : "Upload photo"}
+                    {draft.avatar ? "Change photo" : "Upload photo"}
                   </button>
                   {draft.avatar && (
-                    <button type="button" className="btn btn-ghost h-9 px-3" onClick={() => setDraft((d) => ({ ...d, avatar: null, avatarCrop: null }))}><Trash2 className="size-4" />Remove</button>
+                    <button type="button" className="btn btn-ghost h-9 px-3" onClick={() => setDraft((d) => ({ ...d, avatar: null, avatarCrop: null }))}>Remove</button>
                   )}
                 </div>
                 <p className="text-xs text-muted">JPG, PNG, WebP, or an animated GIF up to 1.5 MB. You pick the square crop next.</p>
@@ -359,7 +359,7 @@ export function ProfileDialog({ open, onOpenChange }: { open: boolean; onOpenCha
             <div className="flex justify-end gap-2">
               <Dialog.Close className="btn btn-ghost">Cancel</Dialog.Close>
               <Button variant="primary" type="submit" disabled={busy || reading || !dirty || !draft.name.trim()}>
-                {busy ? <LoaderCircle className="size-4 animate-spin" /> : <Check className="size-4" />}Save changes
+                {busy && <LoaderCircle className="size-4 animate-spin" />}Save changes
               </Button>
             </div>
           </form>
@@ -375,7 +375,7 @@ export function ProfileDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                 <p className="text-sm font-medium">Google account</p>
                 <p className="truncate text-xs text-muted">{email ? `Signed in as ${email}` : "Signed in with Google"}</p>
               </div>
-              <Button variant="danger-outline" className="shrink-0" disabled={leaving} onClick={() => void logout()}><LogOut className="size-4" />Log out</Button>
+              <Button variant="danger-outline" className="shrink-0" disabled={leaving} onClick={() => void logout()}>Log out</Button>
             </div>
           </div>
         </Dialog.Content>

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Dialog } from "radix-ui";
-import { Check, LoaderCircle, Minus, Move, Plus, X } from "lucide-react";
+import { LoaderCircle, Minus, Move, Plus, X } from "lucide-react";
 import type { AvatarCrop, AvatarSource } from "@/lib/avatar";
 import { Button } from "./ui";
 
@@ -105,7 +105,7 @@ export function AvatarCropper({ source, busy, onCancel, onApply }: { source: Ava
           <div className="mt-5 flex justify-end gap-2">
             <Button variant="ghost" disabled={busy} onClick={onCancel}>Cancel</Button>
             <Button variant="primary" disabled={busy} onClick={() => onApply(crop)}>
-              {busy ? <LoaderCircle className="size-4 animate-spin" /> : <Check className="size-4" />}Use photo
+              {busy && <LoaderCircle className="size-4 animate-spin" />}Use photo
             </Button>
           </div>
         </Dialog.Content>

@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Dialog } from "radix-ui";
-import { Archive, Check, Languages, LoaderCircle } from "lucide-react";
+import { Check, LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import { LANG_INFO, LANGS } from "@/lib/lang";
 import type { Learning } from "@/lib/prefs";
@@ -21,7 +21,7 @@ function LearningOptions({ value, busy, onPick }: { value: Learning | null; busy
         const on = o.value === value;
         return (
           <button key={o.value} type="button" role="radio" aria-checked={on} disabled={busy != null} onClick={() => { if (!on) onPick(o.value); }}
-            className={`flex items-center gap-3 rounded-2xl border p-3 text-left transition-colors disabled:cursor-wait ${on ? "border-volt-500 bg-volt-50" : "border-line hover:border-ink/25 hover:bg-raised"}`}>
+            className={`flex items-center gap-3 rounded-lg border p-3 text-left transition-colors disabled:cursor-wait ${on ? "border-volt-500 bg-volt-50" : "border-line hover:border-ink/25 hover:bg-raised"}`}>
             <span className={`grid h-11 min-w-11 shrink-0 place-items-center rounded-xl px-2 font-hanzi text-lg leading-none ${on ? "bg-volt-500 text-on-volt" : "bg-raised"}`}>
               {busy === o.value ? <LoaderCircle className="size-5 animate-spin" /> : o.badge}
             </span>
@@ -61,7 +61,6 @@ export function LearningOnboarding() {
         <Dialog.Overlay className="overlay" />
         <Dialog.Content className="popup fixed top-1/2 left-1/2 w-[min(28rem,calc(100vw-1.5rem))] -translate-x-1/2 -translate-y-1/2 p-6"
           onEscapeKeyDown={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
-          <span className="grid size-12 place-items-center rounded-2xl bg-volt-500 text-on-volt"><Languages className="size-6" /></span>
           <Dialog.Title className="mt-4 text-xl font-bold">What do you want to learn?</Dialog.Title>
           <Dialog.Description className="mt-1 text-sm text-muted">You can change this any time in Settings. Nothing you make is lost when you do.</Dialog.Description>
           <div className="mt-5"><LearningOptions value={null} busy={busy} onPick={(next) => void pick(next)} /></div>
@@ -93,14 +92,14 @@ export function LearningPanel({ id, className = "" }: { id?: string; className?:
   }
 
   return (
-    <section id={id} className={`surface p-5 ${className}`}>
-      <h2 className="flex items-center gap-2 text-base font-semibold"><Languages className="size-4 text-volt-500" />What you’re learning</h2>
+    <section id={id} className={`border-t border-line pt-4 ${className}`}>
+      <h2 className="text-base font-semibold">What you’re learning</h2>
       <p className="mt-1 text-sm text-muted">
         Learning one language keeps decks, the dictionary and Bao on it and hides the language switch. Swapping or dropping a language never deletes anything: its decks wait in the archive.
       </p>
       <div className="mt-4"><LearningOptions value={learning} busy={busy} onPick={(next) => void pick(next)} /></div>
       {archived.length > 0 && (
-        <Link href="/decks?archive" className="btn btn-ghost mt-3"><Archive className="size-4" />Open the archive · {archived.length}</Link>
+        <Link href="/decks?archive" className="btn btn-ghost mt-3">Open the archive · {archived.length}</Link>
       )}
     </section>
   );

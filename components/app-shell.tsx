@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState, ViewTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Dialog } from "radix-ui";
-import { BookA, BookOpen, CalendarDays, ChartColumn, House, Layers, LogOut, Menu, MessageCircle, PictureInPicture2, Plus, Rows3, Search, Settings, Settings2, Users, X } from "lucide-react";
+import { BookA, BookOpen, CalendarDays, ChartColumn, House, Layers, LogOut, Menu, MessageCircle, PictureInPicture2, Rows3, Search, Settings, Settings2, Users, X } from "lucide-react";
 import { APP_NAME } from "@/lib/brand";
 import { useChatBadge } from "@/lib/chat-client";
 import { LANG_INFO, type Lang } from "@/lib/lang";
@@ -17,7 +17,7 @@ import { AccountMenu } from "./account-menu";
 import { type PanelKind, QuickPanelsProvider, useOpenPanel } from "./quick-panels";
 import { RailTip, RailTipProvider } from "./rail-tip";
 import { SelectionMenu } from "./selection-menu";
-import { GoogleSignIn, useAi, useProfile, useSignedIn } from "./profiles";
+import { GoogleSignIn, useProfile, useSignedIn } from "./profiles";
 import { useProfileData } from "./use-stats";
 
 export const deckLinks = (id: string) => [
@@ -65,35 +65,14 @@ function useLogout() {
 }
 
 const RAIL_BUTTON = 44;
-const RAIL_PAD = 4;
 const RAIL_STEP = RAIL_BUTTON + 24;
-const RAIL_GLOW = 480;
-const RAIL_GLOW_OPACITY = 0.6;
-const RAIL_MOVE_MS = 600;
+const RAIL_MOVE_MS = 300;
 
 function Rail() {
   const pathname = usePathname();
   const activeIndex = NAV.findIndex(({ href }) => isActive(pathname, href));
-  const glow = useRef<HTMLSpanElement>(null);
-  const lastIndex = useRef(activeIndex);
   const openPanel = useOpenPanel();
   const { lang } = useActiveLang();
-
-  useEffect(() => {
-    const from = lastIndex.current;
-    lastIndex.current = activeIndex;
-    if (from === activeIndex || from < 0 || activeIndex < 0) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    glow.current?.animate(
-      [
-        { opacity: RAIL_GLOW_OPACITY, transform: "scale(1)" },
-        { opacity: 0.25, transform: "scale(0.85)", offset: 0.35 },
-        { opacity: RAIL_GLOW_OPACITY, transform: "scale(1.15)", offset: 0.7 },
-        { opacity: RAIL_GLOW_OPACITY, transform: "scale(1)" },
-      ],
-      { duration: RAIL_MOVE_MS, easing: "ease-in-out" },
-    );
-  }, [activeIndex]);
 
   return (
     <aside className="fixed inset-y-3 left-3 z-30 hidden w-[72px] flex-col items-center py-2 md:flex">
@@ -103,14 +82,7 @@ function Rail() {
         </Link>
       </RailLanguageSwitcher>
       <div className="relative mt-6">
-        <span
-          aria-hidden
-          className={`pointer-events-none absolute top-0 left-1/2 transition-[transform,opacity] ease-in-out ${activeIndex < 0 ? "opacity-0" : ""}`}
-          style={{ width: RAIL_GLOW, height: RAIL_GLOW, transitionDuration: `${RAIL_MOVE_MS}ms`, transform: `translate(-50%, ${RAIL_PAD + Math.max(0, activeIndex) * RAIL_STEP + RAIL_BUTTON / 2 - RAIL_GLOW / 2}px)` }}
-        >
-          <span ref={glow} className="absolute inset-0 rounded-full bg-volt-500/25 blur-[120px]" style={{ opacity: RAIL_GLOW_OPACITY }} />
-        </span>
-        <nav className="relative flex flex-col gap-6 rounded-full border border-line/60 bg-surface/40 p-1 backdrop-blur-xl" aria-label="Main">
+        <nav className="relative flex flex-col gap-6 rounded-full border border-line bg-surface p-1" aria-label="Main">
           <span
             aria-hidden
             className={`absolute top-1 left-1 size-11 rounded-full bg-volt-500 transition-[transform,opacity] ease-in-out ${activeIndex < 0 ? "opacity-0" : ""}`}
@@ -142,7 +114,7 @@ function AccountDock() {
   const { leaving, logout } = useLogout();
   const { lang } = useActiveLang();
   return (
-    <div className="fixed bottom-5 left-3 z-30 hidden items-center gap-1 rounded-full border border-line/60 bg-surface/40 p-1 backdrop-blur-xl md:flex">
+    <div className="fixed bottom-5 left-3 z-30 hidden items-center gap-1 rounded-full border border-line bg-surface p-1 md:flex">
       <RailTip label="Log out" zh={LOG_OUT[lang][0]} pinyin={LOG_OUT[lang][1]} lang={LANG_INFO[lang].speech} tone="danger">
         <button type="button" className="grid size-11 place-items-center rounded-full bg-raised text-muted transition hover:bg-tone-1/15 hover:text-tone-1 active:scale-90 disabled:opacity-40" aria-label="Log out" disabled={leaving} onClick={() => void logout()}>
           <LogOut className="size-[18px]" />
@@ -193,7 +165,7 @@ function MobileBar() {
             </nav>
             <div className="flex items-center gap-2 border-t border-line pt-4">
               <AccountMenu />
-              <button type="button" className="btn btn-ghost ml-auto" disabled={leaving} onClick={() => void logout()}><LogOut className="size-4" />Log out</button>
+              <button type="button" className="btn btn-ghost ml-auto" disabled={leaving} onClick={() => void logout()}>Log out</button>
             </div>
           </Dialog.Content>
         </Dialog.Portal>
@@ -244,8 +216,8 @@ function GlobalSearch() {
 
   return (
     <div ref={box} className="relative w-full sm:w-72">
-      <label className="flex h-11 items-center gap-2 rounded-full border border-line bg-surface pr-4 pl-1.5 transition focus-within:border-volt-500/60">
-        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-raised text-muted"><Search className="size-4" /></span>
+      <label className="flex h-10 items-center gap-2 rounded-lg border border-line pr-3 pl-3 transition focus-within:border-volt-500/60">
+        <Search className="size-4 shrink-0 text-muted" />
         <input
           className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted/80" placeholder="Search cards and decks" aria-label="Search cards and decks"
           value={query} onFocus={() => setOpen(true)} onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
@@ -261,7 +233,7 @@ function GlobalSearch() {
           <ul>
             {results.map((r) => (
               <li key={r.key}>
-                <button type="button" className="flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-left transition hover:bg-raised" onClick={() => go(r.href)}>
+                <button type="button" className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-raised" onClick={() => go(r.href)}>
                   <span className={`min-w-10 truncate ${r.hanzi ? "font-hanzi text-lg" : "text-sm font-semibold"}`}>{r.title}</span>
                   <span className="min-w-0 flex-1 truncate text-xs text-muted">{r.detail}</span>
                 </button>
@@ -274,37 +246,31 @@ function GlobalSearch() {
   );
 }
 
-const TITLES: Record<string, [string, string]> = {
-  "/social": ["Social", "Your profile, the people you follow, and decks to discover"],
-  "/chat": ["Chats", "Talk with people you study with, and @ask Bao"],
-  "/calendar": ["Calendar", "Every day you studied, at a glance"],
-  "/stats": ["Statistics", "How your memory is holding up"],
-  "/settings": ["Settings", "Your profile and study preferences"],
+const TITLES: Record<string, string> = {
+  "/social": "Social",
+  "/chat": "Chats",
+  "/calendar": "Calendar",
+  "/stats": "Statistics",
+  "/settings": "Settings",
+  "/decks": "Decks",
+  "/dictionary": "Dictionary",
 };
 
 function TopBar() {
   const pathname = usePathname();
   const { name } = useProfile();
-  const { create, filter } = useDecks();
-  const { lang } = useActiveLang();
-  const bao = useAi()("bao");
+  const { create } = useDecks();
   const key = Object.keys(TITLES).find((k) => isActive(pathname, k));
-  const [title, subtitle] = pathname === "/app" ? [`Hello, ${name}!`, "Ready for today’s challenge?"]
-    : isActive(pathname, "/chat") && !bao ? ["Chats", "Talk with people you study with"]
-    : isActive(pathname, "/decks") ? ["Your decks", filter === "all" ? "Every deck in this profile, in both languages" : `Every ${LANG_INFO[filter].name} deck in this profile`]
-    : isActive(pathname, "/dictionary") ? ["Dictionary", lang === "ja" ? "Look up kanji, kana, romaji or English" : "Look up characters, pinyin or English"]
-    : pathname.startsWith("/u/") ? ["Profile", "Decks they share and the people they follow"]
-    : pathname.startsWith("/join/") ? ["Invite", "Collaborate on a shared deck"]
-    : TITLES[key ?? ""] ?? ["Decks", "Study, edit, and tune this deck"];
+  const title = pathname === "/app" ? `Hello, ${name}`
+    : pathname.startsWith("/u/") ? "Profile"
+    : pathname.startsWith("/join/") ? "Invite"
+    : TITLES[key ?? ""] ?? "Decks";
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 px-4 pt-5 md:px-8 md:pt-7">
-      <div className="min-w-0">
-        <h1 className="truncate text-2xl font-bold tracking-tight md:text-[28px]">{title}</h1>
-        <p className="text-sm text-muted">{subtitle}</p>
-      </div>
+      <h1 className="min-w-0 truncate text-2xl font-bold tracking-tight md:text-[28px]">{title}</h1>
       <div className="flex w-full items-center gap-2 sm:w-auto">
         <GlobalSearch />
-        <button type="button" className="btn btn-shard btn-shard-second h-11 shrink-0 px-5" onClick={() => void create()}><Plus className="size-4" />New deck</button>
+        <button type="button" className="btn btn-second h-10 shrink-0" onClick={() => void create()}>New deck</button>
       </div>
     </div>
   );

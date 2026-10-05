@@ -2,7 +2,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Dialog } from "radix-ui";
-import { Check, LogOut, Plus, Trash2, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { createDeck, DECKS_CHANGED, deckScope, deleteLocalDeck, summarizeDecks, type DeckSummary } from "@/lib/decks";
 import { LANG_INFO, LANGS, type Lang } from "@/lib/lang";
@@ -110,7 +110,7 @@ export function DecksProvider({ children }: { children: React.ReactNode }) {
               {LANGS.map((l) => (
                 <button key={l} type="button" role="radio" aria-checked={choice === l} onClick={() => setChoice(l)}
                   onDoubleClick={() => { setAsking(false); void make(l); }}
-                  className={`flex items-center gap-3 rounded-2xl border p-3 text-left transition-colors ${choice === l ? "border-volt-500 bg-volt-50" : "border-line hover:bg-raised"}`}>
+                  className={`flex items-center gap-3 rounded-lg border p-3 text-left transition-colors ${choice === l ? "border-volt-500 bg-volt-50" : "border-line hover:bg-raised"}`}>
                   <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-raised font-hanzi text-lg">{LANG_INFO[l].badge}</span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-semibold">{LANG_INFO[l].name}</span>
@@ -123,7 +123,7 @@ export function DecksProvider({ children }: { children: React.ReactNode }) {
             <div className="mt-5 flex justify-end gap-2">
               <Dialog.Close className="btn btn-secondary">Cancel</Dialog.Close>
               <button type="button" className="btn btn-primary" onClick={() => { setAsking(false); void make(choice); }}>
-                <Plus className="size-4" />Create {LANG_INFO[choice].name} deck
+                Create {LANG_INFO[choice].name} deck
               </button>
             </div>
           </Dialog.Content>
@@ -145,7 +145,7 @@ export function DecksProvider({ children }: { children: React.ReactNode }) {
             <div className="mt-5 flex justify-end gap-2">
               <Dialog.Close className="btn btn-secondary">Cancel</Dialog.Close>
               <button type="button" className="btn bg-tone-1 text-white hover:bg-tone-1/90" disabled={removing} onClick={() => void confirmDelete()}>
-                {leaving ? <><LogOut className="size-4" />Leave deck</> : <><Trash2 className="size-4" />Delete deck</>}
+                {leaving ? <>Leave deck</> : <>Delete deck</>}
               </button>
             </div>
           </Dialog.Content>

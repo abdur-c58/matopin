@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Layers, LoaderCircle, UserPlus, Users } from "lucide-react";
+import { LoaderCircle, Users } from "lucide-react";
 import { toast } from "sonner";
 import type { SharedDeck } from "@/lib/social";
 import { store } from "@/lib/store-client";
@@ -55,7 +55,7 @@ export function JoinPage({ code }: { code: string }) {
           <p className="relative py-8 text-sm text-muted">Checking the invite…</p>
         ) : (
           <div className="relative">
-            <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-second-500 text-on-second"><Users className="size-7" /></span>
+            <span className="mx-auto grid size-14 place-items-center rounded-lg bg-second-500 text-on-second"><Users className="size-7" /></span>
             <p className="mt-4 text-sm text-muted">You’re invited to collaborate on</p>
             <h2 className="mt-1 text-2xl font-bold">{deck.name}</h2>
             <Link href={`/u/${deck.owner.id}`} className="mx-auto mt-3 flex w-fit items-center gap-2 text-sm text-muted transition hover:text-ink">
@@ -65,12 +65,12 @@ export function JoinPage({ code }: { code: string }) {
             <p className="mx-auto mt-4 max-w-xs text-xs text-muted">Collaborators can add and edit cards. Your review progress stays your own.</p>
             <div className="mt-6">
               {deck.role === "owner" ? (
-                <Link href={`/decks/${deck.id}/settings`} className="btn btn-secondary w-full"><Layers className="size-4" />This is your deck</Link>
+                <Link href={`/decks/${deck.id}/settings`} className="btn btn-secondary w-full">This is your deck</Link>
               ) : deck.role === "collaborator" ? (
-                <Link href={`/decks/${deck.id}`} className="btn btn-shard w-full"><Layers className="size-4" />You’re already collaborating · Open</Link>
+                <Link href={`/decks/${deck.id}`} className="btn btn-shard w-full">You’re already collaborating · Open</Link>
               ) : (
                 <button type="button" className="btn btn-shard btn-shard-second h-11 w-full" disabled={joining} onClick={() => void join()}>
-                  {joining ? <LoaderCircle className="size-4 animate-spin" /> : <UserPlus className="size-4" />}{deck.role === "follower" ? "Join as collaborator" : "Join deck"}
+                  {joining && <LoaderCircle className="size-4 animate-spin" />}{deck.role === "follower" ? "Join as collaborator" : "Join deck"}
                 </button>
               )}
             </div>

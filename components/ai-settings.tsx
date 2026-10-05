@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Check, LoaderCircle, ShieldCheck, Sparkles } from "lucide-react";
+import { Check, LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import { AI_FEATURE_INFO, AI_FEATURES, type AiFeature, type AiMode } from "@/lib/prefs";
 import { useProfile } from "./profiles";
@@ -40,8 +40,8 @@ export function AiPanel({ id, className = "" }: { id?: string; className?: strin
   };
 
   return (
-    <section id={id} className={`surface p-5 ${className}`}>
-      <h2 className="flex items-center gap-2 text-base font-semibold"><Sparkles className="size-4 text-volt-500" />AI services</h2>
+    <section id={id} className={`border-t border-line pt-4 ${className}`}>
+      <h2 className="text-base font-semibold">AI services</h2>
       <p className="mt-1 text-sm text-muted">Choose which AI features your account uses. Anything you turn off is hidden and never runs for you. Change it back whenever you like.</p>
 
       <div role="radiogroup" aria-label="AI services" className="mt-4 grid gap-2 sm:grid-cols-3">
@@ -49,7 +49,7 @@ export function AiPanel({ id, className = "" }: { id?: string; className?: strin
           const on = prefs.aiMode === m.value;
           return (
             <button key={m.value} type="button" role="radio" aria-checked={on} disabled={busy != null} onClick={() => { if (!on) pickMode(m.value); }}
-              className={`flex items-start gap-3 rounded-2xl border p-3 text-left transition-colors disabled:cursor-wait ${on ? "border-volt-500 bg-volt-50" : "border-line hover:border-ink/25 hover:bg-raised"}`}>
+              className={`flex items-start gap-3 rounded-lg border p-3 text-left transition-colors disabled:cursor-wait ${on ? "border-volt-500 bg-volt-50" : "border-line hover:border-ink/25 hover:bg-raised"}`}>
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-semibold">{m.label}</span>
                 <span className="block text-xs text-muted">{m.detail}</span>
@@ -61,7 +61,7 @@ export function AiPanel({ id, className = "" }: { id?: string; className?: strin
       </div>
 
       {prefs.aiMode === "some" && (
-        <ul className="mt-3 divide-y divide-line rounded-2xl border border-line">
+        <ul className="mt-3 divide-y divide-line rounded-lg border border-line">
           {AI_FEATURES.map((f) => (
             <li key={f}>
               <label className="flex cursor-pointer items-start gap-3 px-3 py-2.5">
@@ -77,12 +77,9 @@ export function AiPanel({ id, className = "" }: { id?: string; className?: strin
         </ul>
       )}
 
-      <p className="mt-4 flex items-start gap-2 rounded-2xl bg-raised px-3 py-2.5 text-xs text-muted">
-        <ShieldCheck className="mt-px size-4 shrink-0 text-volt-500" />
-        <span>
-          Your privacy is respected. Nothing you send to an AI feature is used to train AI models. Each feature sends only what it needs, such as the card
-          or text you’re working on, and a feature you turn off never receives anything from your account.
-        </span>
+      <p className="mt-4 max-w-3xl text-xs text-muted">
+        <span className="font-semibold text-ink">Your privacy is respected.</span> Nothing you send to an AI feature is used to train AI models. Each feature sends only what it needs, such as the card
+        or text you’re working on, and a feature you turn off never receives anything from your account.
       </p>
     </section>
   );

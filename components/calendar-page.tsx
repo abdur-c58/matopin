@@ -1,7 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { CalendarCheck, Flame, Trophy } from "lucide-react";
 import { dayKey } from "@/lib/srs";
 import { entriesOf, formatDuration, groupByDay, startOfDay, streaks, studyMs, type Day, type Entry } from "@/lib/stats";
 import { COLORS } from "./charts";
@@ -69,7 +68,7 @@ function DayDetails({ dayEntries, at, now, names, cards }: { dayEntries: Entry[]
         <div className="space-y-5">
           <div className="grid grid-cols-3 gap-2 text-center">
             {[["Reviews", dayEntries.length], ["Time", formatDuration(studyMs(dayEntries))], ["Again", again]].map(([label, value]) => (
-              <div key={label} className="rounded-2xl bg-raised px-2 py-3">
+              <div key={label} className="rounded-lg bg-raised px-2 py-3">
                 <p className="text-xl font-bold tabular-nums">{value}</p>
                 <p className="text-xs text-muted">{label}</p>
               </div>
@@ -122,16 +121,13 @@ export function CalendarPage() {
   const select = (key: string, at: number) => { setSelected({ key, at }); setMonth(firstOfMonth(at)); };
 
   return (
-    <main className="grid gap-4 px-4 pt-5 pb-10 md:px-8 lg:grid-cols-12 [&>*]:min-w-0">
-      <div className="grid gap-4 sm:grid-cols-3 lg:col-span-12">
-        {([[Flame, "Current streak", `${current} day${current === 1 ? "" : "s"}`, true], [Trophy, "Longest streak", `${longest} day${longest === 1 ? "" : "s"}`, false], [CalendarCheck, "Days studied", `${days.size}`, false]] as const).map(([Icon, label, value, accent]) => (
-          <section key={label} className={`flex items-center gap-4 rounded-3xl p-5 ${accent ? "bg-volt-500 text-on-volt" : "surface"}`}>
-            <span className={`grid size-12 place-items-center rounded-2xl ${accent ? "bg-on-volt/10" : "bg-raised text-volt-500"}`}><Icon className="size-5" /></span>
-            <div>
-              <p className={`text-sm ${accent ? "text-on-volt/70" : "text-muted"}`}>{label}</p>
-              <p className="text-2xl font-bold tabular-nums">{value}</p>
-            </div>
-          </section>
+    <main className="grid gap-x-8 gap-y-10 px-4 pt-6 pb-10 md:px-8 lg:grid-cols-12 [&>*]:min-w-0">
+      <div className="grid gap-x-8 gap-y-6 sm:grid-cols-3 lg:col-span-12">
+        {([["Current streak", `${current} day${current === 1 ? "" : "s"}`, true], ["Longest streak", `${longest} day${longest === 1 ? "" : "s"}`, false], ["Days studied", `${days.size}`, false]] as const).map(([label, value, accent]) => (
+          <div key={label}>
+            <p className="text-sm text-muted">{label}</p>
+            <p className={`mt-1 text-3xl font-bold tracking-tight tabular-nums ${accent ? "text-volt-500" : ""}`}>{value}</p>
+          </div>
         ))}
       </div>
 

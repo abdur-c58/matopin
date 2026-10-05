@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Dialog } from "radix-ui";
-import { Check, Crown, LoaderCircle, LogOut, Search, UserMinus, UserPlus, Users, X } from "lucide-react";
+import { Check, LoaderCircle, Search, UserMinus, Users, X } from "lucide-react";
 import { toast } from "sonner";
 import { groupTitle, MAX_GROUP, type GroupInfo } from "@/lib/chat";
 import type { Person, PersonRef } from "@/lib/social";
@@ -101,7 +101,7 @@ export function NewGroupForm({ onCreated }: { onCreated: (id: string) => void })
       <input className="field mb-3 shrink-0" placeholder="Group name (optional)" aria-label="Group name" maxLength={60} value={name} onChange={(e) => setName(e.target.value)} />
       <PeoplePicker exclude={new Set()} picked={picked} onToggle={(id) => setPicked((s) => toggle(s, id))} max={MAX_GROUP - 1} />
       <button type="button" className="btn btn-primary mt-3 w-full shrink-0" disabled={busy || picked.size < 2} onClick={() => void create()}>
-        {busy ? <LoaderCircle className="size-4 animate-spin" /> : <Users className="size-4" />}
+        {busy && <LoaderCircle className="size-4 animate-spin" />}
         {picked.size < 2 ? "Pick at least two people" : `Create group with ${picked.size} people`}
       </button>
     </div>
@@ -183,7 +183,7 @@ export function GroupInfoDialog({ group, open, onOpenChange, onGroup, onLeft }: 
                 <button type="button" className="btn btn-ghost" disabled={busy != null} onClick={() => { setAdding(false); setPicked(new Set()); }}>Back</button>
                 <button type="button" className="btn btn-primary" disabled={busy != null || picked.size === 0}
                   onClick={async () => { if (await run("add", "groupAdd", { members: [...picked] }, picked.size === 1 ? "Added 1 person." : `Added ${picked.size} people.`)) { setAdding(false); setPicked(new Set()); } }}>
-                  {busy === "add" ? <LoaderCircle className="size-4 animate-spin" /> : <UserPlus className="size-4" />}Add {picked.size || ""}
+                  {busy === "add" && <LoaderCircle className="size-4 animate-spin" />}Add {picked.size || ""}
                 </button>
               </div>
             </div>
@@ -198,7 +198,7 @@ export function GroupInfoDialog({ group, open, onOpenChange, onGroup, onLeft }: 
               <div className="mt-4 flex shrink-0 items-center justify-between">
                 <h3 className="text-sm font-semibold text-muted">Members</h3>
                 {joined && group.members.length < MAX_GROUP && (
-                  <button type="button" className="btn btn-ghost h-8 px-3 text-xs" onClick={() => setAdding(true)}><UserPlus className="size-3.5" />Add people</button>
+                  <button type="button" className="btn btn-ghost h-8 px-3 text-xs" onClick={() => setAdding(true)}>Add people</button>
                 )}
               </div>
               <ul className="mt-1 min-h-0 flex-1 space-y-0.5 overflow-y-auto">
@@ -209,7 +209,7 @@ export function GroupInfoDialog({ group, open, onOpenChange, onGroup, onLeft }: 
                       <span className="min-w-0">
                         <span className="block truncate font-semibold hover:text-volt-500">{m.name}{m.id === profile && <span className="font-normal text-muted"> (you)</span>}</span>
                         <span className="flex items-center gap-1 text-xs text-muted">
-                          {m.role === "owner" && <><Crown className="size-3 text-tone-2" />Owner</>}
+                          {m.role === "owner" && <>Owner</>}
                           {m.role !== "owner" && (m.status === "pending" ? "Invited" : "Member")}
                         </span>
                       </span>
@@ -225,7 +225,7 @@ export function GroupInfoDialog({ group, open, onOpenChange, onGroup, onLeft }: 
               </ul>
               <button type="button" className={`btn mt-3 w-full shrink-0 ${confirmLeave ? "btn-danger" : "btn-danger-outline"}`} disabled={busy != null}
                 onClick={() => (confirmLeave ? void leave() : setConfirmLeave(true))}>
-                {busy === "leave" ? <LoaderCircle className="size-4 animate-spin" /> : <LogOut className="size-4" />}
+                {busy === "leave" && <LoaderCircle className="size-4 animate-spin" />}
                 {confirmLeave ? (owner && others.some((m) => m.status === "accepted") ? "Leave? Ownership passes to the next member" : "Tap again to leave") : "Leave group"}
               </button>
             </>

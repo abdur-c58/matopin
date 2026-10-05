@@ -162,7 +162,7 @@ export function useDeckEditor(scope: string, profileFluency: Fluency, speed = 1,
   }, []);
 
   const voice = useCallback(async (list: Card[], language: Lang = lang) => {
-    const todo = list.flatMap((c) => spokenTexts(c, settings.voiceExample, language)).filter((line, i, all) => all.findIndex((item) => item.key === line.key) === i && !clips[line.key]);
+    const todo = list.flatMap((c) => spokenTexts(c, settings.voiceExample, language, voices)).filter((line, i, all) => all.findIndex((item) => item.key === line.key) === i && !clips[line.key]);
     if (!todo.length) return toast("Everything is already voiced.");
     setBusy(true);
     const id = toast.loading("Generating audio…");
@@ -176,7 +176,7 @@ export function useDeckEditor(scope: string, profileFluency: Fluency, speed = 1,
     } catch (e) {
       toast.error(audioError(e), { id });
     } finally { setBusy(false); }
-  }, [clips, lang, settings.voiceExample]);
+  }, [clips, lang, settings.voiceExample, voices]);
 
   const importCards = useCallback(async (incoming: Card[], keepLanguage = false) => {
     const parsed = incoming.filter((c) => c.reading.trim() || (lang === "ja" && c.term.trim()));
@@ -273,8 +273,8 @@ export function useDeckEditor(scope: string, profileFluency: Fluency, speed = 1,
     download(`${settings.deck || "deck"}.csv`, toCsv(filled, lang), "text/csv");
   }, [filled, lang, settings.deck]);
   const listen = useCallback(
-    (c: Card, part: ListenPart) => play(part === "word" ? wordSpoken(c, lang) : exampleSpoken(c, lang), part),
-    [lang, play],
+    (c: Card, part: ListenPart) => play(part === "word" ? wordSpoken(c, lang, voices) : exampleSpoken(c, lang, voices), part),
+    [lang, play, voices],
   );
 
   return {

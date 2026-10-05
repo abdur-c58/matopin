@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { LogOut, RotateCcw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   DEFAULT_REVIEW, formatSteps, loadStore, parseSteps, patchSettings, recomputeMemory, repositionNew, reviewable, saveStore, unsuspend,
@@ -121,7 +120,7 @@ export function DeckSettings({ deckId, scope }: { deckId: string; scope: string 
     <main className="max-w-5xl space-y-5 px-4 pt-5 pb-10 md:px-8">
       <Section title="Sharing" description={owner ? "Keep the deck to yourself, publish it for anyone to follow, share it only with people you send it to, or invite collaborators with a link." : "This deck belongs to someone else. Your review progress and the options below are yours alone."}>
         {owner ? <DeckSharing deckId={deckId} scope={scope} /> : deck && (
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-raised p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-raised p-4">
             <div className="min-w-0">
               <p className="flex items-center gap-2 text-sm font-semibold">{ROLE_LABELS[deck.role]}<VisibilityBadge visibility={deck.visibility} /></p>
               <p className="mt-0.5 text-sm text-muted">
@@ -207,7 +206,7 @@ export function DeckSettings({ deckId, scope }: { deckId: string; scope: string 
                     saveStore(scope, stored);
                     setVersion((v) => v + 1);
                   }}>
-                    <RotateCcw className="size-4" />Unsuspend
+                    Unsuspend
                   </button>
                 </li>
               ))}
@@ -255,7 +254,7 @@ export function DeckSettings({ deckId, scope }: { deckId: string; scope: string 
       <Section title="Danger zone" description={owner ? "Deleting removes the deck’s cards and review progress for you and everyone following or collaborating." : "Leaving removes the deck and your review progress from this profile. The owner’s deck stays."}>
         <div>
           <button type="button" className="btn border border-tone-1/40 text-tone-1 hover:bg-tone-1/10" disabled={!deck} onClick={() => deck && requestDelete(deck)}>
-            {owner ? <><Trash2 className="size-4" />Delete deck</> : <><LogOut className="size-4" />Leave deck</>}
+            {owner ? <>Delete deck</> : <>Leave deck</>}
           </button>
         </div>
       </Section>

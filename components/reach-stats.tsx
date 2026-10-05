@@ -19,13 +19,12 @@ export function ReachStats({ reach }: { reach: Reach | undefined }) {
         return (
           <Tooltip.Root key={key}>
             <Tooltip.Trigger asChild>
-              <div tabIndex={0} className="flex cursor-default flex-col-reverse rounded-2xl bg-raised px-4 py-2 outline-none focus-visible:ring-2 focus-visible:ring-volt-500/50">
-                <span className="text-xs text-muted">{label}</span>
-                <span className="text-lg font-bold tabular-nums">{total.toLocaleString()}</span>
-              </div>
+              <span tabIndex={0} className="cursor-default rounded-sm text-muted underline decoration-line decoration-dotted underline-offset-4 outline-none focus-visible:ring-2 focus-visible:ring-volt-500/50">
+                <span className="font-semibold text-ink tabular-nums">{total.toLocaleString()}</span> {label.toLowerCase()}
+              </span>
             </Tooltip.Trigger>
             <Tooltip.Portal>
-              <Tooltip.Content side="bottom" sideOffset={6} className="z-50 min-w-44 rounded-xl border border-line bg-surface px-3 py-2 text-xs text-ink shadow-pop">
+              <Tooltip.Content side="bottom" sideOffset={6} className="z-50 min-w-44 rounded-lg border border-line bg-surface px-3 py-2 text-xs text-ink shadow-pop">
                 <p className="mb-1.5 text-muted">{total.toLocaleString()} {detail}</p>
                 {LANGS.map((l) => (
                   <p key={l} className="flex items-center gap-2 py-0.5">

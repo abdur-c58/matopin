@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Eye, EyeOff, LoaderCircle, MessageSquareText, Volume2 } from "lucide-react";
+import { Eye, EyeOff, LoaderCircle } from "lucide-react";
 import { useListen, type ListenPart } from "@/lib/audio";
 import { dataKey } from "@/lib/profiles";
 import { DEFAULT_LANG, type Lang } from "@/lib/lang";
@@ -12,7 +12,7 @@ import { formatCountdown, type Rating } from "@/lib/fsrs";
 import { onRemoteChange } from "@/lib/sync";
 import { DeckLangProvider, useCardLang } from "./lang-context";
 import { ExampleBlock, RubyLine, ToneLegend } from "./preview";
-import { useProfile } from "./profiles";
+import { useAi, useProfile } from "./profiles";
 import { Button } from "./ui";
 
 const RATINGS: { rating: Rating; label: string; className: string }[] = [
@@ -34,10 +34,10 @@ function loadDeck(scope: string): { cards: Card[]; notetype: Notetype; language:
 }
 
 /** The word can be heard on its own side straight away; on a meaning-first card it would give the answer away. */
-const canHear = (item: QueueItem, revealed: boolean, part: ListenPart, lang: Lang) =>
+const canHear = (item: QueueItem, revealed: boolean, part: ListenPart, lang: Lang, voices: boolean) =>
   part === "word"
-    ? wordSpoken(item.card, lang).length > 0 && (revealed || item.schedule.side !== "meaning")
-    : revealed && exampleSpoken(item.card, lang).length > 0;
+    ? wordSpoken(item.card, lang, voices).length > 0 && (revealed || item.schedule.side !== "meaning")
+    : revealed && exampleSpoken(item.card, lang, voices).length > 0;
 
 function Face({ item, revealed, hideReading, listening, onListen }: {
   item: QueueItem; revealed: boolean; hideReading: boolean; listening: ListenPart | null; onListen: (part: ListenPart) => void;
@@ -46,8 +46,9 @@ function Face({ item, revealed, hideReading, listening, onListen }: {
   const word = <RubyLine hanzi={card.term} pinyin={card.reading} large />;
   const meaning = <p className="text-2xl">{card.meaning || "—"}</p>;
   const lang = useCardLang();
-  const hearWord = canHear(item, revealed, "word", lang);
-  const hearExample = canHear(item, revealed, "example", lang);
+  const voices = useAi()("voice");
+  const hearWord = canHear(item, revealed, "word", lang, voices);
+  const hearExample = canHear(item, revealed, "example", lang, voices);
   return (
     <div className={`flex min-h-72 flex-col items-center justify-center px-6 py-10 text-center ${hideReading && !revealed ? "[&_[data-reading]]:invisible" : ""}`}>
       <p className="mb-6 text-xs font-medium tracking-wide text-muted uppercase">{schedule.side === "meaning" ? "Meaning" : card.kind === "term" ? "Word" : CARD_KIND_LABELS[card.kind]}</p>
@@ -63,13 +64,13 @@ function Face({ item, revealed, hideReading, listening, onListen }: {
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           {hearWord && (
             <Button variant="shard" onClick={() => onListen("word")} title="Play (R)">
-              {listening === "word" ? <LoaderCircle className="size-4 animate-spin" /> : <Volume2 className="size-4" />}
-              {card.kind === "term" ? "Word" : CARD_KIND_LABELS[card.kind]}
+              {listening === "word" && <LoaderCircle className="size-4 animate-spin" />}
+              Play {card.kind === "term" ? "word" : CARD_KIND_LABELS[card.kind].toLowerCase()}
             </Button>
           )}
           {hearExample && (
             <Button variant="shard" onClick={() => onListen("example")} title="Play (E)">
-              {listening === "example" ? <LoaderCircle className="size-4 animate-spin" /> : <MessageSquareText className="size-4" />}Example
+              {listening === "example" && <LoaderCircle className="size-4 animate-spin" />}Play example
             </Button>
           )}
         </div>
@@ -121,6 +122,7 @@ export function ReviewSession({ scope, editHref, settingsHref }: { scope: string
   const shownAt = useRef({ key: "", at: 0 });
   const { prefs, setPrefs } = useProfile();
   const { listening, listen, stop } = useListen(prefs.playbackSpeed);
+  const voices = useAi()("voice");
   const readingName = deck?.language === "ja" ? "furigana" : "pinyin";
   const toggleReading = () => {
     const next = !prefs.studyReading;
@@ -134,8 +136,8 @@ export function ReviewSession({ scope, editHref, settingsHref }: { scope: string
   function hear(part: ListenPart) {
     const item = session?.item;
     const lang = deck?.language ?? DEFAULT_LANG;
-    if (!item || !canHear(item, revealed, part, lang)) return;
-    void listen(part === "word" ? wordSpoken(item.card, lang) : exampleSpoken(item.card, lang), part);
+    if (!item || !canHear(item, revealed, part, lang, voices)) return;
+    void listen(part === "word" ? wordSpoken(item.card, lang, voices) : exampleSpoken(item.card, lang, voices), part);
   }
 
   function grade(rating: Rating) {
@@ -216,7 +218,7 @@ export function ReviewSession({ scope, editHref, settingsHref }: { scope: string
         {session && reviewableCount > 0 && !session.item && (
           <div className="space-y-2 p-10 text-center">
             {session.waitMs != null && session.laterToday.count > 0 && (
-              <div className="mx-auto mb-6 max-w-md space-y-2 rounded-2xl bg-volt-50 px-5 py-4">
+              <div className="mx-auto mb-6 max-w-md space-y-2 rounded-lg bg-volt-50 px-5 py-4">
                 <p className="text-lg font-semibold">You’re done for today!</p>
                 <p className="text-sm text-muted">
                   {session.laterToday.count === 1
