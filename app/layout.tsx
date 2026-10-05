@@ -6,6 +6,8 @@ import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/next";
 import { TitleTips } from "@/components/title-tips";
 import { APP_NAME } from "@/lib/brand";
+import { pagePreview, TAGLINE } from "@/lib/link-preview";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const urbanist = Urbanist({ subsets: ["latin"], variable: "--font-urbanist" });
@@ -25,8 +27,10 @@ const notoSc = Noto_Sans_SC({ variable: "--font-noto-sc", preload: false, fallba
 const notoJp = Noto_Sans_JP({ variable: "--font-noto-jp", preload: false, fallback: ["Hiragino Sans", "Yu Gothic", "Meiryo", "sans-serif"] });
 
 export const metadata: Metadata = {
-  title: `${APP_NAME} · Mandarin & Japanese deck builder`,
-  description: "Build Anki decks for Mandarin and Japanese with generated audio.",
+  ...pagePreview("default", "/"),
+  metadataBase: SITE_URL,
+  applicationName: APP_NAME,
+  title: { default: `${APP_NAME} · ${TAGLINE}`, template: `%s · ${APP_NAME}` },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
