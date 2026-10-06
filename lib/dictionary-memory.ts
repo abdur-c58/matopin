@@ -1,13 +1,12 @@
 /**
- * Server-only dictionary lookups, run in memory over the files in R2 (lib/dictionary-files.ts). Each lookup answers
- * the way the old matopin_dict_* and matopin_jdict_* SQL functions did, so lib/dictionary-server.ts and
- * lib/jdict-server.ts only see a DictCall. A language's words load on its first lookup and stay for the life of the
- * server instance; its sentences load on its first example request.
+ * Dictionary lookups run in memory over the dictionary files (lib/dictionary-files.ts): on the server from R2, and in
+ * the browser's offline worker from a downloaded copy. Each lookup answers the way the old matopin_dict_* and
+ * matopin_jdict_* SQL functions did, so lib/dictionary-server.ts and lib/jdict-server.ts only see a DictCall. A
+ * language's words load on its first lookup and stay; its sentences load on its first example request.
  */
 import { type DictSummary, glossKeys, isHan } from "./dictionary";
-import {
-  DICT_FILES, type JaKanji, type JaSense, type JaSentence, type JaWord, type JaWords, readDictFile, type ZhChar, type ZhSentence, type ZhWord,
-  type ZhWords,
+import type {
+  JaKanji, JaSense, JaSentence, JaWord, JaWords, ZhChar, ZhSentence, ZhWord, ZhWords,
 } from "./dictionary-files";
 import type { DictCall } from "./dictionary-server";
 import { EnglishIndex } from "./english-index";
@@ -16,11 +15,6 @@ import type { JDictSummary, JSense } from "./jdict";
 export class DictionaryNotImported extends Error {}
 
 export type DictSource<W, S> = { words: () => Promise<W | null>; sentences: () => Promise<S | null> };
-
-export const r2Source = <W, S>(lang: keyof typeof DICT_FILES): DictSource<W, S> => ({
-  words: () => readDictFile<W>(DICT_FILES[lang].words),
-  sentences: () => readDictFile<S>(DICT_FILES[lang].sentences),
-});
 
 /** Loads once and keeps the result. A missing file or a failure is tried again on the next call. */
 function once<T>(load: () => Promise<T | null>): () => Promise<T | null> {

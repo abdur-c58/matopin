@@ -12,7 +12,7 @@ export type DeckSummary = DeckMeta & {
   due: { new: number; learning: number; review: number };
 };
 
-const KINDS = ["v2", "tags", "srs", "rev", "meta"] as const;
+const KINDS = ["v2", "tags", "srs", "rev", "meta", "base"] as const;
 
 /** Decks made before sharing existed have no meta, so they read as this profile's own private deck. */
 export function readMeta(scope: string): DeckMeta {

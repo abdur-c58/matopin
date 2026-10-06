@@ -9,6 +9,7 @@ import { FLUENCY_LABELS } from "@/lib/cards";
 import { AiPanel } from "./ai-settings";
 import { Avatar } from "./avatar";
 import { LearningPanel } from "./learning-picker";
+import { OfflinePanel } from "./offline-downloads";
 import { ProfileButton, useProfile } from "./profiles";
 import { ThemePanel } from "./theme-picker";
 import { Chips, Panel } from "./ui";
@@ -127,6 +128,8 @@ export function AppSettings() {
       <LearningPanel id={LEARNING_ID} className="lg:col-span-12" />
 
       <AiPanel id={AI_ID} className="lg:col-span-12" />
+
+      <OfflinePanel className="lg:col-span-12" />
 
       <ThemePanel className="lg:col-span-5" />
 

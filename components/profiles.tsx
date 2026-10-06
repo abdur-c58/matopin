@@ -9,7 +9,8 @@ import { AVATAR_ACCEPT, AVATAR_COLORS, DEFAULT_AVATAR_COLOR, loadAvatarSource, r
 import { APP_NAME } from "@/lib/brand";
 import { adoptOldKeys, clearLocal } from "@/lib/profiles";
 import { signInError } from "@/lib/sign-in-errors";
-import { store, type ProfileInfo } from "@/lib/store-client";
+import { isOfflineError, store, type ProfileInfo } from "@/lib/store-client";
+import { forgetOffline, isStandalone } from "@/lib/offline";
 import { aiAllowed, DEFAULT_PREFS, type AiFeature, type Prefs } from "@/lib/prefs";
 import { flushPending, pullDecks, startSync } from "@/lib/sync";
 import { applyAccent, applySecond, DEFAULT_ACCENT, DEFAULT_SECOND } from "@/lib/theme";
@@ -18,6 +19,7 @@ import { Avatar } from "./avatar";
 import { GoogleMark } from "./google-mark";
 import { AvatarCropper } from "./avatar-cropper";
 import { LogoMark } from "./logo";
+import { hideSplash } from "./offline";
 import { Button, Dropdown } from "./ui";
 
 type ProfileContext = {
@@ -62,6 +64,18 @@ function message(e: unknown, fallback: string) {
   return e instanceof Error ? e.message : fallback;
 }
 
+/** The signed-in profile as last seen, so the app opens offline. Cleared on logout. */
+const ME_KEY = "matopin:me";
+
+function cachedMe(): ProfileInfo | null {
+  try {
+    const me = JSON.parse(localStorage.getItem(ME_KEY) ?? "null") as ProfileInfo | null;
+    return me && typeof me.id === "string" ? me : null;
+  } catch {
+    return null;
+  }
+}
+
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [me, setMe] = useState<ProfileInfo | null>(null);
@@ -69,9 +83,22 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState("");
 
   const open = useCallback(async (info: ProfileInfo) => {
-    await pullDecks(info.id, true);
+    try {
+      await pullDecks(info.id, true);
+    } catch (e) {
+      // Offline right after signing in: open with this device's copy; the next sync catches up.
+      if (!isOfflineError(e)) throw e;
+    }
     setMe(info);
   }, []);
+
+  useEffect(() => {
+    if (me) localStorage.setItem(ME_KEY, JSON.stringify(me));
+  }, [me]);
+
+  useEffect(() => {
+    if (ready) hideSplash();
+  }, [ready]);
 
   const meId = me?.id;
   useEffect(() => {
@@ -95,8 +122,11 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     try {
       const data = await store<{ me: ProfileInfo | null }>("me");
       if (data.me) await open(data.me);
+      else localStorage.removeItem(ME_KEY);
     } catch (e) {
-      setError(message(e, "Could not reach Supabase."));
+      const saved = isOfflineError(e) ? cachedMe() : null;
+      if (saved) setMe(saved);
+      else setError(isOfflineError(e) ? "You’re offline. Connect once to sign in on this device." : message(e, "Could not reach Supabase."));
     } finally {
       setReady(true);
     }
@@ -111,7 +141,11 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   async function leave() {
     await flushPending();
     await store("logout").catch(() => null);
-    if (me) clearLocal(me.id);
+    localStorage.removeItem(ME_KEY);
+    if (me) {
+      clearLocal(me.id);
+      await forgetOffline(me.id).catch(() => {});
+    }
     await signOut({ redirectTo: "/" });
   }
 
@@ -157,11 +191,12 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
 
 /**
  * Shown on an app link (an invite, say) until someone signs in, then they land back on that link. The dashboard
- * itself has nothing to show a visitor, so it sends them to the landing page instead.
+ * itself has nothing to show a visitor, so it sends them to the landing page instead, except in the installed app,
+ * which has no landing page.
  */
 function SignIn() {
   const [error] = useState(() => signInError(new URLSearchParams(window.location.search).get("error")));
-  const home = window.location.pathname === "/app";
+  const home = window.location.pathname === "/app" && !isStandalone();
   useEffect(() => {
     if (home) window.location.replace("/");
   }, [home]);

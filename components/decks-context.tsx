@@ -6,6 +6,7 @@ import { Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { createDeck, DECKS_CHANGED, deckScope, deleteLocalDeck, summarizeDecks, type DeckSummary } from "@/lib/decks";
 import { LANG_INFO, LANGS, type Lang } from "@/lib/lang";
+import { removeDeckDownload } from "@/lib/offline";
 import { pushNow, removeRemote } from "@/lib/sync";
 import { useActiveLang, useLearning } from "./lang-context";
 import { useProfile } from "./profiles";
@@ -83,8 +84,9 @@ export function DecksProvider({ children }: { children: React.ReactNode }) {
     if (!deleting) return;
     setRemoving(true);
     try {
-      await removeRemote(deleting.id);
+      await removeRemote(profile, deleting.id);
       deleteLocalDeck(profile, deleting.id);
+      void removeDeckDownload(profile, deleting.id);
       if (pathname.startsWith(`/decks/${deleting.id}`)) router.push("/decks");
       setDeleting(null);
     } catch (e) {

@@ -13,6 +13,7 @@ import { useActiveLang } from "./lang-context";
 import { LanguageMenu, RailLanguageSwitcher } from "./language-switcher";
 import { LearningOnboarding } from "./learning-picker";
 import { LogoMark } from "./logo";
+import { OfflineIndicator, OfflineSetup } from "./offline";
 import { AccountMenu } from "./account-menu";
 import { type PanelKind, QuickPanelsProvider, useOpenPanel } from "./quick-panels";
 import { RailTip, RailTipProvider } from "./rail-tip";
@@ -75,7 +76,7 @@ function Rail() {
   const { lang } = useActiveLang();
 
   return (
-    <aside className="fixed inset-y-3 left-3 z-30 hidden w-[72px] flex-col items-center py-2 md:flex">
+    <aside className="fixed top-[calc(0.75rem+env(safe-area-inset-top))] bottom-3 left-[calc(0.75rem+env(safe-area-inset-left))] z-30 hidden w-[72px] flex-col items-center py-2 md:flex">
       <RailLanguageSwitcher>
         <Link href="/app" aria-label={`${APP_NAME} dashboard, learning ${LANG_INFO[lang].name}`} className="rounded-xl transition hover:scale-105 hover:brightness-110 active:scale-95">
           <LogoMark className="size-10" active={lang} />
@@ -114,7 +115,7 @@ function AccountDock() {
   const { leaving, logout } = useLogout();
   const { lang } = useActiveLang();
   return (
-    <div className="fixed bottom-5 left-3 z-30 hidden items-center gap-1 rounded-full border border-line bg-surface p-1 md:flex">
+    <div className="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] left-[calc(0.75rem+env(safe-area-inset-left))] z-30 hidden items-center gap-1 rounded-full border border-line bg-surface p-1 md:flex">
       <RailTip label="Log out" zh={LOG_OUT[lang][0]} pinyin={LOG_OUT[lang][1]} lang={LANG_INFO[lang].speech} tone="danger">
         <button type="button" className="grid size-11 place-items-center rounded-full bg-raised text-muted transition hover:bg-tone-1/15 hover:text-tone-1 active:scale-90 disabled:opacity-40" aria-label="Log out" disabled={leaving} onClick={() => void logout()}>
           <LogOut className="size-[18px]" />
@@ -139,14 +140,14 @@ function MobileBar() {
   const current = NAV.find((item) => isActive(pathname, item.href));
 
   return (
-    <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center gap-2 border-b border-line bg-porcelain/90 px-3 backdrop-blur md:hidden">
+    <header className="fixed inset-x-0 top-0 z-30 flex h-[calc(3.5rem+env(safe-area-inset-top))] items-center gap-2 border-b border-line bg-porcelain/90 pt-[env(safe-area-inset-top)] pr-[max(0.75rem,env(safe-area-inset-right))] pl-[max(0.75rem,env(safe-area-inset-left))] backdrop-blur md:hidden">
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Trigger className="icon-btn relative" aria-label="Open menu"><Menu className="size-5" /><NavBadge href="/chat" className="absolute -top-1 -right-1" /></Dialog.Trigger>
         <Dialog.Portal>
           <Dialog.Overlay className="overlay" />
-          <Dialog.Content className="fixed inset-y-0 left-0 z-50 flex w-[min(18rem,85vw)] flex-col border-r border-line bg-surface p-4 shadow-pop data-[state=open]:animate-slide" aria-describedby={undefined}>
+          <Dialog.Content className="fixed inset-y-0 left-0 z-50 flex w-[min(18rem,85vw)] flex-col border-r border-line bg-surface p-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))] shadow-pop data-[state=open]:animate-slide" aria-describedby={undefined}>
             <Dialog.Title className="sr-only">Menu</Dialog.Title>
-            <Dialog.Close className="icon-btn absolute top-4 right-3" aria-label="Close menu"><X className="size-4" /></Dialog.Close>
+            <Dialog.Close className="icon-btn absolute top-[calc(1rem+env(safe-area-inset-top))] right-3" aria-label="Close menu"><X className="size-4" /></Dialog.Close>
             <Link href="/app" onClick={() => setOpen(false)} className="flex items-center gap-2.5 transition hover:opacity-80">
               <LogoMark className="size-9" active={lang} /><span className="text-base font-bold">{APP_NAME}</span>
             </Link>
@@ -254,6 +255,7 @@ const TITLES: Record<string, string> = {
   "/settings": "Settings",
   "/decks": "Decks",
   "/dictionary": "Dictionary",
+  "/offline": "Offline",
 };
 
 function TopBar() {
@@ -267,7 +269,10 @@ function TopBar() {
     : TITLES[key ?? ""] ?? "Decks";
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 px-4 pt-5 md:px-8 md:pt-7">
-      <h1 className="min-w-0 truncate text-2xl font-bold tracking-tight md:text-[28px]">{title}</h1>
+      <div className="flex min-w-0 items-center gap-3">
+        <h1 className="min-w-0 truncate text-2xl font-bold tracking-tight md:text-[28px]">{title}</h1>
+        <OfflineIndicator />
+      </div>
       <div className="flex w-full items-center gap-2 sm:w-auto">
         <GlobalSearch />
         <button type="button" className="btn btn-second h-10 shrink-0" onClick={() => void create()}>New deck</button>
@@ -294,7 +299,7 @@ function PageTransition({ children }: { children: React.ReactNode }) {
 function GuestShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-dvh">
-      <header className="sticky top-0 z-30 border-b border-line bg-porcelain/90 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-line bg-porcelain/90 pt-[env(safe-area-inset-top)] backdrop-blur">
         <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-4 md:px-8">
           <Link href="/" className="flex items-center gap-2.5 transition hover:opacity-80">
             <LogoMark className="size-9" /><span className="text-lg font-bold">{APP_NAME}</span>
@@ -307,12 +312,18 @@ function GuestShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+function SignedInSetup() {
+  const { profile } = useProfile();
+  return <OfflineSetup profile={profile} />;
+}
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   if (!useSignedIn()) return <GuestShell>{children}</GuestShell>;
   return (
     <DecksProvider>
       <QuickPanelsProvider>
-        <div className="min-h-dvh pt-14 md:pt-0 md:pl-[96px]">
+        <SignedInSetup />
+        <div className="min-h-dvh pt-[calc(3.5rem+env(safe-area-inset-top))] pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] md:pt-[env(safe-area-inset-top)] md:pl-[calc(96px+env(safe-area-inset-left))]">
           <RailTipProvider>
             <Rail />
             <AccountDock />

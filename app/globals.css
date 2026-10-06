@@ -57,8 +57,14 @@
   /* Nothing on the page should ever scroll it sideways; clip (unlike hidden) keeps sticky headers working. */
   html, body { overflow-x: clip; }
   /* Keeps things scrolled into view clear of the fixed mobile top bar. */
-  @media (width < 48rem) { html { scroll-padding-top: 4rem; } }
+  @media (width < 48rem) { html { scroll-padding-top: calc(4rem + env(safe-area-inset-top)); } }
+  html { @apply bg-porcelain; }
   body { @apply bg-porcelain font-sans text-ink antialiased; }
+  /* The installed app has no browser around it: no rubber-band glow past the edges or long-press callouts on links. */
+  @media (display-mode: standalone) {
+    html, body { overscroll-behavior-y: none; }
+    a { -webkit-touch-callout: none; }
+  }
   /* Japanese written in ordinary text (not font-hanzi) also gets Japanese glyph shapes. */
   :where(:lang(ja)) { font-family: var(--font-pinyin), var(--font-urbanist), var(--font-noto-jp), ui-sans-serif, system-ui, sans-serif; }
   :focus-visible { @apply outline-2 outline-offset-2 outline-volt-500; }
@@ -166,6 +172,16 @@
   .bot-eyes, .bot-face[data-thinking] .bot-glance, .bot-shimmer { animation: none; }
   .bot-shimmer { color: var(--color-second-300); }
   .bot-tile { animation-duration: 3s; }
+}
+
+/* The installed app's launch screen, faded out once the profile has loaded. A browser tab never shows it. */
+.splash { display: none; }
+@media (display-mode: standalone) {
+  .splash {
+    position: fixed; inset: 0; z-index: 100; display: grid; place-content: center; justify-items: center; gap: 0.875rem;
+    background: var(--color-porcelain); color: var(--color-ink); transition: opacity 300ms ease, visibility 300ms;
+  }
+  .splash.splash-done { opacity: 0; visibility: hidden; pointer-events: none; }
 }
 
 /* Page changes: the old page lifts away quickly, the new one settles in. The sidebar and everything outside the

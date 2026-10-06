@@ -11,6 +11,7 @@ import { ProgressBar } from "./charts";
 import { DeckConvert, otherLang } from "./deck-convert";
 import { type DeckFilter, dueTotal, useDecks } from "./decks-context";
 import { LangBadge, useLearning } from "./lang-context";
+import { useDownloadedDecks } from "./offline-downloads";
 import { useAi } from "./profiles";
 import { VisibilityBadge } from "./social";
 import { Button, Chips } from "./ui";
@@ -31,6 +32,7 @@ function DeckCard({ deck, mature, kept, showLang, onDelete, onConvert }: {
 }) {
   const due = dueTotal(deck);
   const owner = deck.role === "owner";
+  const downloaded = useDownloadedDecks().includes(deck.id);
   return (
     <li className="surface flex flex-col p-5">
       <div className="flex items-start gap-3">
@@ -39,7 +41,7 @@ function DeckCard({ deck, mature, kept, showLang, onDelete, onConvert }: {
           <Link href={`/decks/${deck.id}/review`} className="block truncate text-base font-bold hover:text-volt-500">{deck.name}</Link>
           <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted">
             {showLang && <LangBadge lang={deck.language} short className="px-1.5 py-0" />}
-            {deck.cards} card{deck.cards === 1 ? "" : "s"}{kept != null && ` · ${Math.round(kept * 100)}% retention`}
+            {deck.cards} card{deck.cards === 1 ? "" : "s"}{kept != null && ` · ${Math.round(kept * 100)}% retention`}{downloaded && " · Offline"}
           </p>
         </div>
         {onConvert && owner && deck.cards > 0 && (

@@ -3,6 +3,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { speak } from "./ai-client";
 import type { Spoken } from "./cards";
+import { isOffline } from "./connection";
+import { cachedVoice, keepVoice } from "./offline";
 
 export type ListenPart = "word" | "example";
 
@@ -15,11 +17,28 @@ async function ownClip(name: string): Promise<Blob> {
   return res.blob();
 }
 
+/** Voices heard before are kept on the device, so they play offline too. */
+async function voiced(line: Spoken, key: string): Promise<Blob> {
+  if (isOffline()) {
+    const saved = await cachedVoice(key).catch(() => null);
+    if (saved) return saved;
+  }
+  try {
+    const blob = await speak(line.text, { lang: line.lang, voice: line.voice });
+    void keepVoice(key, blob).catch(() => {});
+    return blob;
+  } catch (e) {
+    const saved = await cachedVoice(key).catch(() => null);
+    if (saved) return saved;
+    throw e;
+  }
+}
+
 export function loadClip(line: Spoken): Promise<Blob> {
   const id = line.clip ?? `${line.lang}${line.voice}\n${line.text}`;
   let clip = clips.get(id);
   if (!clip) {
-    clip = line.clip ? ownClip(line.clip) : speak(line.text, { lang: line.lang, voice: line.voice });
+    clip = line.clip ? ownClip(line.clip) : voiced(line, id);
     clips.set(id, clip);
     clip.catch(() => clips.delete(id));
   }
@@ -28,6 +47,7 @@ export function loadClip(line: Spoken): Promise<Blob> {
 
 export function audioError(e: unknown): string {
   const msg = e instanceof Error ? e.message : "Could not play audio.";
+  if (isOffline()) return "You’re offline, and this voice wasn’t saved on this device.";
   return /failed to fetch/i.test(msg) ? "Could not reach the voice service." : msg;
 }
 

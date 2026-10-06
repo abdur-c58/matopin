@@ -1,7 +1,7 @@
 /** Shared plumbing for the /api/dictionary routes: the R2-backed service, sign-in check and error replies. */
 import { auth } from "@/auth";
-import type { ZhSentence, ZhWords } from "./dictionary-files";
-import { createZhCall, DictionaryNotImported, r2Source } from "./dictionary-memory";
+import { r2Source, type ZhSentence, type ZhWords } from "./dictionary-files";
+import { createZhCall, DictionaryNotImported } from "./dictionary-memory";
 import { createDictionary } from "./dictionary-server";
 import { StoreError } from "./supabase";
 

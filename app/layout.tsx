@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Noto_Sans_JP, Noto_Sans_SC, Urbanist } from "next/font/google";
 import localFont from "next/font/local";
 import { GeistMono } from "geist/font/mono";
@@ -31,6 +31,14 @@ export const metadata: Metadata = {
   metadataBase: SITE_URL,
   applicationName: APP_NAME,
   title: { default: `${APP_NAME} · ${TAGLINE}`, template: `%s · ${APP_NAME}` },
+  // The installed app draws under the status bar and home indicator; the safe-area insets keep content clear of them.
+  appleWebApp: { capable: true, title: APP_NAME, statusBarStyle: "black-translucent" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#121212",
+  colorScheme: "dark",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

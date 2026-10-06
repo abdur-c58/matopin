@@ -14,6 +14,7 @@ import { FLUENCY_LEVELS, fluencyLabels, type Fluency } from "@/lib/cards";
 import { DeckSharing } from "./deck-sharing";
 import { useDecks } from "./decks-context";
 import { useLearning } from "./lang-context";
+import { DeckDownload } from "./offline-downloads";
 import { useProfile } from "./profiles";
 import { VisibilityBadge } from "./social";
 import { Dropdown, Field } from "./ui";
@@ -131,6 +132,10 @@ export function DeckSettings({ deckId, scope }: { deckId: string; scope: string 
             <Link href={`/u/${deck.ownerId}`} className="btn btn-shard shrink-0">View profile</Link>
           </div>
         )}
+      </Section>
+
+      <Section title="Offline" description="Download the deck to study and edit it without a connection. Progress made offline syncs when you reconnect.">
+        <DeckDownload deckId={deckId} />
       </Section>
 
       <Section title="Deck" description={readOnly ? "Set by the deck’s owner." : "The name shows in your deck list and becomes the Anki deck name on export."}>

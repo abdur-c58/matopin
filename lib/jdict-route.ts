@@ -1,6 +1,6 @@
 /** The R2-backed Japanese dictionary for the /api/jdict routes. */
-import type { JaSentence, JaWords } from "./dictionary-files";
-import { createJaCall, r2Source } from "./dictionary-memory";
+import { type JaSentence, type JaWords, r2Source } from "./dictionary-files";
+import { createJaCall } from "./dictionary-memory";
 import { DictionaryNotImported, dictionaryRoute } from "./dictionary-route";
 import { createJDictionary } from "./jdict-server";
 

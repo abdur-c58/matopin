@@ -5,6 +5,7 @@
  */
 import { promisify } from "node:util";
 import { gunzip, gzip } from "node:zlib";
+import type { DictSource } from "./dictionary-memory";
 import type { JForm, JSense } from "./jdict";
 import { readObject, uploadObject } from "./storage";
 
@@ -60,6 +61,11 @@ export async function readDictFile<T>(name: string): Promise<T | null> {
   if (!bytes) return null;
   return JSON.parse((await promisify(gunzip)(Buffer.from(bytes))).toString("utf8")) as T;
 }
+
+export const r2Source = <W, S>(lang: keyof typeof DICT_FILES): DictSource<W, S> => ({
+  words: () => readDictFile<W>(DICT_FILES[lang].words),
+  sentences: () => readDictFile<S>(DICT_FILES[lang].sentences),
+});
 
 /** Uploads the file and returns its gzipped size in bytes. */
 export async function writeDictFile(name: string, data: unknown): Promise<number> {

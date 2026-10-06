@@ -9,8 +9,16 @@ export const metadata = preview({
   alt: `${APP_NAME}: remember every word you learn, with Mandarin and Japanese flashcards`,
 });
 
+/** The installed app has no landing page: it goes straight to the app before anything is drawn. */
+const STANDALONE_REDIRECT = `if(matchMedia("(display-mode: standalone)").matches||navigator.standalone)location.replace("/app"+location.search)`;
+
 /** Public for everyone. A failed Google sign-in comes back here with `?error=`. */
 export default async function Landing({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const [session, query] = await Promise.all([auth(), searchParams]);
-  return <LandingPage signedIn={!!session?.user?.id} error={signInError(query.error)} />;
+  return (
+    <>
+      <script dangerouslySetInnerHTML={{ __html: STANDALONE_REDIRECT }} />
+      <LandingPage signedIn={!!session?.user?.id} error={signInError(query.error)} />
+    </>
+  );
 }

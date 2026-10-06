@@ -1,7 +1,10 @@
-/** `rev` is the Supabase version this browser's copy of the deck came from. `meta` is who owns it and how it is shared. */
-export type DataKind = "v2" | "tags" | "srs" | "rev" | "meta";
+/**
+ * `rev` is the Supabase version this browser's copy of the deck came from, and `base` that version's cards and
+ * settings, for merging. `meta` is who owns it and how it is shared.
+ */
+export type DataKind = "v2" | "tags" | "srs" | "rev" | "meta" | "base";
 
-export const DATA_KINDS = ["v2", "tags", "srs", "rev", "meta"] as const;
+export const DATA_KINDS = ["v2", "tags", "srs", "rev", "meta", "base"] as const;
 
 /** `scope` is a profile id for data saved before decks existed, or `${profile}:${deckId}` for a deck. */
 export function dataKey(scope: string, kind: DataKind) {

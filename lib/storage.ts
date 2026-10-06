@@ -49,6 +49,15 @@ export async function openObject(folder: string, path: string): Promise<Response
   return null;
 }
 
+/** Bytes `start` to `end` (inclusive) of the object and its total size, or null when it isn't there. */
+export async function openRange(folder: string, path: string, start: number, end: number): Promise<{ res: Response; total: number } | null> {
+  const res = await send("GET", folder, path, { headers: { Range: `bytes=${start}-${end}` } });
+  if (res.status >= 500) throw new StoreError(`File storage answered ${res.status}.`, 502);
+  if (!res.ok || !res.body) return null;
+  const total = Number(res.headers.get("content-range")?.split("/")[1] ?? res.headers.get("content-length"));
+  return { res, total };
+}
+
 /** The object's bytes, or null when it isn't there. */
 export async function readObject(folder: string, path: string): Promise<ArrayBuffer | null> {
   return (await openObject(folder, path))?.arrayBuffer() ?? null;

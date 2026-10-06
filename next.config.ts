@@ -15,6 +15,11 @@ const nextConfig: NextConfig = {
   htmlLimitedBots: new RegExp(PREVIEW_BOTS.join("|"), "i"),
   outputFileTracingIncludes: {
     "/og/**": ["./app/fonts/*.ttf", "./app/icon.svg"],
+    "/pwa-icon/**": ["./app/icon.svg"],
+  },
+  // The offline worker must always be fetched fresh so a new release replaces it.
+  async headers() {
+    return [{ source: "/sw.js", headers: [{ key: "Cache-Control", value: "no-cache, no-store, must-revalidate" }, { key: "Content-Type", value: "application/javascript; charset=utf-8" }] }];
   },
 };
 
