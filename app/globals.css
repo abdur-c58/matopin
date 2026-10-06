@@ -60,9 +60,8 @@
   @media (width < 48rem) { html { scroll-padding-top: calc(4rem + env(safe-area-inset-top)); } }
   html { @apply bg-porcelain; }
   body { @apply bg-porcelain font-sans text-ink antialiased; }
-  /* The installed app has no browser around it: no rubber-band glow past the edges or long-press callouts on links. */
+  /* The installed app has no browser around it, so links shouldn't open the browser's long-press preview. */
   @media (display-mode: standalone) {
-    html, body { overscroll-behavior-y: none; }
     a { -webkit-touch-callout: none; }
   }
   /* Japanese written in ordinary text (not font-hanzi) also gets Japanese glyph shapes. */
