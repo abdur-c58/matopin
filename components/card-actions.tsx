@@ -62,8 +62,8 @@ function TransferDialog({ mode, deckId, lang, cards, onClose, onMoved }: {
           </Dialog.Description>
           <div role="radiogroup" aria-label="Destination" className="mt-4 min-h-0 flex-1 space-y-1.5 overflow-y-auto">
             <button type="button" role="radio" aria-checked={pick === "new"} onClick={() => setPick("new")}
-              className={`flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors ${pick === "new" ? "border-volt-500 bg-volt-50" : "border-line hover:bg-raised"}`}>
-              <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-raised"><Plus className="size-4" /></span>
+              className={`flex w-full items-center gap-3 rounded-md border p-3 text-left transition-colors ${pick === "new" ? "border-volt-500 bg-volt-50" : "border-line hover:bg-raised"}`}>
+              <span className="grid size-8 shrink-0 place-items-center rounded-md bg-raised"><Plus className="size-4" /></span>
               <span className="flex-1 text-sm font-semibold">New deck</span>
               {pick === "new" && <Check className="size-4 text-volt-600" />}
             </button>
@@ -73,7 +73,7 @@ function TransferDialog({ mode, deckId, lang, cards, onClose, onMoved }: {
             )}
             {targets.map((d) => (
               <button key={d.id} type="button" role="radio" aria-checked={pick === d.id} onClick={() => setPick(d.id)}
-                className={`flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors ${pick === d.id ? "border-volt-500 bg-volt-50" : "border-line hover:bg-raised"}`}>
+                className={`flex w-full items-center gap-3 rounded-md border p-3 text-left transition-colors ${pick === d.id ? "border-volt-500 bg-volt-50" : "border-line hover:bg-raised"}`}>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-semibold">{d.name}</span>
                   <span className="block text-xs text-muted">{plural(d.cards)}</span>

@@ -14,14 +14,14 @@ function CreateDemo() {
   ];
   return (
     <div className="flex h-full flex-col gap-3">
-      <div className="flex items-center gap-2 rounded-2xl border border-line bg-porcelain px-3 py-2.5 text-sm">
+      <div className="flex items-center gap-2 rounded-xl border border-line bg-porcelain px-3 py-2.5 text-sm">
         <Sparkles className="size-4 shrink-0 text-volt-500" />
         <span className="landing-type relative">Ordering coffee in Shanghai</span>
         <span className="landing-caret h-4 w-px bg-ink" />
       </div>
       <div className="space-y-2">
         {cards.map((c, i) => (
-          <div key={c.zi} className="landing-pop-in flex items-center gap-3 rounded-2xl border border-line bg-raised/60 px-3 py-2" style={{ "--delay": `${1.5 + i * 0.25}s` } as CSSProperties}>
+          <div key={c.zi} className="landing-pop-in flex items-center gap-3 rounded-xl border border-line bg-raised/60 px-3 py-2" style={{ "--delay": `${1.5 + i * 0.25}s` } as CSSProperties}>
             <Toned zi={c.zi} py={c.py} className="text-2xl" pyClass="text-[10px]" />
             <span className="ml-auto text-sm text-muted">{c.meaning}</span>
           </div>
@@ -38,10 +38,10 @@ function ReadDemo() {
       <div className="relative">
         <span className="inline-flex flex-wrap items-end">
           <Toned zi="我在办公室喝" py="wǒ zài bàn gōng shì hē" className="text-3xl" pyClass="text-[11px]" />
-          <span className="landing-select relative rounded-md">
+          <span className="landing-select relative rounded-sm">
             <Toned zi="咖啡" py="kā fēi" className="text-3xl" pyClass="text-[11px]" />
-            <span className="landing-menu absolute top-full left-1/2 mt-2 flex -translate-x-1/2 gap-1 rounded-xl border border-line bg-surface p-1 shadow-pop">
-              {[Copy, BookA, Volume2, Layers].map((Icon, i) => <span key={i} className="grid size-7 place-items-center rounded-lg text-muted"><Icon className="size-3.5" /></span>)}
+            <span className="landing-menu absolute top-full left-1/2 mt-2 flex -translate-x-1/2 gap-1 rounded-lg border border-line bg-surface p-1 shadow-pop">
+              {[Copy, BookA, Volume2, Layers].map((Icon, i) => <span key={i} className="grid size-7 place-items-center rounded-md text-muted"><Icon className="size-3.5" /></span>)}
             </span>
           </span>
           <Toned zi="。" py="" className="text-3xl" pyClass="text-[11px]" />
@@ -67,7 +67,7 @@ function HearDemo() {
   return (
     <div className="flex h-full flex-col justify-center gap-3">
       {lines.map((l, i) => (
-        <div key={l.who} className={`rounded-2xl border border-line p-3 ${i ? "ml-6 bg-second-500/10" : "mr-6 bg-raised/60"}`}>
+        <div key={l.who} className={`rounded-xl border border-line p-3 ${i ? "ml-6 bg-second-500/10" : "mr-6 bg-raised/60"}`}>
           <div className="flex items-center gap-2">
             <span className={`grid size-7 place-items-center rounded-full text-xs font-bold ${i ? "bg-second-500 text-on-second" : "bg-volt-500 text-on-volt"}`}>{l.who}</span>
             <span className="text-[10px] font-semibold tracking-wider text-muted uppercase">{l.voice}</span>
@@ -105,10 +105,10 @@ function ReviewDemo() {
   return (
     <div className="flex h-full flex-col">
       <div className="landing-flip relative min-h-40 flex-1" data-flipped={shown || undefined}>
-        <div className="landing-face absolute inset-0 grid place-items-center rounded-2xl border border-line bg-raised/50">
+        <div className="landing-face absolute inset-0 grid place-items-center rounded-xl border border-line bg-raised/50">
           <span lang="zh-CN" className="font-hanzi text-5xl">{word.zi}</span>
         </div>
-        <div className="landing-face landing-back absolute inset-0 flex flex-col items-center justify-center rounded-2xl border border-line bg-raised/50">
+        <div className="landing-face landing-back absolute inset-0 flex flex-col items-center justify-center rounded-xl border border-line bg-raised/50">
           <Toned zi={word.zi} py={word.py} className="text-5xl" />
           <p className="mt-2 text-sm text-muted">{word.meaning}</p>
         </div>
@@ -117,21 +117,21 @@ function ReviewDemo() {
         <AnimatePresence mode="wait" initial={false}>
           {graded ? (
             <motion.div key="graded" initial={{ opacity: 0, y: 10, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8 }} transition={{ type: "spring", stiffness: 380, damping: 26 }}
-              className="flex h-full items-center justify-between gap-3 rounded-2xl px-4" style={{ background: `color-mix(in srgb, var(--color-tone-${graded.tone}) 14%, transparent)` }}>
+              className="flex h-full items-center justify-between gap-3 rounded-xl px-4" style={{ background: `color-mix(in srgb, var(--color-tone-${graded.tone}) 14%, transparent)` }}>
               <p className="text-sm">Next review in <span className="font-semibold" style={{ color: `var(--color-tone-${graded.tone})` }}>{graded.when}</span></p>
               <button type="button" className="btn btn-secondary h-8 px-3 text-xs" onClick={next}>Next card</button>
             </motion.div>
           ) : shown ? (
             <motion.div key="grades" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="grid h-full grid-cols-4 gap-2">
               {GRADES.map((g) => (
-                <button key={g.label} type="button" onClick={() => setGraded(g)} className="flex flex-col items-center justify-center rounded-2xl text-xs font-semibold transition hover:brightness-125 active:scale-95"
+                <button key={g.label} type="button" onClick={() => setGraded(g)} className="flex flex-col items-center justify-center rounded-xl text-xs font-semibold transition hover:brightness-125 active:scale-95"
                   style={{ background: `color-mix(in srgb, var(--color-tone-${g.tone}) 16%, transparent)`, color: `var(--color-tone-${g.tone})` }}>
                   {g.label}<span className="text-[10px] opacity-80">{g.when.replace(/ minutes?/, "m").replace(/ days?/, "d")}</span>
                 </button>
               ))}
             </motion.div>
           ) : (
-            <motion.button key="show" type="button" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShown(true)} className="btn btn-primary h-full w-full rounded-2xl text-sm">
+            <motion.button key="show" type="button" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShown(true)} className="btn btn-primary h-full w-full rounded-xl text-sm">
               Show answer
             </motion.button>
           )}
@@ -231,7 +231,7 @@ export function Steps() {
         <div data-carousel className="landing-scene landing-carousel relative mt-10 hidden min-h-[32rem] md:motion-safe:block">
           <div className="landing-rig absolute inset-0">
             {STEPS.map((step, i) => (
-              <article key={step.id} data-step-card className="landing-step landing-shell absolute top-1/2 left-1/2 h-[30rem] w-[min(66vw,780px)] -translate-y-1/2 overflow-hidden rounded-[1.75rem] border bg-surface"
+              <article key={step.id} data-step-card className="landing-step landing-shell absolute top-1/2 left-1/2 h-[30rem] w-[min(66vw,780px)] -translate-y-1/2 overflow-hidden rounded-xl border bg-surface"
                 style={{ "--step": step.accent, borderColor: `color-mix(in srgb, ${step.accent} 55%, var(--color-line))` } as CSSProperties}>
                 <div className="pointer-events-none absolute -inset-10 opacity-60 blur-3xl" style={{ background: `radial-gradient(ellipse at 30% 45%, color-mix(in srgb, ${step.accent} 40%, transparent), transparent 62%)` }} aria-hidden />
                 <div className="relative grid h-full grid-cols-[1.1fr_0.9fr]">
@@ -245,7 +245,7 @@ export function Steps() {
 
         <div className="mt-10 grid gap-5 md:motion-safe:hidden">
           {STEPS.map((step, i) => (
-            <article key={step.id} data-step-mobile className="landing-step overflow-hidden rounded-3xl border bg-surface" style={{ borderColor: `color-mix(in srgb, ${step.accent} 55%, var(--color-line))` }}>
+            <article key={step.id} data-step-mobile className="landing-step overflow-hidden rounded-2xl border bg-surface" style={{ borderColor: `color-mix(in srgb, ${step.accent} 55%, var(--color-line))` }}>
               <div className="p-5"><StepCopy step={step} index={i} /></div>
               <div className="min-h-72 border-t border-line/70 p-5"><step.Demo /></div>
             </article>

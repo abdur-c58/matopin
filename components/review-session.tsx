@@ -389,7 +389,7 @@ export function ReviewSession({ scope, editHref, settingsHref }: { scope: string
         {session && reviewableCount > 0 && !session.item && !redoActive && (
           <div className="space-y-2 p-10 text-center">
             {session.waitMs != null && session.laterToday.count > 0 && (
-              <div className="mx-auto mb-6 max-w-md space-y-2 rounded-lg bg-volt-50 px-5 py-4">
+              <div className="mx-auto mb-6 max-w-md space-y-2 rounded-md bg-volt-50 px-5 py-4">
                 <p className="text-lg font-semibold">You’re done for today!</p>
                 <p className="text-sm text-muted">
                   {session.laterToday.count === 1
@@ -438,7 +438,7 @@ export function ReviewSession({ scope, editHref, settingsHref }: { scope: string
       </section>
       {session?.item && !redoActive && (
         <p className="hidden text-center text-xs text-muted sm:block">
-          <kbd className="rounded border border-line bg-surface px-1.5 py-0.5 font-mono">Space</kbd> shows the answer · <kbd className="rounded border border-line bg-surface px-1.5 py-0.5 font-mono">1</kbd>–<kbd className="rounded border border-line bg-surface px-1.5 py-0.5 font-mono">4</kbd> grades it · <kbd className="rounded border border-line bg-surface px-1.5 py-0.5 font-mono">R</kbd> plays the word · <kbd className="rounded border border-line bg-surface px-1.5 py-0.5 font-mono">E</kbd> the example · <kbd className="rounded border border-line bg-surface px-1.5 py-0.5 font-mono">P</kbd> {prefs.studyReading ? "hides" : "shows"} {readingName}
+          <kbd className="rounded-xs border border-line bg-surface px-1.5 py-0.5 font-mono">Space</kbd> shows the answer · <kbd className="rounded-xs border border-line bg-surface px-1.5 py-0.5 font-mono">1</kbd>–<kbd className="rounded-xs border border-line bg-surface px-1.5 py-0.5 font-mono">4</kbd> grades it · <kbd className="rounded-xs border border-line bg-surface px-1.5 py-0.5 font-mono">R</kbd> plays the word · <kbd className="rounded-xs border border-line bg-surface px-1.5 py-0.5 font-mono">E</kbd> the example · <kbd className="rounded-xs border border-line bg-surface px-1.5 py-0.5 font-mono">P</kbd> {prefs.studyReading ? "hides" : "shows"} {readingName}
         </p>
       )}
     </main>

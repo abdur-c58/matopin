@@ -52,7 +52,7 @@ function ColorPicker({ initial, onChange }: { initial: string; onChange: (hex: s
         {...area}
         role="slider" tabIndex={0} aria-label="Saturation and brightness" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(hsv.s * 100)} aria-valuetext={`Saturation ${Math.round(hsv.s * 100)}%, brightness ${Math.round(hsv.v * 100)}%`}
         onKeyDown={(e) => nudge(e, (dx, dy) => update({ ...hsv, s: clamp(hsv.s + dx), v: clamp(hsv.v + dy) }))}
-        className="relative h-40 cursor-crosshair touch-none rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ink"
+        className="relative h-40 cursor-crosshair touch-none rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ink"
         style={{ background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(${hsv.h} 100% 50%))` }}
       >
         <span className="pointer-events-none absolute size-4 -translate-1/2 rounded-full border-2 border-white shadow-[0_0_0_1px_rgb(0_0_0/0.4)]" style={{ left: `${hsv.s * 100}%`, top: `${(1 - hsv.v) * 100}%`, background: hex }} />
@@ -67,8 +67,8 @@ function ColorPicker({ initial, onChange }: { initial: string; onChange: (hex: s
         <span className="pointer-events-none absolute top-1/2 size-4.5 -translate-1/2 rounded-full border-2 border-white shadow-[0_0_0_1px_rgb(0_0_0/0.4)]" style={{ left: `${(hsv.h / 360) * 100}%`, background: `hsl(${hsv.h} 100% 50%)` }} />
       </div>
       <div className="flex items-center gap-2">
-        <span className="size-10 shrink-0 rounded-xl border border-line" style={{ background: hex }} />
-        <label className="flex h-10 min-w-0 flex-1 items-center rounded-xl border border-line bg-porcelain px-3 text-sm focus-within:border-volt-500/70">
+        <span className="size-10 shrink-0 rounded-lg border border-line" style={{ background: hex }} />
+        <label className="flex h-10 min-w-0 flex-1 items-center rounded-lg border border-line bg-porcelain px-3 text-sm focus-within:border-volt-500/70">
           <span className="text-muted">#</span>
           <input
             className="min-w-0 flex-1 bg-transparent pl-1 font-mono uppercase outline-none"

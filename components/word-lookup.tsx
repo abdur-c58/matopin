@@ -31,7 +31,7 @@ function Suggestion({ pinyin, meaning, onSwap }: Pick<Props, "pinyin" | "meaning
   if (lang === "ja") return null;
   if (py && !isPinyin(py)) {
     return (
-      <p className="mt-3 rounded-lg bg-volt-50 px-3 py-2 text-sm">
+      <p className="mt-3 rounded-md bg-volt-50 px-3 py-2 text-sm">
         “{py}” isn’t pinyin{en ? ", so only the meaning was searched" : ""}.{" "}
         {!en && <button type="button" className={link} onClick={() => onSwap("meaning")}>Did you mean to search in English?</button>}
       </p>
@@ -39,7 +39,7 @@ function Suggestion({ pinyin, meaning, onSwap }: Pick<Props, "pinyin" | "meaning
   }
   if (!py && en && looksLikePinyin(en)) {
     return (
-      <p className="mt-3 rounded-lg bg-volt-50 px-3 py-2 text-sm">
+      <p className="mt-3 rounded-md bg-volt-50 px-3 py-2 text-sm">
         “{en}” looks like pinyin.{" "}
         <button type="button" className={link} onClick={() => onSwap("pinyin")}>Did you mean to search it as pinyin?</button>
       </p>
@@ -81,7 +81,7 @@ export function WordLookup({ open, onOpenChange, pinyin, meaning, clue, onClue, 
             </Button>
           </form>
           <Suggestion pinyin={pinyin} meaning={meaning} onSwap={onSwap} />
-          <ul aria-label="Matching words" className="mt-3 min-h-24 flex-1 overflow-auto rounded-xl border border-line">
+          <ul aria-label="Matching words" className="mt-3 min-h-24 flex-1 overflow-auto rounded-lg border border-line">
             {looking && <li className="px-3 py-2 text-sm text-muted">Looking up words…</li>}
             {!looking && matches?.length === 0 && <li className="px-3 py-2 text-sm text-muted">No matching words.</li>}
             {!looking && matches?.map((m, i) => (

@@ -176,7 +176,7 @@ function PeekBody({ word, onOpen }: { word: string; onOpen: (id: number) => void
     <ul className="space-y-1">
       {state.items.map((item) => (
         <li key={item.id}>
-          <button type="button" onClick={() => onOpen(item.id)} className="group w-full rounded-xl p-2 text-left transition hover:bg-raised">
+          <button type="button" onClick={() => onOpen(item.id)} className="group w-full rounded-lg p-2 text-left transition hover:bg-raised">
             <span className="flex items-baseline gap-2">
               <ToneHanzi item={item} className="text-2xl" />
               <Pinyin numeric={item.pinyinNumeric} className="text-sm font-medium" />
@@ -195,7 +195,7 @@ function WordPeek({ word, onOpen, className = "" }: { word: string; onOpen: (id:
   const [open, setOpen] = useState(false);
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
-      <Popover.Trigger className={`rounded-md transition hover:bg-volt-100 data-[state=open]:bg-volt-100 ${className}`}>{word}</Popover.Trigger>
+      <Popover.Trigger className={`rounded-sm transition hover:bg-volt-100 data-[state=open]:bg-volt-100 ${className}`}>{word}</Popover.Trigger>
       <Popover.Portal>
         <Popover.Content side="top" align="start" sideOffset={6} collisionPadding={12} className="popup w-[min(20rem,calc(100vw-1.5rem))] p-2">
           <PeekBody word={word} onOpen={(id) => { setOpen(false); onOpen(id); }} />
@@ -288,7 +288,7 @@ function StrokeOrder({ char, size = 136, delay = 0 }: { char: string; size?: num
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className={`relative rounded-lg border bg-porcelain transition ${mode === "quiz" ? "border-volt-500/60 shadow-[0_0_0_4px] shadow-volt-500/10" : "border-line"}`} style={{ width: size, height: size }}>
+      <div className={`relative rounded-md border bg-porcelain transition ${mode === "quiz" ? "border-volt-500/60 shadow-[0_0_0_4px] shadow-volt-500/10" : "border-line"}`} style={{ width: size, height: size }}>
         <RiceGrid />
         <div ref={box} className={`relative ${mode === "quiz" ? "cursor-crosshair touch-none" : ""}`} aria-label={`Stroke order for ${char}`} role="img" />
         {status === "loading" && <LoaderCircle className="absolute inset-0 m-auto size-5 animate-spin text-muted" />}
@@ -316,7 +316,7 @@ function StrokeOrder({ char, size = 136, delay = 0 }: { char: string; size?: num
 function ResultRow({ item, index, active, selected, onOpen }: { item: DictSummary; index: number; active: boolean; selected: boolean; onOpen: () => void }) {
   return (
     <button type="button" id={`dict-option-${index}`} role="option" aria-selected={selected} onClick={onOpen}
-      className={`relative flex w-full flex-col items-start gap-0.5 rounded-lg py-2.5 pr-3 pl-4 text-left transition ${selected ? "bg-raised" : active ? "bg-raised/60" : "hover:bg-raised/50"}`}>
+      className={`relative flex w-full flex-col items-start gap-0.5 rounded-md py-2.5 pr-3 pl-4 text-left transition ${selected ? "bg-raised" : active ? "bg-raised/60" : "hover:bg-raised/50"}`}>
       <span className={`absolute top-3 bottom-3 left-1 w-1 rounded-full transition ${selected ? "bg-volt-500" : "bg-transparent"}`} />
       <span className="flex w-full min-w-0 items-baseline gap-2">
         <ToneHanzi item={item} className="text-2xl leading-tight" />
@@ -332,9 +332,9 @@ export function ResultsSkeleton() {
   return (
     <div className="space-y-1" role="status" aria-label="Searching">
       {Array.from({ length: 6 }, (_, i) => (
-        <div key={i} className="space-y-2 rounded-lg px-4 py-3">
-          <div className="h-6 w-28 animate-pulse rounded-lg bg-raised" style={{ animationDelay: `${i * 80}ms` }} />
-          <div className="h-3.5 w-48 animate-pulse rounded-lg bg-raised/70" style={{ animationDelay: `${i * 80}ms` }} />
+        <div key={i} className="space-y-2 rounded-md px-4 py-3">
+          <div className="h-6 w-28 animate-pulse rounded-md bg-raised" style={{ animationDelay: `${i * 80}ms` }} />
+          <div className="h-3.5 w-48 animate-pulse rounded-md bg-raised/70" style={{ animationDelay: `${i * 80}ms` }} />
         </div>
       ))}
     </div>
@@ -344,7 +344,7 @@ export function ResultsSkeleton() {
 export function Problem({ error, onRetry }: { error: DictError; onRetry?: () => void }) {
   const title = error.code === "not_imported" ? "The dictionary isn’t set up yet" : error.code === "offline" ? "Can’t reach the dictionary" : "Something went wrong";
   return (
-    <div className="rounded-lg bg-raised/50 p-6 text-center" role="alert">
+    <div className="rounded-md bg-raised/50 p-6 text-center" role="alert">
       <p className="text-sm font-semibold">{title}</p>
       <p className="mt-1 text-sm text-muted">{error.message}</p>
       {onRetry && error.code !== "not_imported" && <Button className="mt-3" onClick={onRetry}>Try again</Button>}
@@ -367,7 +367,7 @@ export function Home({ recent, onSearch, onClear, tries = TRY, lang = "zh" }: {
           <ul>
             {recent.map((w) => (
               <li key={w}>
-                <button type="button" onClick={() => onSearch(w)} className="group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition hover:bg-raised/60">
+                <button type="button" onClick={() => onSearch(w)} className="group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-raised/60">
                   <span className={`min-w-0 flex-1 truncate ${cjk(w) ? "font-hanzi text-lg" : "text-sm"}`}>{w}</span>
                   <ArrowRight className="size-3.5 text-muted opacity-0 transition group-hover:opacity-100" />
                 </button>
@@ -390,7 +390,7 @@ export function Home({ recent, onSearch, onClear, tries = TRY, lang = "zh" }: {
 
 function ExampleRow({ ex, word, onOpen }: { ex: DictExample; word: string; onOpen: (id: number) => void }) {
   return (
-    <li className="rounded-lg px-3 py-3 transition hover:bg-raised/40">
+    <li className="rounded-md px-3 py-3 transition hover:bg-raised/40">
       <div className="flex items-start gap-2">
         <p className="min-w-0 flex-1 font-hanzi text-xl leading-relaxed" lang="zh-CN">
           {ex.tokens.map((t, i) => (hasHan(t)
@@ -438,7 +438,7 @@ function Examples({ word, onOpen }: { word: string; onOpen: (id: number) => void
   if (!pages) {
     return (
       <div className="space-y-3" role="status" aria-label="Loading examples">
-        {[0, 1, 2].map((i) => <div key={i} className="h-20 animate-pulse rounded-lg bg-raised/60" style={{ animationDelay: `${i * 100}ms` }} />)}
+        {[0, 1, 2].map((i) => <div key={i} className="h-20 animate-pulse rounded-md bg-raised/60" style={{ animationDelay: `${i * 100}ms` }} />)}
       </div>
     );
   }
@@ -463,7 +463,7 @@ function CharacterPanel({ c, index, focused, compact, onSearch }: { c: DictChara
   const traditional = c.traditional.filter((t) => t !== c.character);
   const simplified = c.simplified.filter((s) => s !== c.character);
   return (
-    <div id={`dict-char-${index}`} className={`flex gap-4 rounded-xl border transition ${compact ? "flex-row p-3" : "flex-col p-4 sm:flex-row"} ${focused ? "border-volt-500/60 bg-volt-50" : "border-line"}`}>
+    <div id={`dict-char-${index}`} className={`flex gap-4 rounded-lg border transition ${compact ? "flex-row p-3" : "flex-col p-4 sm:flex-row"} ${focused ? "border-volt-500/60 bg-volt-50" : "border-line"}`}>
       <StrokeOrder char={c.character} delay={index * 500} size={compact ? 104 : 136} />
       <div className="min-w-0 flex-1 space-y-2.5">
         <div className="flex items-center gap-2">
@@ -487,25 +487,25 @@ function CharacterPanel({ c, index, focused, compact, onSearch }: { c: DictChara
         )}
         <dl className="grid grid-cols-2 gap-2 text-xs">
           {c.radical && (
-            <div className="rounded-xl bg-raised/50 px-3 py-2">
+            <div className="rounded-lg bg-raised/50 px-3 py-2">
               <dt className="text-muted">Radical</dt>
               <dd className="mt-0.5"><span className="font-hanzi text-base">{c.radical}</span>{c.radicalNumber ? <span className="text-muted"> · no. {c.radicalNumber}</span> : null}</dd>
             </div>
           )}
           {c.strokes && (
-            <div className="rounded-xl bg-raised/50 px-3 py-2">
+            <div className="rounded-lg bg-raised/50 px-3 py-2">
               <dt className="text-muted">Strokes</dt>
               <dd className="mt-0.5 text-base font-semibold tabular-nums">{c.strokes}</dd>
             </div>
           )}
           {traditional.length > 0 && (
-            <div className="rounded-xl bg-raised/50 px-3 py-2">
+            <div className="rounded-lg bg-raised/50 px-3 py-2">
               <dt className="text-muted">Traditional</dt>
               <dd className="mt-0.5 font-hanzi text-base">{traditional.join(" ")}</dd>
             </div>
           )}
           {simplified.length > 0 && (
-            <div className="rounded-xl bg-raised/50 px-3 py-2">
+            <div className="rounded-lg bg-raised/50 px-3 py-2">
               <dt className="text-muted">Simplified</dt>
               <dd className="mt-0.5 font-hanzi text-base">{simplified.join(" ")}</dd>
             </div>
@@ -521,7 +521,7 @@ function WordList({ items, onOpen }: { items: DictSummary[]; onOpen: (id: number
     <ul className="-mx-3">
       {items.map((r) => (
         <li key={r.id}>
-          <button type="button" onClick={() => onOpen(r.id)} className="group flex w-full min-w-0 items-baseline gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-raised/50">
+          <button type="button" onClick={() => onOpen(r.id)} className="group flex w-full min-w-0 items-baseline gap-3 rounded-lg px-3 py-2.5 text-left transition hover:bg-raised/50">
             <ToneHanzi item={r} className="shrink-0 text-xl" />
             <Pinyin numeric={r.pinyinNumeric} className="shrink-0 text-sm font-medium" />
             <span className="min-w-0 flex-1 truncate text-sm text-muted">{r.definitions.join("; ")}</span>
@@ -536,9 +536,9 @@ function WordList({ items, onOpen }: { items: DictSummary[]; onOpen: (id: number
 function EntrySkeleton() {
   return (
     <div className="space-y-6" role="status" aria-label="Loading entry">
-      <div className="flex gap-2">{[0, 1].map((i) => <div key={i} className="h-24 w-20 animate-pulse rounded-lg bg-raised" />)}</div>
+      <div className="flex gap-2">{[0, 1].map((i) => <div key={i} className="h-24 w-20 animate-pulse rounded-md bg-raised" />)}</div>
       <div className="space-y-2.5">
-        {[0, 1, 2].map((i) => <div key={i} className="h-4 animate-pulse rounded-lg bg-raised/60" style={{ width: `${75 - i * 15}%` }} />)}
+        {[0, 1, 2].map((i) => <div key={i} className="h-4 animate-pulse rounded-md bg-raised/60" style={{ width: `${75 - i * 15}%` }} />)}
       </div>
       <div className="h-10 w-72 animate-pulse rounded-full bg-raised/60" />
     </div>
@@ -630,7 +630,7 @@ function EntryView({ id, compact = false, onSearch, onOpen, onBack, onAdd }: {
           <div className="-ml-2 flex flex-wrap items-end">
             {glyphs.map(({ ch, syl }, i) => (isHan(ch) ? (
               <button key={i} type="button" onClick={() => showChar(ch)} title={`Strokes and meaning of ${ch}`}
-                className="flex flex-col items-center rounded-lg px-2 pt-1 pb-1.5 transition hover:bg-raised/60 active:scale-95">
+                className="flex flex-col items-center rounded-md px-2 pt-1 pb-1.5 transition hover:bg-raised/60 active:scale-95">
                 {syllablesShown && <span className="text-lg font-semibold" style={{ color: toneColor(syl) }}>{markSyllable(syl!)}</span>}
                 <span className={`font-hanzi leading-none ${compact ? "text-5xl" : "text-6xl md:text-7xl"}`} style={{ color: toneColor(syl) }} lang="zh-CN">{ch}</span>
               </button>
@@ -727,7 +727,7 @@ function EntryView({ id, compact = false, onSearch, onOpen, onBack, onAdd }: {
 
 export function CreditCard({ name, url, license, licenseUrl, covers, note }: { name: string; url: string; license: string; licenseUrl: string; covers?: string; note: string }) {
   return (
-    <section className="rounded-lg border border-line p-4">
+    <section className="rounded-md border border-line p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <a href={url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-semibold hover:text-volt-500">{name}<ExternalLink className="size-3.5" /></a>
         <a href={licenseUrl} target="_blank" rel="noreferrer" className="text-xs font-medium text-muted hover:text-ink">{license}</a>
@@ -759,7 +759,7 @@ function Credits({ open, onOpenChange }: { open: boolean; onOpenChange: (open: b
             {HANDWRITING_CREDITS.map((c) => <CreditCard key={c.name} {...c} />)}
             <section>
               <h3 className="mb-2 text-xs font-medium text-muted">Unicode license for the Unihan data</h3>
-              <pre className="rounded-lg bg-raised/50 p-4 font-sans text-[11px] leading-relaxed whitespace-pre-wrap text-muted">{UNICODE_LICENSE}</pre>
+              <pre className="rounded-md bg-raised/50 p-4 font-sans text-[11px] leading-relaxed whitespace-pre-wrap text-muted">{UNICODE_LICENSE}</pre>
             </section>
           </div>
         </Dialog.Content>
@@ -863,14 +863,14 @@ export function SearchBox({ s, input, compact = false, drawing, onDraw, onKeyDow
       <Search className={`pointer-events-none absolute top-1/2 -translate-y-1/2 text-muted ${compact ? "left-3.5 size-4" : "left-4 size-5"}`} />
       <input ref={input} autoFocus type="text" role="combobox" aria-expanded={s.flat.length > 0} aria-controls="dict-results" aria-autocomplete="list"
         aria-activedescendant={s.flat.length ? `dict-option-${s.active}` : undefined} aria-label="Search the dictionary"
-        className={`field pr-20 ${compact ? "h-11 rounded-full pl-10 text-base" : "h-14 rounded-lg pl-12 text-lg"}`} placeholder={placeholder} maxLength={MAX_QUERY}
+        className={`field pr-20 ${compact ? "h-11 rounded-full pl-10 text-base" : "h-14 rounded-md pl-12 text-lg"}`} placeholder={placeholder} maxLength={MAX_QUERY}
         value={s.query} onChange={(e) => s.setQuery(e.target.value)} onKeyDown={onKeyDown} spellCheck={false} autoComplete="off" autoCapitalize="off" />
       <div className="absolute top-1/2 right-1 flex -translate-y-1/2 items-center">
         {s.loading && <LoaderCircle className="mr-1 size-4 animate-spin text-muted" aria-label="Searching" />}
         {s.query ? (
           <button type="button" className="icon-btn" aria-label="Clear search" onClick={onClear}><X className="size-4" /></button>
         ) : !compact && (
-          <kbd className="mr-1 hidden rounded-md border border-line px-1.5 py-0.5 font-mono text-[11px] text-muted md:block">/</kbd>
+          <kbd className="mr-1 hidden rounded-sm border border-line px-1.5 py-0.5 font-mono text-[11px] text-muted md:block">/</kbd>
         )}
         <button type="button" className={`icon-btn ${drawing ? "text-volt-500" : ""}`} aria-label={drawLabel} aria-pressed={drawing}
           title={drawLabel} onClick={onDraw}>
@@ -889,7 +889,7 @@ function ResultsList({ s, selected, recent, onSearch, onOpen }: {
   if (s.shown.error) return <Problem error={s.shown.error} onRetry={s.reload} />;
   if (!s.groups.length) {
     return s.fresh && (
-      <div className="rounded-lg bg-raised/50 p-6 text-center">
+      <div className="rounded-md bg-raised/50 p-6 text-center">
         <p className="text-sm font-semibold">Nothing for “{s.q}”</p>
         <p className="mt-1 text-sm text-muted">Check the spelling, try pinyin without tones, or search a shorter part.</p>
       </div>
@@ -995,7 +995,7 @@ export function DictionaryPage({ params }: { params: URLSearchParams }) {
           ) : (
             <div className="surface grid min-h-[28rem] place-items-center p-8 text-center">
               <div className="max-w-sm">
-                <div className="relative mx-auto grid size-28 place-items-center rounded-xl border border-line bg-porcelain">
+                <div className="relative mx-auto grid size-28 place-items-center rounded-lg border border-line bg-porcelain">
                   <RiceGrid />
                   <span className="relative font-hanzi text-6xl text-volt-500/40">字</span>
                 </div>

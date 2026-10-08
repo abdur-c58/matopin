@@ -106,7 +106,7 @@ export function useDeckCheck({ cards, lang, disabled, onApply }: { cards: Card[]
             {[...groups.values()].map((list) => {
               const card = list[0].card;
               return (
-                <section key={card.id} className="rounded-lg border border-line bg-raised/40 p-3">
+                <section key={card.id} className="rounded-md border border-line bg-raised/40 p-3">
                   <h3 className="flex items-baseline gap-2">
                     <span className="font-hanzi text-xl" lang={LANG_INFO[lang].speech}>{card.term || card.reading}</span>
                     {card.term && <span className="text-sm text-muted">{card.reading}</span>}
@@ -114,7 +114,7 @@ export function useDeckCheck({ cards, lang, disabled, onApply }: { cards: Card[]
                   <ul className="mt-2 space-y-2">
                     {list.map((f) => (
                       <li key={f.key}>
-                        <label className="flex cursor-pointer gap-3 rounded-xl p-2 transition-colors hover:bg-raised">
+                        <label className="flex cursor-pointer gap-3 rounded-lg p-2 transition-colors hover:bg-raised">
                           <input type="checkbox" className="mt-1 size-4 shrink-0 accent-volt-600" checked={picked.has(f.key)} onChange={() => toggle(f.key)} />
                           <span className="min-w-0 flex-1">
                             <span className="text-[11px] font-semibold tracking-wide text-muted uppercase">{labels[f.field]}</span>

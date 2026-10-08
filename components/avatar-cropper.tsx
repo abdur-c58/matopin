@@ -61,7 +61,7 @@ export function AvatarCropper({ source, busy, onCancel, onApply }: { source: Ava
 
           <div
             ref={frame} tabIndex={0} role="application" aria-label="Crop area. Arrow keys move the photo, plus and minus zoom."
-            className="relative mx-auto mt-4 cursor-grab touch-none overflow-hidden rounded-2xl bg-porcelain outline-none select-none focus-visible:ring-2 focus-visible:ring-volt-500 active:cursor-grabbing"
+            className="relative mx-auto mt-4 cursor-grab touch-none overflow-hidden rounded-xl bg-porcelain outline-none select-none focus-visible:ring-2 focus-visible:ring-volt-500 active:cursor-grabbing"
             style={{ width: VIEW, height: VIEW }}
             onPointerDown={(e) => {
               e.currentTarget.setPointerCapture(e.pointerId);
@@ -88,7 +88,7 @@ export function AvatarCropper({ source, busy, onCancel, onApply }: { source: Ava
               style={{ width: w, height: h, transform: `translate(${pos.x}px, ${pos.y}px)` }}
             />
             <span aria-hidden className="pointer-events-none absolute inset-0 rounded-full shadow-[0_0_0_999px_rgb(0_0_0/0.55)] ring-2 ring-white/80" />
-            <span aria-hidden className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-white/30 ring-inset" />
+            <span aria-hidden className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-white/30 ring-inset" />
           </div>
 
           <div className="mt-4 flex items-center gap-3">

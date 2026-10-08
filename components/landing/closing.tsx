@@ -33,14 +33,14 @@ export function Closing({ error }: { error: string }) {
       <div className="space-y-4" aria-hidden>
         <div data-row="zh" className="flex w-max gap-4 pl-[4vw]">
           {[...ZH, ...ZH].map(([zi, py, en], i) => (
-            <div key={i} className="flex shrink-0 items-center gap-3 rounded-3xl border border-line bg-surface px-5 py-3">
+            <div key={i} className="flex shrink-0 items-center gap-3 rounded-2xl border border-line bg-surface px-5 py-3">
               <Toned zi={zi} py={py} className="text-3xl" pyClass="text-[11px]" /><span className="text-sm text-muted">{en}</span>
             </div>
           ))}
         </div>
         <div data-row="ja" className="flex w-max gap-4">
           {[...JA, ...JA].map(([parts, en], i) => (
-            <div key={i} className="flex shrink-0 items-center gap-3 rounded-3xl border border-line bg-surface px-5 py-3">
+            <div key={i} className="flex shrink-0 items-center gap-3 rounded-2xl border border-line bg-surface px-5 py-3">
               <Furigana parts={parts} className="text-3xl" rtClass="text-[11px]" /><span className="text-sm text-muted">{en}</span>
             </div>
           ))}

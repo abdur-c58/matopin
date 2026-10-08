@@ -68,7 +68,7 @@ export function Hero({ error }: { error: string }) {
                 <div className="landing-hero-glow pointer-events-none absolute inset-[8%_4%_-2%_10%] rounded-[45%] blur-3xl" aria-hidden />
 
                 <div data-z="far" className="landing-shell absolute top-2 left-2 w-[66%] md:left-0 md:w-[62%]">
-                  <div data-pop className="landing-card landing-card-far rounded-3xl p-5">
+                  <div data-pop className="landing-card landing-card-far rounded-2xl p-5">
                     <div className="flex items-center justify-between">
                       <Eyebrow color="var(--color-tone-4)">Japanese · Review</Eyebrow>
                       <span className="rounded-full bg-raised px-2 py-0.5 text-[10px] font-semibold text-muted">N5</span>
@@ -80,7 +80,7 @@ export function Hero({ error }: { error: string }) {
                 </div>
 
                 <div data-z="mid" className="landing-shell absolute top-28 right-0 w-[64%] md:top-32 md:w-[60%]">
-                  <div data-pop className="landing-card landing-card-mid rounded-3xl p-5">
+                  <div data-pop className="landing-card landing-card-mid rounded-2xl p-5">
                     <Eyebrow color="var(--color-second-500)">Mandarin · New card</Eyebrow>
                     <div className="mt-3"><Toned zi="办公室" py="bàn gōng shì" className="text-5xl" /></div>
                     <p className="mt-2 text-sm text-muted">office</p>
@@ -89,7 +89,7 @@ export function Hero({ error }: { error: string }) {
                 </div>
 
                 <div data-z="near" className="landing-shell absolute bottom-0 left-[8%] w-[84%] md:left-[14%] md:w-[66%]">
-                  <div data-pop className="landing-card landing-card-near rounded-3xl p-5">
+                  <div data-pop className="landing-card landing-card-near rounded-2xl p-5">
                     <div className="flex items-center justify-between">
                       <p className="text-[10px] font-semibold tracking-[0.18em] text-muted uppercase">Today</p>
                       <p className="text-xs"><span className="font-semibold text-tone-4">5</span> new · <span className="font-semibold text-tone-1">3</span> learning · <span className="font-semibold text-tone-3">12</span> due</p>
@@ -97,7 +97,7 @@ export function Hero({ error }: { error: string }) {
                     <p className="mt-2 text-lg font-semibold">How well did you know it?</p>
                     <div className="mt-4 grid grid-cols-4 gap-2">
                       {RATINGS.map((r) => (
-                        <span key={r.label} className="flex flex-col items-center rounded-2xl py-2 text-xs font-semibold" style={{ background: `color-mix(in srgb, var(--color-tone-${r.tone}) 16%, transparent)`, color: `var(--color-tone-${r.tone})` }}>
+                        <span key={r.label} className="flex flex-col items-center rounded-xl py-2 text-xs font-semibold" style={{ background: `color-mix(in srgb, var(--color-tone-${r.tone}) 16%, transparent)`, color: `var(--color-tone-${r.tone})` }}>
                           {r.label}<span className="text-[10px] opacity-80">{r.when}</span>
                         </span>
                       ))}

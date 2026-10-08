@@ -238,8 +238,8 @@ export function BotThread({ onBack }: { onBack?: () => void } = {}) {
         <DropdownMenu.Root>
           <DropdownMenu.Trigger className="icon-btn" aria-label="Chat options"><MoreHorizontal className="size-5" /></DropdownMenu.Trigger>
           <DropdownMenu.Portal>
-            <DropdownMenu.Content align="end" sideOffset={8} collisionPadding={12} className="popup w-56 p-1.5">
-              <DropdownMenu.Item disabled={!messages.length} className="flex h-10 cursor-pointer items-center gap-3 rounded-xl px-3 text-sm text-tone-1 outline-none data-[disabled]:cursor-default data-[disabled]:opacity-40 data-[highlighted]:bg-tone-1/10" onSelect={() => setConfirmClear(true)}>
+            <DropdownMenu.Content align="end" sideOffset={8} collisionPadding={12} className="popup w-56 p-1.5 [--pad:--spacing(1.5)]">
+              <DropdownMenu.Item disabled={!messages.length} className="flex h-10 cursor-pointer items-center gap-3 rounded-concentric px-3 text-sm text-tone-1 outline-none data-[disabled]:cursor-default data-[disabled]:opacity-40 data-[highlighted]:bg-tone-1/10" onSelect={() => setConfirmClear(true)}>
                 Clear chat
               </DropdownMenu.Item>
             </DropdownMenu.Content>
@@ -316,7 +316,7 @@ export function BotThread({ onBack }: { onBack?: () => void } = {}) {
 
       <footer className="border-t border-line p-2.5 md:p-3">
         {replyTo && <ReplyBar name={replyTo.senderId === profile ? "yourself" : BOT_NAME} preview={previewText(replyTo)} onCancel={() => setReplyTo(null)} />}
-        <form className="flex items-end gap-1 rounded-[1.6rem] border border-line bg-porcelain p-1.5 pl-3 transition focus-within:border-second-500/60" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+        <form className="flex items-end gap-1 rounded-xl border border-line bg-porcelain p-1.5 pl-3 transition focus-within:border-second-500/60" onSubmit={(e) => { e.preventDefault(); submit(); }}>
           <textarea
             ref={input} rows={1} value={text} maxLength={MAX_MESSAGE + 200} aria-label={`Message ${BOT_NAME}`} autoFocus
             placeholder="Type your message"

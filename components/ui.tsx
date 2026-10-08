@@ -63,10 +63,10 @@ export function Dropdown<T extends string>({ label, value, onChange, options, di
           <Select.Icon><ChevronDown className="size-4 text-muted" /></Select.Icon>
         </Select.Trigger>
         <Select.Portal>
-          <Select.Content position="popper" sideOffset={6} className="popup w-(--radix-select-trigger-width) p-1">
+          <Select.Content position="popper" sideOffset={6} className="popup w-(--radix-select-trigger-width) p-1 [--pad:--spacing(1)]">
             <Select.Viewport>
               {options.map((o) => (
-                <Select.Item key={o.value} value={o.value} className="flex h-9 cursor-pointer items-center justify-between rounded-lg px-3 text-sm outline-none data-highlighted:bg-volt-50 data-highlighted:text-volt-700">
+                <Select.Item key={o.value} value={o.value} className="flex h-9 cursor-pointer items-center justify-between rounded-concentric px-3 text-sm outline-none data-highlighted:bg-volt-50 data-highlighted:text-volt-700">
                   <Select.ItemText>{o.label}</Select.ItemText>
                   <Select.ItemIndicator><Check className="size-4" /></Select.ItemIndicator>
                 </Select.Item>

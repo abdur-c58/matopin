@@ -68,7 +68,7 @@ function DayDetails({ dayEntries, at, now, names, cards }: { dayEntries: Entry[]
         <div className="space-y-5">
           <div className="grid grid-cols-3 gap-2 text-center">
             {[["Reviews", dayEntries.length], ["Time", formatDuration(studyMs(dayEntries))], ["Again", again]].map(([label, value]) => (
-              <div key={label} className="rounded-lg bg-raised px-2 py-3">
+              <div key={label} className="rounded-md bg-raised px-2 py-3">
                 <p className="text-xl font-bold tabular-nums">{value}</p>
                 <p className="text-xs text-muted">{label}</p>
               </div>

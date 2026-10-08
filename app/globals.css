@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../styles/tokens.css";
 
 @theme {
   --font-sans: var(--font-pinyin), var(--font-urbanist), var(--font-noto-sc), ui-sans-serif, system-ui, sans-serif;
@@ -24,17 +25,6 @@
   --color-second-500: var(--second);
   --color-second-600: color-mix(in srgb, var(--second) 85%, black);
   --color-on-second: var(--on-second);
-  /* Every corner is a fixed share of the device corner (--corner, below), from badges up to sheets, so the whole
-     interface keeps the same proportions as the hardware around it. Drawn as continuous corners further down. */
-  --radius-xs: calc(var(--corner) * 0.083);
-  --radius-sm: calc(var(--corner) * 0.111);
-  --radius-md: calc(var(--corner) * 0.167);
-  --radius-lg: calc(var(--corner) * 0.222);
-  --radius-xl: calc(var(--corner) * 0.333);
-  --radius-2xl: calc(var(--corner) * 0.389);
-  --radius-3xl: calc(var(--corner) * 0.472);
-  --radius-4xl: calc(var(--corner) * 0.583);
-
   --shadow-card: 0 1px 0 rgb(255 255 255 / 0.03) inset;
   --shadow-pop: 0 24px 60px -12px rgb(0 0 0 / 0.7);
 
@@ -63,10 +53,6 @@
 }
 
 @layer base {
-  /* An Apple device's outer corner is about 11.5mm, which is about 72 CSS pixels at the size screens are designed for
-     (CSS can't measure real millimetres). Smaller screens scale it down with their short side, so a compact phone gets
-     proportionally smaller corners. */
-  :root { --corner: clamp(52px, 18vmin, 72px); }
   :root { --accent: #d7f25a; --on-accent: #131313; --second: #ff9a3c; --on-second: #131313; }
   html { color-scheme: dark; }
   /* Nothing on the page should ever scroll it sideways; clip (unlike hidden) keeps sticky headers working. */
@@ -78,10 +64,6 @@
   /* The installed app has no browser around it, so links shouldn't open the browser's long-press preview. */
   @media (display-mode: standalone) {
     a { -webkit-touch-callout: none; }
-  }
-  /* Continuous (squircle) corners like iOS and macOS, where the browser can draw them. Circles and pills stay round. */
-  :where(.btn, .icon-btn, .field, .surface, .popup, .chip, [class*="rounded-"], [data-sonner-toast]):not([class*="rounded-full"]) {
-    corner-shape: superellipse(1.2);
   }
   /* The installed app behaves like an app: no pinch or double-tap zoom, and no sideways swipe between pages. */
   html, body { overscroll-behavior-x: none; }
@@ -95,7 +77,7 @@
   button:not(:disabled), [role="button"]:not([aria-disabled="true"]), [role="tab"], [role="radio"], [role="menuitem"], [role="menuitemradio"], [role="option"], label:has(> input[type="checkbox"]), summary { cursor: pointer; }
 
   input[type="checkbox"] {
-    @apply relative grid size-[18px] shrink-0 appearance-none place-items-center rounded-[5px] border-[1.5px] border-muted/60 bg-transparent transition-colors duration-150;
+    @apply relative grid size-[18px] shrink-0 appearance-none place-items-center rounded-xs border-[1.5px] border-muted/60 bg-transparent transition-colors duration-150;
     @apply hover:border-ink checked:border-volt-500 checked:bg-volt-500 checked:hover:border-volt-700 checked:hover:bg-volt-700 disabled:cursor-not-allowed disabled:opacity-40;
   }
   /* The tick is a mask so it takes the theme's on-accent colour. */
@@ -123,7 +105,7 @@
 }
 
 @layer components {
-  .btn { @apply inline-flex h-10 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold whitespace-nowrap transition-colors duration-150 select-none disabled:pointer-events-none disabled:opacity-45; }
+  .btn { @apply inline-flex h-10 items-center justify-center gap-2 rounded-md px-4 text-sm font-semibold whitespace-nowrap transition-colors duration-150 select-none disabled:pointer-events-none disabled:opacity-45; }
   .btn-primary { @apply bg-volt-600 text-on-volt hover:bg-volt-700; }
   .btn-second { @apply bg-second-500 text-on-second hover:bg-second-600; }
   .btn-secondary { @apply border border-line text-ink hover:border-ink/25 hover:bg-raised; }
@@ -143,17 +125,17 @@
   .btn-shard.icon-btn { @apply border-transparent text-muted hover:scale-110 hover:border-volt-500 hover:text-zinc-100; }
   .btn-danger { @apply bg-tone-1 text-white hover:bg-tone-1/90; }
   .btn-danger-outline { @apply border border-tone-1/40 text-tone-1 hover:bg-tone-1/10; }
-  .icon-btn { @apply inline-grid size-9 place-items-center rounded-lg text-muted transition-colors duration-150 hover:bg-raised hover:text-ink disabled:opacity-40; }
-  .field { @apply h-10 w-full rounded-lg border border-line bg-porcelain px-3 text-sm text-ink transition duration-150 outline-none placeholder:text-muted/70 hover:border-ink/20 focus:border-volt-500/70 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-line; }
+  .icon-btn { @apply inline-grid size-9 place-items-center rounded-md text-muted transition-colors duration-150 hover:bg-raised hover:text-ink disabled:opacity-40; }
+  .field { @apply h-10 w-full rounded-md border border-line bg-porcelain px-3 text-sm text-ink transition duration-150 outline-none placeholder:text-muted/70 hover:border-ink/20 focus:border-volt-500/70 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-line; }
   .label { @apply mb-1.5 block text-xs font-medium text-muted; }
-  .surface { @apply rounded-xl border border-line bg-surface; }
-  .chip { @apply inline-flex h-7 items-center rounded-md border border-line px-2.5 text-xs font-medium text-muted transition-colors hover:border-ink/25 hover:text-ink; }
+  .surface { @apply rounded-lg border border-line bg-surface; }
+  .chip { @apply inline-flex h-7 items-center rounded-sm border border-line px-2.5 text-xs font-medium text-muted transition-colors hover:border-ink/25 hover:text-ink; }
   .chip-on { @apply border-ink bg-ink text-porcelain hover:border-ink hover:text-porcelain; }
   /* Section tabs and filters: plain words, the chosen one underlined. */
   .tab { @apply -mb-px inline-flex h-9 items-center border-b-2 border-transparent text-sm font-medium text-muted transition-colors hover:text-ink; }
   .tab-on { @apply border-volt-500 text-ink; }
   .overlay { @apply fixed inset-0 z-40 bg-black/60 data-[state=open]:animate-fade; }
-  .popup { @apply z-50 rounded-2xl border border-line bg-surface shadow-pop data-[state=open]:animate-pop; }
+  .popup { @apply z-50 rounded-xl border border-line bg-surface shadow-pop data-[state=open]:animate-pop; }
 }
 
 /* Japanese text gets Japanese glyph shapes (Chinese fonts draw kanji like 直 or 骨 differently). Outside the

@@ -13,7 +13,7 @@ type DeckFilter = "all" | "following" | "joined";
 
 function SearchBox({ value, onChange, label, autoFocus = false }: { value: string; onChange: (v: string) => void; label: string; autoFocus?: boolean }) {
   return (
-    <label className="flex h-10 items-center gap-2 rounded-lg border border-line bg-porcelain pr-4 pl-3 transition focus-within:border-volt-500/60">
+    <label className="flex h-10 items-center gap-2 rounded-md border border-line bg-porcelain pr-4 pl-3 transition focus-within:border-volt-500/60">
       <Search className="size-4 shrink-0 text-muted" />
       <input className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted/80" placeholder={label} aria-label={label} value={value} autoFocus={autoFocus}
         onChange={(e) => onChange(e.target.value)} onKeyDown={(e) => { if (e.key === "Escape" && value) { e.stopPropagation(); onChange(""); } }} />
@@ -108,7 +108,7 @@ export function FindPeopleDialog({ open, onOpenChange }: { open: boolean; onOpen
               <li className="p-6 text-center text-sm text-muted">{query.trim() ? "No one matches that name." : "No one else is here yet."}</li>
             )}
             {people?.map((p) => (
-              <li key={p.id} className="flex items-center gap-3 rounded-lg p-2 transition hover:bg-raised/60">
+              <li key={p.id} className="flex items-center gap-3 rounded-md p-2 transition hover:bg-raised/60">
                 <Link href={`/u/${p.id}`} className="flex min-w-0 flex-1 items-center gap-3" onClick={() => onOpenChange(false)}>
                   <PersonAvatar person={p} className="size-10 text-base" />
                   <span className="min-w-0">

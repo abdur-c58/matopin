@@ -151,7 +151,7 @@ export function AppSettings() {
           {SHORTCUTS.map(([keys, what]) => (
             <li key={what} className="flex items-center justify-between gap-4 py-2.5 text-sm">
               <span className="text-muted">{what}</span>
-              <kbd className="rounded-lg border border-line bg-raised px-2 py-0.5 font-mono text-xs whitespace-nowrap">{keys}</kbd>
+              <kbd className="rounded-md border border-line bg-raised px-2 py-0.5 font-mono text-xs whitespace-nowrap">{keys}</kbd>
             </li>
           ))}
         </ul>

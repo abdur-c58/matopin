@@ -10,7 +10,7 @@ type Selection = { selecting: boolean; selected: ReadonlySet<string>; onToggle: 
 
 function Tick({ on }: { on: boolean }) {
   return (
-    <span aria-hidden className={`grid size-5 shrink-0 place-items-center rounded-[6px] border transition-colors ${on ? "border-volt-500 bg-volt-500 text-on-volt" : "border-line bg-surface"}`}>
+    <span aria-hidden className={`grid size-5 shrink-0 place-items-center rounded-xs border transition-colors ${on ? "border-volt-500 bg-volt-500 text-on-volt" : "border-line bg-surface"}`}>
       {on && <Check className="size-3.5" strokeWidth={3} />}
     </span>
   );
@@ -45,7 +45,7 @@ function ViewRow({ card, active, voiced, onSelect, selecting, picked }: { card: 
             )}
           </div>
           <div className="flex shrink-0 flex-col items-end gap-1.5">
-            <span className="rounded-md bg-volt-50 px-1.5 py-0.5 text-[11px] font-medium text-volt-700">{CARD_KIND_LABELS[card.kind]}</span>
+            <span className="rounded-sm bg-volt-50 px-1.5 py-0.5 text-[11px] font-medium text-volt-700">{CARD_KIND_LABELS[card.kind]}</span>
             {conversation && <span className="text-[11px] text-muted">Conversation</span>}
             <span title={voiced ? "Audio ready" : "No audio yet"} className={`size-2 rounded-full ${voiced ? "bg-tone-3" : "bg-line"}`} />
           </div>
@@ -75,7 +75,7 @@ function CompactRow({ card, active, onSelect, selecting, picked }: { card: Card;
         <span className="max-w-[45%] shrink-0 truncate font-hanzi text-base">{card.term || <span className="text-muted">—</span>}</span>
         <span className="hidden min-w-0 shrink truncate text-xs font-medium sm:inline-flex sm:gap-x-1"><Pinyin text={card.reading} /></span>
         <span className="min-w-0 flex-1 truncate text-sm text-muted">{card.meaning}</span>
-        {card.kind !== "term" && <span className="shrink-0 rounded-md bg-volt-50 px-1.5 py-0.5 text-[10px] font-medium text-volt-700">{CARD_KIND_LABELS[card.kind]}</span>}
+        {card.kind !== "term" && <span className="shrink-0 rounded-sm bg-volt-50 px-1.5 py-0.5 text-[10px] font-medium text-volt-700">{CARD_KIND_LABELS[card.kind]}</span>}
       </button>
     </li>
   );

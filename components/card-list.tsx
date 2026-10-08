@@ -41,11 +41,11 @@ function fieldLabels(kind: CardKind, lang: Lang): { term: string; termHint: stri
 
 function KindPicker({ kind, onChange }: { kind: CardKind; onChange: (kind: CardKind) => void }) {
   return (
-    <div role="radiogroup" aria-label="Card type" className="inline-flex rounded-lg border border-line p-0.5">
+    <div role="radiogroup" aria-label="Card type" className="inline-flex rounded-md border border-line p-0.5">
       {CARD_KINDS.map((k) => (
         <button
           key={k} type="button" role="radio" aria-checked={kind === k} onClick={() => onChange(k)}
-          className={`h-7 rounded-md px-2.5 text-xs font-medium transition-colors ${kind === k ? "bg-volt-600 text-on-volt hover:bg-volt-700" : "text-muted hover:bg-volt-50 hover:text-ink"}`}
+          className={`h-7 rounded-sm px-2.5 text-xs font-medium transition-colors ${kind === k ? "bg-volt-600 text-on-volt hover:bg-volt-700" : "text-muted hover:bg-volt-50 hover:text-ink"}`}
         >
           {CARD_KIND_LABELS[k]}
         </button>

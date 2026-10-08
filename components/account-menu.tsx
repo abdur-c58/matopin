@@ -13,7 +13,7 @@ import { RailTip } from "./rail-tip";
 import { ProfileDialog, useProfile } from "./profiles";
 import { useGoal, useProfileData } from "./use-stats";
 
-const item = "flex h-10 cursor-pointer items-center gap-3 rounded-xl px-3 text-sm outline-none select-none data-[disabled]:cursor-default data-[disabled]:opacity-45 data-[highlighted]:bg-raised";
+const item = "flex h-10 cursor-pointer items-center gap-3 rounded-concentric px-3 text-sm outline-none select-none data-[disabled]:cursor-default data-[disabled]:opacity-45 data-[highlighted]:bg-raised";
 
 function Today() {
   const data = useProfileData();
@@ -23,12 +23,12 @@ function Today() {
   const streak = data ? streaks(entries, data.now).current : 0;
   return (
     <div className="grid grid-cols-2 gap-2 px-1 pb-2">
-      <div className="rounded-lg bg-porcelain p-3">
+      <div className="rounded-md bg-porcelain p-3">
         <p className="text-xs text-muted">Today</p>
         <p className="mt-0.5 text-sm"><span className="text-lg font-bold tabular-nums">{reviews}</span><span className="text-muted"> / {goal}</span></p>
         <ProgressBar value={reviews / goal} className="mt-2 h-1.5" />
       </div>
-      <div className="rounded-lg bg-porcelain p-3">
+      <div className="rounded-md bg-porcelain p-3">
         <p className="text-xs text-muted">Streak</p>
         <p className="mt-0.5 flex items-center gap-1.5 text-lg font-bold tabular-nums">
           <Flame className={`size-4 ${streak ? "text-volt-500" : "text-muted"}`} />{streak}
@@ -74,7 +74,7 @@ export function AccountMenu() {
         <DropdownMenu.Portal>
           <DropdownMenu.Content
             side="right" align="end" sideOffset={26} collisionPadding={12}
-            className="popup w-72 p-2"
+            className="popup w-72 p-2 [--pad:--spacing(2)]"
             onCloseAutoFocus={(e) => { if (editing) e.preventDefault(); }}
           >
             <div className="flex items-center gap-3 p-2 pb-3">
@@ -95,7 +95,7 @@ export function AccountMenu() {
                 <ChevronRight className="size-4 text-muted" />
               </DropdownMenu.SubTrigger>
               <DropdownMenu.Portal>
-                <DropdownMenu.SubContent sideOffset={10} collisionPadding={12} className="popup w-60 p-2">
+                <DropdownMenu.SubContent sideOffset={10} collisionPadding={12} className="popup w-60 p-2 [--pad:--spacing(2)]">
                   <DropdownMenu.Label className="px-3 pt-1 pb-2 text-xs text-muted">Example sentences match this level.</DropdownMenu.Label>
                   <DropdownMenu.RadioGroup value={fluency} onValueChange={(v) => void changeFluency(v as Fluency)}>
                     {FLUENCY_LEVELS.map((level) => (

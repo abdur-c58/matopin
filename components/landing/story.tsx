@@ -88,7 +88,7 @@ export function Story() {
         <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-muted md:text-lg">
           Memory fades fast unless something brings it back. Matopin shows each card{" "}
           <span className="relative inline-block whitespace-nowrap text-ink">
-            <span data-sweep className="landing-sweep absolute inset-[-0.05em_-0.2em] rounded-md" style={{ clipPath: "inset(0 0% 0 0)" }} aria-hidden />
+            <span data-sweep className="landing-sweep absolute inset-[-0.05em_-0.2em] rounded-sm" style={{ clipPath: "inset(0 0% 0 0)" }} aria-hidden />
             <span className="relative">right before you’d forget it</span>
           </span>
           , so it sticks with fewer reviews.
@@ -99,8 +99,8 @@ export function Story() {
         <div className="mx-auto flex max-w-4xl flex-col items-center justify-center gap-8 px-5 pt-12 sm:px-8 md:min-h-svh md:pt-0">
           <figure className="surface w-full p-4 sm:p-6">
             <div className="mb-3 flex flex-wrap items-center gap-4 text-xs text-muted">
-              <span className="inline-flex items-center gap-2"><span className="h-0.5 w-5 rounded bg-muted/60" />Without reviews</span>
-              <span className="inline-flex items-center gap-2"><span className="h-1 w-5 rounded bg-volt-500" />With Matopin</span>
+              <span className="inline-flex items-center gap-2"><span className="h-0.5 w-5 rounded-xs bg-muted/60" />Without reviews</span>
+              <span className="inline-flex items-center gap-2"><span className="h-1 w-5 rounded-xs bg-volt-500" />With Matopin</span>
             </div>
             <svg viewBox={`0 0 ${W} ${H + 24}`} className="w-full overflow-visible" role="img" aria-label="A memory curve that falls steeply without reviews, and one that each review restores, falling more slowly each time.">
               {[0.25, 0.5, 0.75, 1].map((m) => <line key={m} x1={PAD} x2={W - PAD} y1={y(m)} y2={y(m)} stroke="var(--color-line)" strokeDasharray="3 5" />)}

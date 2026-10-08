@@ -63,7 +63,7 @@ function Grid({ emojis, onPick, labels }: { emojis: string[]; onPick: (emoji: st
     <div className="grid grid-cols-8 gap-0.5">
       {emojis.map((emoji) => (
         <button key={emoji} type="button" title={labels?.get(emoji)} aria-label={labels?.get(emoji) ?? emoji}
-          className="grid size-9 place-items-center rounded-xl text-xl transition hover:scale-110 hover:bg-raised focus-visible:bg-raised"
+          className="grid size-9 place-items-center rounded-lg text-xl transition hover:scale-110 hover:bg-raised focus-visible:bg-raised"
           onClick={() => onPick(emoji)}>{emoji}</button>
       ))}
     </div>

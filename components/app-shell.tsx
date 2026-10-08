@@ -78,7 +78,7 @@ function Rail() {
   return (
     <aside className="fixed top-[calc(0.75rem+env(safe-area-inset-top))] bottom-3 left-[calc(0.75rem+env(safe-area-inset-left))] z-30 hidden w-[72px] flex-col items-center py-2 md:flex">
       <RailLanguageSwitcher>
-        <Link href="/app" aria-label={`${APP_NAME} dashboard, learning ${LANG_INFO[lang].name}`} className="rounded-xl transition hover:scale-105 hover:brightness-110 active:scale-95">
+        <Link href="/app" aria-label={`${APP_NAME} dashboard, learning ${LANG_INFO[lang].name}`} className="rounded-lg transition hover:scale-105 hover:brightness-110 active:scale-95">
           <LogoMark className="size-10" active={lang} />
         </Link>
       </RailLanguageSwitcher>
@@ -224,7 +224,7 @@ function GlobalSearch() {
 
   return (
     <div ref={box} className="relative w-full sm:w-72">
-      <label className="flex h-10 items-center gap-2 rounded-lg border border-line pr-3 pl-3 transition focus-within:border-volt-500/60">
+      <label className="flex h-10 items-center gap-2 rounded-md border border-line pr-3 pl-3 transition focus-within:border-volt-500/60">
         <Search className="size-4 shrink-0 text-muted" />
         <input
           className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted/80" placeholder="Search cards and decks" aria-label="Search cards and decks"
@@ -236,12 +236,12 @@ function GlobalSearch() {
         />
       </label>
       {open && query.trim() && (
-        <div className="popup absolute top-full right-0 mt-2 w-full min-w-72 overflow-hidden p-1.5 sm:w-96">
+        <div className="popup absolute top-full right-0 mt-2 w-full min-w-72 overflow-hidden p-1.5 [--pad:--spacing(1.5)] sm:w-96">
           {results.length === 0 && <p className="px-3 py-4 text-center text-sm text-muted">Nothing matches “{query.trim()}”.</p>}
           <ul>
             {results.map((r) => (
               <li key={r.key}>
-                <button type="button" className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-raised" onClick={() => go(r.href)}>
+                <button type="button" className="flex w-full items-center gap-3 rounded-concentric px-3 py-2 text-left transition hover:bg-raised" onClick={() => go(r.href)}>
                   <span className={`min-w-10 truncate ${r.hanzi ? "font-hanzi text-lg" : "text-sm font-semibold"}`}>{r.title}</span>
                   <span className="min-w-0 flex-1 truncate text-xs text-muted">{r.detail}</span>
                 </button>

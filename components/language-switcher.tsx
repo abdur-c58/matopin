@@ -18,9 +18,9 @@ function LanguageOptions({ onPicked, compact = false }: { onPicked?: () => void;
         const n = count(l);
         return (
           <button key={l} type="button" role="radio" aria-checked={on} onClick={() => { setLang(l); onPicked?.(); }}
-            className={`group flex items-center gap-3 rounded-lg p-2 text-left transition-colors ${on ? "bg-volt-50" : "hover:bg-raised"}`}>
+            className={`group flex items-center gap-3 rounded-md p-2 text-left transition-colors ${on ? "bg-volt-50" : "hover:bg-raised"}`}>
             <span lang={LANG_INFO[l].speech}
-              className={`grid shrink-0 place-items-center rounded-xl font-hanzi leading-none transition-colors ${compact ? "size-9 text-base" : "size-10 text-lg"} ${on ? "bg-volt-500 text-on-volt" : "bg-raised text-ink group-hover:bg-ink/10"}`}>
+              className={`grid shrink-0 place-items-center rounded-lg font-hanzi leading-none transition-colors ${compact ? "size-9 text-base" : "size-10 text-lg"} ${on ? "bg-volt-500 text-on-volt" : "bg-raised text-ink group-hover:bg-ink/10"}`}>
               {LANG_INFO[l].badge}
             </span>
             <span className="min-w-0 flex-1">
@@ -51,7 +51,7 @@ export function RailLanguageSwitcher({ children }: { children: React.ReactNode }
       <HoverCard.Trigger asChild>{children}</HoverCard.Trigger>
       <HoverCard.Portal>
         <HoverCard.Content side="right" align="start" sideOffset={14} collisionPadding={12}
-          className="relative z-50 w-72 animate-tip rounded-xl border border-line bg-surface/95 p-2 shadow-pop backdrop-blur-xl data-[state=closed]:animate-tip-out">
+          className="relative z-50 w-72 animate-tip rounded-lg border border-line bg-surface/95 p-2 shadow-pop backdrop-blur-xl data-[state=closed]:animate-tip-out">
           <span aria-hidden className="absolute top-5 -left-3.5 h-px w-3.5 bg-volt-500/70" />
           <span aria-hidden className="absolute top-5 -left-4 size-1.5 -translate-y-1/2 rounded-full bg-volt-500/70" />
           <div className="flex items-baseline justify-between px-2 pt-1 pb-2">

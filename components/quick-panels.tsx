@@ -30,10 +30,10 @@ function SideTab({ kinds, onOpen }: { kinds: PanelKind[]; onOpen: (kind: PanelKi
   const unread = useChatBadge();
   if (!kinds.length) return null;
   return (
-    <div className="fixed top-[58%] right-0 z-30 flex flex-col gap-0.5 rounded-l-xl border border-r-0 border-line bg-surface/95 p-0.5 pr-[max(0.125rem,env(safe-area-inset-right))] shadow-pop backdrop-blur-xs md:hidden">
+    <div className="fixed top-[58%] right-0 z-30 flex flex-col gap-0.5 rounded-l-lg border border-r-0 border-line bg-surface/95 p-0.5 pr-[max(0.125rem,env(safe-area-inset-right))] shadow-pop backdrop-blur-xs md:hidden">
       {kinds.map((kind) => (
         <button key={kind} type="button" onClick={() => onOpen(kind)} aria-label={kind === "chat" ? "Open chats" : "Open dictionary"}
-          className="relative grid size-8 place-items-center rounded-lg text-muted transition-colors active:bg-raised active:text-ink">
+          className="relative grid size-8 place-items-center rounded-md text-muted transition-colors active:bg-raised active:text-ink">
           {kind === "chat" ? <MessageCircle className="size-4" /> : <BookA className="size-4" />}
           {kind === "chat" && unread > 0 && <span className="absolute top-1 right-1 size-2 rounded-full bg-tone-1" aria-label={`${unread} unread`} />}
         </button>

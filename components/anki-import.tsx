@@ -168,7 +168,7 @@ export function AnkiImport({ open, onOpenChange }: { open: boolean; onOpenChange
                 onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
                 onDragLeave={() => setDragging(false)}
                 onDrop={(e) => { e.preventDefault(); setDragging(false); void pick(e.dataTransfer.files[0]); }}
-                className={`flex min-h-48 w-full flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed p-6 text-center transition ${dragging ? "border-volt-500 bg-volt-50" : "border-line hover:border-volt-500/60"}`}
+                className={`flex min-h-48 w-full flex-col items-center justify-center gap-3 rounded-md border-2 border-dashed p-6 text-center transition ${dragging ? "border-volt-500 bg-volt-50" : "border-line hover:border-volt-500/60"}`}
               >
                 <span className="grid size-12 place-items-center rounded-full bg-raised text-volt-500">
                   {reading ? <LoaderCircle className="size-6 animate-spin" /> : <FileUp className="size-6" />}
@@ -189,7 +189,7 @@ export function AnkiImport({ open, onOpenChange }: { open: boolean; onOpenChange
                 {choices.length > 1 && (
                   <section>
                     <h3 className="text-sm font-semibold">Decks</h3>
-                    <ul className="mt-2 divide-y divide-line rounded-xl border border-line">
+                    <ul className="mt-2 divide-y divide-line rounded-lg border border-line">
                       {choices.map((deck) => (
                         <li key={deck.id}>
                           <label className="flex cursor-pointer items-center gap-3 px-3 py-2.5">
@@ -214,7 +214,7 @@ export function AnkiImport({ open, onOpenChange }: { open: boolean; onOpenChange
                   return (
                     <section key={type.id}>
                       <h3 className="text-sm font-semibold">Fields{types.length > 1 && <span className="font-normal text-muted"> · {type.name}</span>}</h3>
-                      <div className="mt-2 divide-y divide-line rounded-xl border border-line">
+                      <div className="mt-2 divide-y divide-line rounded-lg border border-line">
                         {type.fields.map((field, i) => {
                           const value = sample ? cleanField(sample.fields[i] ?? "").replace(/\n/g, " · ") : "";
                           return (
@@ -258,7 +258,7 @@ export function AnkiImport({ open, onOpenChange }: { open: boolean; onOpenChange
                     <h3 className="text-sm font-semibold">Preview</h3>
                     <ul className="mt-2 grid gap-2 sm:grid-cols-3">
                       {usable.slice(0, 3).map((card) => (
-                        <li key={card.id} className="rounded-xl border border-line p-3 text-center">
+                        <li key={card.id} className="rounded-lg border border-line p-3 text-center">
                           <p className="truncate text-xs text-muted">{card.reading || `No ${readingName}`}</p>
                           <p className="truncate text-2xl font-medium">{card.term || "—"}</p>
                           <p className="mt-1 truncate text-sm text-muted">{card.meaning || "No meaning"}</p>
@@ -268,7 +268,7 @@ export function AnkiImport({ open, onOpenChange }: { open: boolean; onOpenChange
                   </section>
                 )}
 
-                <label className={`flex items-start gap-3 rounded-xl border border-line p-3 ${studied ? "cursor-pointer" : "opacity-60"}`}>
+                <label className={`flex items-start gap-3 rounded-lg border border-line p-3 ${studied ? "cursor-pointer" : "opacity-60"}`}>
                   <input type="checkbox" className="mt-0.5 size-4 accent-volt-600" disabled={!studied} checked={progress && studied > 0} onChange={(e) => setProgress(e.target.checked)} />
                   <span>
                     <span className="flex items-center gap-1.5 text-sm font-medium">Keep my Anki review progress</span>
@@ -281,14 +281,14 @@ export function AnkiImport({ open, onOpenChange }: { open: boolean; onOpenChange
                 </label>
 
                 {withAudio > 0 && (
-                  <p className="flex items-start gap-2 rounded-xl bg-raised px-3 py-2.5 text-sm text-muted">
+                  <p className="flex items-start gap-2 rounded-lg bg-raised px-3 py-2.5 text-sm text-muted">
                     
                     {plural(withAudio, "card")} {withAudio === 1 ? "keeps its" : "keep their"} audio from Anki. Editing a card’s text switches it to a generated voice.
                   </p>
                 )}
 
                 {noPinyin > 0 && (
-                  <p className="flex items-start gap-2 rounded-xl bg-raised px-3 py-2.5 text-sm text-muted">
+                  <p className="flex items-start gap-2 rounded-lg bg-raised px-3 py-2.5 text-sm text-muted">
                     
                     {plural(noPinyin, "card")} {noPinyin === 1 ? "has" : "have"} no {readingName}. They still import, and you can add it while editing cards.
                   </p>

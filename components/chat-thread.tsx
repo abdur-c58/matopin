@@ -45,7 +45,7 @@ export function upsert(list: Local[], incoming: Message[], fresh?: { from: numbe
 function Body({ text }: { text: string }) {
   return (
     <p className="text-[15px] leading-snug break-words whitespace-pre-wrap">
-      {text.split(/(@ask\b)/i).map((part, i) => (i % 2 ? <span key={i} className="rounded-md bg-second-500/25 px-1 font-semibold text-second-300">{part}</span> : part))}
+      {text.split(/(@ask\b)/i).map((part, i) => (i % 2 ? <span key={i} className="rounded-sm bg-second-500/25 px-1 font-semibold text-second-300">{part}</span> : part))}
     </p>
   );
 }
@@ -74,7 +74,7 @@ export function BotTyping({ lang }: { lang: Lang }) {
   return (
     <div className="mt-3 flex items-end gap-2 px-3 md:px-5" role="status" aria-label={`${BOT_NAME} is writing`}>
       <BotAvatar thinking />
-      <span className="flex animate-pop items-center gap-2.5 rounded-3xl rounded-bl-lg border border-second-500/40 bg-second-500/10 py-2.5 pr-4 pl-3">
+      <span className="flex animate-pop items-center gap-2.5 rounded-2xl rounded-bl-md border border-second-500/40 bg-second-500/10 py-2.5 pr-4 pl-3">
         <span className="grid grid-cols-2 gap-[3px]" aria-hidden>
           {[0, 1, 3, 2].map((step) => <span key={step} className="bot-tile size-[7px] rounded-[2.5px] bg-second-300" style={{ animationDelay: `${step * 0.25}s` }} />)}
         </span>
@@ -86,11 +86,11 @@ export function BotTyping({ lang }: { lang: Lang }) {
 
 function DeckBubble({ deck, onOpen }: { deck: ChatDeck | null; onOpen: (id: string) => void }) {
   if (!deck || deck.unavailable) {
-    return <div className="flex items-center gap-2 rounded-3xl border border-dashed border-line px-4 py-3 text-sm text-muted">This deck isn’t available any more.</div>;
+    return <div className="flex items-center gap-2 rounded-2xl border border-dashed border-line px-4 py-3 text-sm text-muted">This deck isn’t available any more.</div>;
   }
   const owner = deck.role === "owner";
   return (
-    <div className="w-72 max-w-full overflow-hidden rounded-3xl border border-line bg-surface text-ink">
+    <div className="w-72 max-w-full overflow-hidden rounded-2xl border border-line bg-surface text-ink">
       <button type="button" className="flex w-full items-start gap-3 p-3.5 text-left transition hover:bg-raised/50" onClick={() => onOpen(deck.id)}>
         <span className="min-w-0 flex-1">
           <span className="block truncate font-bold">{deck.name}</span>
@@ -149,10 +149,10 @@ export function MessageRow({ m, mine, grouped, people, showName = false, active,
   }
 
   const bubble = m.kind === "deck" ? "" : mine
-    ? `rounded-3xl ${grouped ? "rounded-tr-lg" : ""} rounded-br-lg bg-volt-500 px-3.5 py-2 text-on-volt`
+    ? `rounded-2xl ${grouped ? "rounded-tr-md" : ""} rounded-br-md bg-volt-500 px-3.5 py-2 text-on-volt`
     : bot
-      ? `rounded-3xl ${grouped ? "rounded-tl-lg" : ""} rounded-bl-lg border border-second-500/40 bg-second-500/10 px-3.5 py-2`
-      : `rounded-3xl ${grouped ? "rounded-tl-lg" : ""} rounded-bl-lg bg-raised px-3.5 py-2`;
+      ? `rounded-2xl ${grouped ? "rounded-tl-md" : ""} rounded-bl-md border border-second-500/40 bg-second-500/10 px-3.5 py-2`
+      : `rounded-2xl ${grouped ? "rounded-tl-md" : ""} rounded-bl-md bg-raised px-3.5 py-2`;
 
   return (
     <div id={`msg-${m.id}`} className={`group flex items-end gap-2 px-3 md:px-5 ${mine ? "flex-row-reverse" : ""} ${grouped ? "mt-0.5" : "mt-3"}`}>
@@ -171,7 +171,7 @@ export function MessageRow({ m, mine, grouped, people, showName = false, active,
               {who(m.senderId)} replied to {who(m.replyTo.senderId) === "You" ? (mine ? "yourself" : "you") : who(m.replyTo.senderId)}
             </span>
             <button type="button" onClick={() => onJump(m.replyTo!.id)}
-              className="-mb-3 max-w-[90%] rounded-[1.25rem] bg-raised/70 px-3.5 pt-2 pb-4 text-left text-[13px] leading-snug text-muted transition hover:bg-raised hover:text-ink">
+              className="-mb-3 max-w-[90%] rounded-lg bg-raised/70 px-3.5 pt-2 pb-4 text-left text-[13px] leading-snug text-muted transition hover:bg-raised hover:text-ink">
               <span className="line-clamp-2">{previewText(m.replyTo)}</span>
             </button>
           </>
@@ -227,7 +227,7 @@ export function MessageRow({ m, mine, grouped, people, showName = false, active,
 
 export function ReplyBar({ name, preview, onCancel }: { name: string; preview: string; onCancel: () => void }) {
   return (
-    <div className="mb-2 flex animate-pop items-center gap-2 rounded-[1.25rem] bg-raised/60 py-1.5 pr-1.5 pl-4">
+    <div className="mb-2 flex animate-pop items-center gap-2 rounded-lg bg-raised/60 py-1.5 pr-1.5 pl-4">
       <span className="min-w-0 flex-1">
         <span className="block text-[11px] text-muted">Replying to <span className="font-semibold text-ink">{name}</span></span>
         <span className="block truncate text-sm text-ink/80">{preview}</span>
@@ -259,7 +259,7 @@ function DeckPicker({ onPick, disabled }: { onPick: (deck: DeckSummary) => void;
             {decks && shown.length === 0 && <li className="px-2 py-4 text-center text-sm text-muted">{decks.length ? "No deck matches." : "You don’t have any decks yet."}</li>}
             {shown.map((d) => (
               <li key={d.id}>
-                <button type="button" className="flex w-full items-center gap-2.5 rounded-2xl px-2 py-2 text-left transition hover:bg-raised" onClick={() => { setOpen(false); onPick(d); }}>
+                <button type="button" className="flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-left transition hover:bg-raised" onClick={() => { setOpen(false); onPick(d); }}>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-semibold">{d.name}</span>
                     <span className="block text-xs text-muted">{plural(d.cards, "card")}{d.role !== "owner" && d.ownerName ? ` · by ${d.ownerName}` : ""}</span>
@@ -282,7 +282,7 @@ function PrivateDeckAlert({ deck, name, busy, onShare, onCancel }: { deck: DeckS
     { value: "public" as const, label: "Make public & send", detail: "Anyone can find it in Social and save a copy." },
   ];
   return (
-    <div role="alertdialog" aria-labelledby="private-deck-title" aria-describedby="private-deck-detail" className="mb-2 animate-pop rounded-3xl border border-tone-2/40 bg-tone-2/10 p-4">
+    <div role="alertdialog" aria-labelledby="private-deck-title" aria-describedby="private-deck-detail" className="mb-2 animate-pop rounded-2xl border border-tone-2/40 bg-tone-2/10 p-4">
       <p id="private-deck-title" className="font-semibold">“{deck.name}” is private</p>
       <p id="private-deck-detail" className="mt-1 text-sm text-muted">
         {owner ? `${name} can’t open private decks, so it wasn’t sent. Share it and it sends right away.` : "Its owner keeps it private, so it can’t be sent."}
@@ -291,7 +291,7 @@ function PrivateDeckAlert({ deck, name, busy, onShare, onCancel }: { deck: DeckS
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {options.map(({ value, label, detail }) => (
             <button key={value} type="button" disabled={busy != null} onClick={() => onShare(value)}
-              className="rounded-2xl border border-line bg-surface p-3 text-left transition hover:border-volt-500/60 hover:bg-raised disabled:opacity-60">
+              className="rounded-xl border border-line bg-surface p-3 text-left transition hover:border-volt-500/60 hover:bg-raised disabled:opacity-60">
               <span className="flex items-center gap-2 text-sm font-semibold">{busy === value && <LoaderCircle className="size-4 animate-spin" />}{label}</span>
               <span className="mt-1 block text-xs text-muted">{detail}</span>
             </button>
@@ -670,23 +670,23 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
         <DropdownMenu.Root>
           <DropdownMenu.Trigger className="icon-btn ml-auto" aria-label="Chat options"><MoreHorizontal className="size-5" /></DropdownMenu.Trigger>
           <DropdownMenu.Portal>
-            <DropdownMenu.Content align="end" sideOffset={8} collisionPadding={12} className="popup w-64 p-1.5">
+            <DropdownMenu.Content align="end" sideOffset={8} collisionPadding={12} className="popup w-64 p-1.5 [--pad:--spacing(1.5)]">
               {person ? (
-                <DropdownMenu.Item asChild className="flex h-10 cursor-pointer items-center gap-3 rounded-xl px-3 text-sm outline-none data-[highlighted]:bg-raised">
+                <DropdownMenu.Item asChild className="flex h-10 cursor-pointer items-center gap-3 rounded-concentric px-3 text-sm outline-none data-[highlighted]:bg-raised">
                   <Link href={`/u/${person.id}`}>View profile</Link>
                 </DropdownMenu.Item>
               ) : (
-                <DropdownMenu.Item className="flex h-10 cursor-pointer items-center gap-3 rounded-xl px-3 text-sm outline-none data-[highlighted]:bg-raised" onSelect={() => setInfo(true)}>
+                <DropdownMenu.Item className="flex h-10 cursor-pointer items-center gap-3 rounded-concentric px-3 text-sm outline-none data-[highlighted]:bg-raised" onSelect={() => setInfo(true)}>
                   Members and settings
                 </DropdownMenu.Item>
               )}
               {chat && bothAccepted && (bao || chat.aiEnabled) && (
-                <DropdownMenu.Item className="flex h-10 cursor-pointer items-center gap-3 rounded-xl px-3 text-sm outline-none data-[highlighted]:bg-raised" onSelect={() => (chat.aiEnabled ? void setBot(false) : setConfirmAi(true))}>
+                <DropdownMenu.Item className="flex h-10 cursor-pointer items-center gap-3 rounded-concentric px-3 text-sm outline-none data-[highlighted]:bg-raised" onSelect={() => (chat.aiEnabled ? void setBot(false) : setConfirmAi(true))}>
                   {chat.aiEnabled ? "Remove Bao" : "Add Bao"}
                 </DropdownMenu.Item>
               )}
               {person && chat && chat.myStatus !== "pending" && (
-                <DropdownMenu.Item className={`flex h-10 cursor-pointer items-center gap-3 rounded-xl px-3 text-sm outline-none ${chat.myStatus === "declined" ? "data-[highlighted]:bg-raised" : "text-tone-1 data-[highlighted]:bg-tone-1/10"}`}
+                <DropdownMenu.Item className={`flex h-10 cursor-pointer items-center gap-3 rounded-concentric px-3 text-sm outline-none ${chat.myStatus === "declined" ? "data-[highlighted]:bg-raised" : "text-tone-1 data-[highlighted]:bg-tone-1/10"}`}
                   onSelect={() => void respond(chat.myStatus === "declined")}>
                   {chat.myStatus === "declined" ? "Turn messages back on" : `Turn off messages from ${title}`}
                 </DropdownMenu.Item>
@@ -742,7 +742,7 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
 
       <footer className="border-t border-line p-2.5 md:p-3">
         {chat?.myStatus === "pending" && group ? (
-          <div className="rounded-3xl bg-raised/60 p-4 text-center">
+          <div className="rounded-2xl bg-raised/60 p-4 text-center">
             <p className="font-semibold">You’ve been added to {title}</p>
             <p className="mt-1 text-sm text-muted">Join to send messages. If you decline, you leave the group.</p>
             <div className="mt-3 flex justify-center gap-2">
@@ -755,7 +755,7 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
             </div>
           </div>
         ) : chat?.myStatus === "pending" ? (
-          <div className="rounded-3xl bg-raised/60 p-4 text-center">
+          <div className="rounded-2xl bg-raised/60 p-4 text-center">
             <p className="font-semibold">{title} wants to message you</p>
             <p className="mt-1 text-sm text-muted">Accept to reply. If you turn messages off, they can’t message you until you turn them back on from their profile.</p>
             <div className="mt-3 flex justify-center gap-2">
@@ -768,14 +768,14 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
             </div>
           </div>
         ) : chat?.myStatus === "declined" ? (
-          <div className="flex flex-wrap items-center justify-center gap-3 rounded-3xl bg-raised/60 p-4 text-center text-sm">
+          <div className="flex flex-wrap items-center justify-center gap-3 rounded-2xl bg-raised/60 p-4 text-center text-sm">
             <span className="text-muted">You turned off messages from {title}.</span>
             <button type="button" className="btn btn-secondary h-9" disabled={busy != null} onClick={() => void respond(true)}>
               {busy === "accept" && <LoaderCircle className="size-4 animate-spin" />}Turn messages back on
             </button>
           </div>
         ) : chat?.theirStatus === "declined" ? (
-          <p className="rounded-3xl bg-raised/60 p-4 text-center text-sm text-muted">{title} isn’t accepting messages from you right now.</p>
+          <p className="rounded-2xl bg-raised/60 p-4 text-center text-sm text-muted">{title} isn’t accepting messages from you right now.</p>
         ) : (
           <>
             {chat?.theirStatus === "pending" && <p className="mb-2 px-2 text-xs text-muted">Waiting for {title} to accept your request. You can send a few more messages until then.</p>}
@@ -785,16 +785,16 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
                 preview={previewText({ kind: replyTo.kind, body: replyTo.body, deckName: replyTo.deck && !replyTo.deck.unavailable ? replyTo.deck.name : null })} />
             )}
             {suggestAsk && (
-              <button type="button" className="mb-2 flex w-full animate-pop items-center gap-3 rounded-2xl border border-second-500/40 bg-second-500/10 px-3 py-2 text-left" onMouseDown={(e) => e.preventDefault()} onClick={insertAsk}>
+              <button type="button" className="mb-2 flex w-full animate-pop items-center gap-3 rounded-xl border border-second-500/40 bg-second-500/10 px-3 py-2 text-left" onMouseDown={(e) => e.preventDefault()} onClick={insertAsk}>
                 <BotAvatar className="size-7" />
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-semibold text-second-300">@ask</span>
                   <span className="block text-xs text-muted">Ask Bao a Chinese question</span>
                 </span>
-                <kbd className="rounded-md border border-line px-1.5 py-0.5 text-[10px] text-muted">Tab</kbd>
+                <kbd className="rounded-sm border border-line px-1.5 py-0.5 text-[10px] text-muted">Tab</kbd>
               </button>
             )}
-            <form className={`flex items-end gap-1 rounded-[1.6rem] border bg-porcelain p-1.5 transition ${asksBot ? "border-second-500/60" : "border-line focus-within:border-volt-500/60"}`} onSubmit={(e) => { e.preventDefault(); submit(); }}>
+            <form className={`flex items-end gap-1 rounded-xl border bg-porcelain p-1.5 transition ${asksBot ? "border-second-500/60" : "border-line focus-within:border-volt-500/60"}`} onSubmit={(e) => { e.preventDefault(); submit(); }}>
               <DeckPicker onPick={pickDeck} disabled={!canSend} />
               {bao && <button type="button" className={`icon-btn shrink-0 ${asksBot ? "text-second-300" : ""}`} aria-label="Ask Bao" title="Ask Bao (@ask)" onClick={insertAsk}><Sparkles className="size-[18px]" /></button>}
               <textarea

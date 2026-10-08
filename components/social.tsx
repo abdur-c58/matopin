@@ -53,8 +53,8 @@ export function FollowButton({ person, onChange, className = "" }: { person: Per
 
 export function PersonRow({ person, self, onChange }: { person: Person; self: boolean; onChange: (next: Person) => void }) {
   return (
-    <li className="flex items-center gap-3 rounded-lg p-2 transition hover:bg-raised/60">
-      <Link href={`/u/${person.id}`} className="flex min-w-0 flex-1 items-center gap-3 rounded-xl">
+    <li className="flex items-center gap-3 rounded-md p-2 transition hover:bg-raised/60">
+      <Link href={`/u/${person.id}`} className="flex min-w-0 flex-1 items-center gap-3 rounded-lg">
         <PersonAvatar person={person} className="size-11 text-base" />
         <span className="min-w-0">
           <span className="flex items-center gap-2">
@@ -168,7 +168,7 @@ export function DeckPreviewDialog({ deckId, onClose, onSaved }: { deckId: string
                 <PersonAvatar person={shown.owner} className="size-6 text-[11px]" />by <span className="font-semibold text-ink">{shown.owner.name}</span>
               </button>
               <p className="mt-1 text-xs text-muted">{deckStats(shown)}</p>
-              <ul className="mt-4 min-h-0 flex-1 divide-y divide-line overflow-y-auto rounded-lg border border-line">
+              <ul className="mt-4 min-h-0 flex-1 divide-y divide-line overflow-y-auto rounded-md border border-line">
                 {shown.preview.length === 0 && <li className="p-6 text-center text-sm text-muted">No cards yet.</li>}
                 {shown.preview.map((c, i) => (
                   <li key={i} className="flex items-baseline gap-3 px-4 py-2.5">

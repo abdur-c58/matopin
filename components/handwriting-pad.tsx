@@ -124,8 +124,8 @@ export function HandwritingPad({ onPick, onClose, compact = false, lang = "zh" }
   const candidates = result?.candidates ?? [];
 
   return (
-    <div className="mt-3 animate-panel rounded-lg border border-line bg-raised/40 p-3">
-      <div className={`relative mx-auto aspect-square w-full overflow-hidden rounded-xl border border-line bg-porcelain ${compact ? "max-w-[12rem]" : "max-w-[18rem]"}`}>
+    <div className="mt-3 animate-panel rounded-md border border-line bg-raised/40 p-3">
+      <div className={`relative mx-auto aspect-square w-full overflow-hidden rounded-lg border border-line bg-porcelain ${compact ? "max-w-[12rem]" : "max-w-[18rem]"}`}>
         <RiceGrid />
         <canvas ref={canvas} aria-label={`Writing area: draw a ${lang === "ja" ? "kanji, kana" : "Chinese character"} or word`} className="absolute inset-0 size-full cursor-crosshair touch-none text-ink"
           onPointerDown={(e) => {
@@ -149,7 +149,7 @@ export function HandwritingPad({ onPick, onClose, compact = false, lang = "zh" }
       <div className="mt-3 flex min-h-12 items-center gap-1 overflow-x-auto" role="listbox" aria-label="Recognized characters" aria-busy={busy}>
         {candidates.map((c) => (
           <button key={c} type="button" role="option" aria-selected={false} onClick={() => { onPick(c); reset(); }}
-            lang={lang === "ja" ? "ja" : "zh-CN"} className="h-11 shrink-0 rounded-xl border border-line bg-surface px-3 font-hanzi text-2xl leading-none transition-colors hover:border-volt-500 hover:bg-volt-500/10">
+            lang={lang === "ja" ? "ja" : "zh-CN"} className="h-11 shrink-0 rounded-lg border border-line bg-surface px-3 font-hanzi text-2xl leading-none transition-colors hover:border-volt-500 hover:bg-volt-500/10">
             {c}
           </button>
         ))}

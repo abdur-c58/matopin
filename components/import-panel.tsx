@@ -99,7 +99,7 @@ function FormatHelp({ lang }: { lang: Lang }) {
           side="top"
           sideOffset={6}
           onOpenAutoFocus={(e) => e.preventDefault()}
-          className="z-50 max-w-72 rounded-xl border border-line bg-surface px-3 py-2 text-xs leading-relaxed text-ink shadow-pop"
+          className="z-50 max-w-72 rounded-lg border border-line bg-surface px-3 py-2 text-xs leading-relaxed text-ink shadow-pop"
         >
           Format uses AI to check each row. It fixes the {lang === "ja" ? "reading" : "pinyin and tones"}, fills in the {lang === "ja" ? "word" : "hanzi"}, and adds a meaning, an example, notes, and tags where they are blank. You review every change before anything is added.
           <Popover.Arrow className="fill-surface" />
@@ -266,7 +266,7 @@ export function ImportPanel({ fluency, simplified, onImport, onLookup }: {
         </p>
       ) : (
         <p className="text-sm text-muted">
-          Column order is <code className="rounded bg-volt-50 px-1.5 py-0.5 font-mono text-xs text-volt-700">{headers.join(", ")}</code>.{" "}
+          Column order is <code className="rounded-xs bg-volt-50 px-1.5 py-0.5 font-mono text-xs text-volt-700">{headers.join(", ")}</code>.{" "}
           {lang === "ja"
             ? "Each row needs a reading (kana or romaji) or the word itself. Meaning is optional."
             : "Pinyin is required. Meaning is optional."}{" "}
@@ -274,7 +274,7 @@ export function ImportPanel({ fluency, simplified, onImport, onLookup }: {
         </p>
       )}
       <div
-        className="mt-4 overflow-x-auto rounded-xl border border-line"
+        className="mt-4 overflow-x-auto rounded-lg border border-line"
         onPaste={(e) => {
           const text = e.clipboardData.getData("text/plain");
           const cell = (e.target as HTMLElement).closest<HTMLElement>("[data-row]");
@@ -445,11 +445,11 @@ export function ImportPanel({ fluency, simplified, onImport, onLookup }: {
                 const other = item.useOriginal ? item.corrected : item.original;
                 const kind = item.useOriginal ? item.originalKind ?? "term" : item.kind;
                 return (
-                  <article key={item.id} className="rounded-xl border border-line p-3">
+                  <article key={item.id} className="rounded-lg border border-line p-3">
                     <div className="mb-2 flex items-center justify-between gap-2">
                       <h3 className="flex items-center gap-2 text-sm font-medium">
                         Entry {index + 1}
-                        <span className="rounded-md bg-volt-50 px-1.5 py-0.5 text-xs font-medium text-volt-700">{CARD_KIND_LABELS[kind]}</span>
+                        <span className="rounded-sm bg-volt-50 px-1.5 py-0.5 text-xs font-medium text-volt-700">{CARD_KIND_LABELS[kind]}</span>
                       </h3>
                       <Button className="h-8 px-3" onClick={() => setReview((current) => current?.map((row) => row.id === item.id ? { ...row, useOriginal: !row.useOriginal } : row) ?? null)}>
                         {item.useOriginal ? "Use correction" : "Revert"}

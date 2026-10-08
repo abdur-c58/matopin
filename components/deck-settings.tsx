@@ -121,7 +121,7 @@ export function DeckSettings({ deckId, scope }: { deckId: string; scope: string 
     <main className="max-w-5xl space-y-5 px-4 pt-5 pb-10 md:px-8">
       <Section title="Sharing" description={owner ? "Keep the deck to yourself, publish it for anyone to follow, share it only with people you send it to, or invite collaborators with a link." : "This deck belongs to someone else. Your review progress and the options below are yours alone."}>
         {owner ? <DeckSharing deckId={deckId} scope={scope} /> : deck && (
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-raised p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-raised p-4">
             <div className="min-w-0">
               <p className="flex items-center gap-2 text-sm font-semibold">{ROLE_LABELS[deck.role]}<VisibilityBadge visibility={deck.visibility} /></p>
               <p className="mt-0.5 text-sm text-muted">
@@ -199,7 +199,7 @@ export function DeckSettings({ deckId, scope }: { deckId: string; scope: string 
         {suspended.length > 0 && (
           <div>
             <span className="label">Suspended cards</span>
-            <ul className="divide-y divide-line rounded-xl border border-line">
+            <ul className="divide-y divide-line rounded-lg border border-line">
               {suspended.map((s) => (
                 <li key={s.key} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
                   <span className="min-w-0 truncate">
@@ -225,12 +225,12 @@ export function DeckSettings({ deckId, scope }: { deckId: string; scope: string 
           {WEEKDAYS.map((day, i) => (
             <div key={day} className="flex items-center justify-between gap-3">
               <span className="text-sm">{day}</span>
-              <div role="radiogroup" aria-label={day} className="inline-flex rounded-lg border border-line p-0.5">
+              <div role="radiogroup" aria-label={day} className="inline-flex rounded-md border border-line p-0.5">
                 {EASY_OPTIONS.map((option) => {
                   const active = opts.easyDays[i] === option.value;
                   return (
                     <button key={option.label} type="button" role="radio" aria-checked={active}
-                      className={`h-7 rounded-md px-2.5 text-xs font-medium transition-colors ${active ? "bg-volt-600 text-on-volt hover:bg-volt-700" : "text-muted hover:bg-volt-50 hover:text-ink"}`}
+                      className={`h-7 rounded-sm px-2.5 text-xs font-medium transition-colors ${active ? "bg-volt-600 text-on-volt hover:bg-volt-700" : "text-muted hover:bg-volt-50 hover:text-ink"}`}
                       onClick={() => commit({ easyDays: opts.easyDays.map((d, j) => (j === i ? option.value : d)) })}>
                       {option.label}
                     </button>

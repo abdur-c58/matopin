@@ -88,7 +88,7 @@ function CardEditor({ card, lang, open, onToggle, onChange, onRemove }: {
   const fields = details(lang).filter((d) => !d.example || hasExample(card));
   const extra = fields.filter((d) => card[d.field].trim()).length;
   return (
-    <li className="rounded-lg border border-line bg-surface p-3 transition focus-within:border-volt-500/50">
+    <li className="rounded-md border border-line bg-surface p-3 transition focus-within:border-volt-500/50">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.4fr)]">
         <input className="field h-10 text-lg" aria-label={info.termLabel} placeholder={lang === "ja" ? "日本語" : "汉字"} value={card.term} onChange={(e) => onChange({ term: e.target.value })} spellCheck={false} />
         <input className="field h-10 text-sm" aria-label={info.readingLabel} placeholder={lang === "ja" ? "にほんご" : "pīnyīn"} value={card.reading} onChange={(e) => onChange({ reading: e.target.value })} spellCheck={false} />
@@ -131,8 +131,8 @@ function DeckSelect({ lang, selected, onToggle, newDeck, onNewDeck }: {
   const names = editable.filter((d) => selected.has(d.id)).map((d) => d.name);
   if (newDeck) names.push("New deck");
   const label = !names.length ? "Choose decks" : names.length <= 2 ? names.join(", ") : `${names.slice(0, 2).join(", ")} +${names.length - 2}`;
-  const item = "flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-sm transition hover:bg-raised";
-  const box = (on: boolean) => `grid size-4.5 shrink-0 place-items-center rounded-[5px] border ${on ? "border-volt-500 bg-volt-500 text-on-volt" : "border-line"}`;
+  const item = "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition hover:bg-raised";
+  const box = (on: boolean) => `grid size-4.5 shrink-0 place-items-center rounded-xs border ${on ? "border-volt-500 bg-volt-500 text-on-volt" : "border-line"}`;
   return (
     <Popover.Root>
       <Popover.Trigger className="field flex h-10 items-center justify-between gap-2 text-left text-sm">
@@ -308,7 +308,7 @@ export function FlashcardMaker({ text, initial, lang: given, onClose }: { text: 
 
           <div className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
             {error ? (
-              <div className="grid place-items-center rounded-lg bg-raised/50 p-8 text-center">
+              <div className="grid place-items-center rounded-md bg-raised/50 p-8 text-center">
                 <p className="text-sm font-semibold">Couldn’t make cards</p>
                 <p className="mt-1 text-sm text-muted">{error}</p>
                 <Button className="mt-3" onClick={retry}>Try again</Button>
@@ -316,11 +316,11 @@ export function FlashcardMaker({ text, initial, lang: given, onClose }: { text: 
             ) : !cards ? (
               <div className="space-y-2" role="status" aria-label="Making cards">
                 <p className="mb-3 flex items-center gap-2 text-sm text-muted"><LoaderCircle className="size-4 animate-spin" />Reading the reply and drafting cards…</p>
-                {[0, 1, 2].map((i) => <div key={i} className="h-24 animate-pulse rounded-lg bg-raised/60" style={{ animationDelay: `${i * 120}ms` }} />)}
+                {[0, 1, 2].map((i) => <div key={i} className="h-24 animate-pulse rounded-md bg-raised/60" style={{ animationDelay: `${i * 120}ms` }} />)}
               </div>
             ) : (
               <>
-                {cards.length === 0 && <p className="rounded-lg bg-raised/50 p-5 text-center text-sm text-muted">There wasn’t any {LANG_INFO[lang].name} to turn into cards here. Add your own below.</p>}
+                {cards.length === 0 && <p className="rounded-md bg-raised/50 p-5 text-center text-sm text-muted">There wasn’t any {LANG_INFO[lang].name} to turn into cards here. Add your own below.</p>}
                 {cards.length > 0 && (
                   <p className="mb-2 flex items-center gap-2 text-xs text-muted" role="status">
                     {filling ? <><LoaderCircle className="size-3.5 animate-spin" />Filling in examples and notes for {plural(filling, "card")}…</> : `${plural(cards.length, "card")} from ${initial ? "the dictionary" : "this reply"}`}

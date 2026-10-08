@@ -107,7 +107,7 @@ export function TitleTips() {
 
   return (
     <div ref={box} className="title-tip" data-state={tip?.open ? "open" : "closed"} role={tip?.open ? "tooltip" : undefined} aria-hidden={!tip?.open}>
-      <span className="block max-w-64 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs leading-snug font-medium whitespace-pre-line text-ink shadow-pop">
+      <span className="block max-w-64 rounded-md border border-line bg-surface px-2.5 py-1.5 text-xs leading-snug font-medium whitespace-pre-line text-ink shadow-pop">
         {tip?.text}
       </span>
     </div>

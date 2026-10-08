@@ -71,13 +71,13 @@ function ActiveDays({ decks, now }: { decks: DeckData[]; now: number }) {
   const counts = useMemo(() => new Map([...groupByDay(entries)].map(([k, d]) => [k, d.reviews])), [entries]);
   const { current, longest } = streaks(entries, now);
   return (
-    <section className="rounded-xl bg-volt-500 p-5 text-on-volt lg:col-span-4">
+    <section className="rounded-lg bg-volt-500 p-5 text-on-volt lg:col-span-4">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-base font-semibold">Your active days</h2>
         <MonthNav month={month} onMonth={setMonth} light latest={firstOfMonth(now)} />
       </div>
       <MonthCalendar month={month} counts={counts} now={now} />
-      <div className="mt-4 flex items-center justify-between rounded-lg bg-on-volt/10 px-4 py-2.5 text-sm">
+      <div className="mt-4 flex items-center justify-between rounded-md bg-on-volt/10 px-4 py-2.5 text-sm">
         <span className="flex items-center gap-2 font-semibold">{current}-day streak</span>
         <span className="text-on-volt/70">Best {longest}</span>
       </div>
@@ -144,7 +144,7 @@ function MyDecks({ decks }: { decks: DeckData[] }) {
             <li key={deck.id}>
               <Link
                 href={`/decks/${deck.id}/review`}
-                className={`flex h-28 flex-col justify-between rounded-lg border p-4 transition-colors ${featured ? "border-second-500 bg-second-500 text-on-second hover:bg-second-600" : "border-line hover:border-ink/25"}`}
+                className={`flex h-28 flex-col justify-between rounded-md border p-4 transition-colors ${featured ? "border-second-500 bg-second-500 text-on-second hover:bg-second-600" : "border-line hover:border-ink/25"}`}
               >
                 <p className="line-clamp-2 font-semibold">{deck.name}</p>
                 <p className={`text-xl font-bold tabular-nums ${featured ? "" : n ? "text-volt-500" : "text-muted"}`}>{n ? `${n} due` : "Done"}</p>
@@ -153,7 +153,7 @@ function MyDecks({ decks }: { decks: DeckData[] }) {
           );
         })}
         <li>
-          <button type="button" onClick={() => void create()} className="flex h-28 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-line text-sm text-muted transition-colors hover:border-ink/25 hover:text-ink">
+          <button type="button" onClick={() => void create()} className="flex h-28 w-full items-center justify-center gap-2 rounded-md border border-dashed border-line text-sm text-muted transition-colors hover:border-ink/25 hover:text-ink">
             New deck
           </button>
         </li>

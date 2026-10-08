@@ -74,7 +74,7 @@ export function LineChart({ series, labels, height = 180, format = (n: number) =
       ))}
       {at != null && (
         <div
-          className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-xl bg-volt-500 px-2.5 py-1.5 text-on-volt shadow-pop"
+          className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-lg bg-volt-500 px-2.5 py-1.5 text-on-volt shadow-pop"
           style={{ left: `${Math.min(88, Math.max(12, (x(at) / W) * 100))}%`, top: `${(y(Math.max(...series.map((s) => s.values[at] ?? 0))) / H) * 100 - 4}%` }}
         >
           <p className="text-[10px] font-semibold opacity-70">{labels[at]}</p>

@@ -36,7 +36,7 @@ function DeckCard({ deck, mature, kept, showLang, onDelete, onConvert }: {
   return (
     <li className="surface flex flex-col p-5">
       <div className="flex items-start gap-3">
-        <span className={`grid size-11 shrink-0 place-items-center rounded-lg ${due ? "bg-second-500 text-on-second" : "bg-raised text-volt-500"}`}><Layers className="size-5" /></span>
+        <span className={`grid size-11 shrink-0 place-items-center rounded-md ${due ? "bg-second-500 text-on-second" : "bg-raised text-volt-500"}`}><Layers className="size-5" /></span>
         <div className="min-w-0 flex-1">
           <Link href={`/decks/${deck.id}/review`} className="block truncate text-base font-bold hover:text-volt-500">{deck.name}</Link>
           <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted">
@@ -163,7 +163,7 @@ export function DeckList() {
     <main className="px-4 pt-5 pb-10 md:px-8">
       {archived.length > 0 && (
         <button type="button" onClick={() => setArchiveOpen(true)}
-          className="mb-4 flex w-full items-center gap-3 rounded-lg border border-line bg-raised/50 px-4 py-2.5 text-left text-sm transition hover:bg-raised">
+          className="mb-4 flex w-full items-center gap-3 rounded-md border border-line bg-raised/50 px-4 py-2.5 text-left text-sm transition hover:bg-raised">
           <span className="min-w-0 flex-1"><span className="font-semibold">{archived.length} {archived.length === 1 ? "deck" : "decks"} in the archive</span> <span className="text-muted">from a language you aren’t learning now</span></span>
           <span className="shrink-0 font-semibold text-volt-600">View</span>
         </button>
@@ -186,7 +186,7 @@ export function DeckList() {
       {!decks && <p className="text-sm text-muted">Loading decks…</p>}
       {decks && inLanguage.length === 0 && (
         <section className="surface space-y-3 p-10 text-center">
-          <span className="mx-auto grid size-14 place-items-center rounded-lg bg-volt-500 text-on-volt">
+          <span className="mx-auto grid size-14 place-items-center rounded-md bg-volt-500 text-on-volt">
             {language === "all" ? <Layers className="size-7" /> : <span className="font-hanzi text-2xl">{LANG_INFO[language].badge}</span>}
           </span>
           <p className="text-lg font-bold">No {languageName}decks yet</p>
@@ -202,7 +202,7 @@ export function DeckList() {
           {shown.map((deck) => <DeckCard key={deck.id} deck={deck} showLang={language === "all"} mature={detail.get(deck.id)?.mature ?? 0} kept={detail.get(deck.id)?.kept ?? null} onDelete={() => requestDelete(deck)} onConvert={single || !converts ? null : () => setConverting(deck)} />)}
           {filter === "all" && (
             <li>
-              <button type="button" onClick={() => void create()} className="flex size-full min-h-56 flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-line text-sm font-semibold text-muted transition hover:border-volt-500/60 hover:text-ink">
+              <button type="button" onClick={() => void create()} className="flex size-full min-h-56 flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-line text-sm font-semibold text-muted transition hover:border-volt-500/60 hover:text-ink">
                 New deck
               </button>
             </li>

@@ -10,16 +10,16 @@ function DictionaryArt() {
   return (
     <div className="grid w-full grid-cols-[1fr_0.8fr] gap-4">
       <div data-part className="landing-art-card space-y-3 p-5">
-        <div className="flex items-center gap-2 rounded-xl border border-line bg-porcelain px-3 py-2 text-sm text-muted"><Search className="size-4" />xuexi</div>
+        <div className="flex items-center gap-2 rounded-lg border border-line bg-porcelain px-3 py-2 text-sm text-muted"><Search className="size-4" />xuexi</div>
         {[["学习", "xué xí", "to study; to learn"], ["学校", "xué xiào", "school"], ["学生", "xué sheng", "student"]].map(([zi, py, en], i) => (
-          <div key={zi} data-part className={`flex items-center gap-3 rounded-xl px-3 py-2 ${i === 0 ? "bg-raised" : ""}`}>
+          <div key={zi} data-part className={`flex items-center gap-3 rounded-lg px-3 py-2 ${i === 0 ? "bg-raised" : ""}`}>
             <span className="shrink-0"><Toned zi={zi} py={py} className="text-2xl" pyClass="text-[10px]" /></span>
             <span className="ml-auto text-right text-xs text-muted">{en}</span>
           </div>
         ))}
       </div>
       <div data-part className="landing-art-card flex flex-col items-center justify-center gap-3 p-5">
-        <div className="landing-grid relative grid aspect-square w-full max-w-44 place-items-center rounded-xl border border-line">
+        <div className="landing-grid relative grid aspect-square w-full max-w-44 place-items-center rounded-lg border border-line">
           <span lang="zh-CN" className="landing-stroke font-hanzi text-8xl">学</span>
         </div>
         <p className="text-xs text-muted">8 strokes · radical 子</p>
@@ -31,15 +31,15 @@ function DictionaryArt() {
 function BaoArt() {
   return (
     <div className="w-full space-y-3">
-      <div data-part className="ml-auto w-fit max-w-[80%] rounded-3xl rounded-br-lg bg-volt-500 px-4 py-2.5 text-sm text-on-volt">How do I say “I’m running late” in Japanese?</div>
+      <div data-part className="ml-auto w-fit max-w-[80%] rounded-2xl rounded-br-md bg-volt-500 px-4 py-2.5 text-sm text-on-volt">How do I say “I’m running late” in Japanese?</div>
       <div data-part className="flex items-end gap-2">
         <BotAvatar className="size-9" />
-        <div className="landing-art-card max-w-[85%] rounded-3xl rounded-bl-lg px-4 py-3">
+        <div className="landing-art-card max-w-[85%] rounded-2xl rounded-bl-md px-4 py-3">
           <p className="text-xs font-semibold text-second-500">Bao</p>
           <p className="mt-1 text-sm">Try <span lang="ja" className="font-hanzi text-base underline decoration-second-500 decoration-dotted underline-offset-4">遅れそうです</span>. It’s polite and works for work or friends.</p>
         </div>
       </div>
-      <div data-part className="landing-art-card ml-11 w-fit rounded-2xl p-4">
+      <div data-part className="landing-art-card ml-11 w-fit rounded-xl p-4">
         <Furigana parts={[["遅", "おく"], ["れそうです"]]} className="text-2xl" rtClass="text-[10px]" />
         <p className="mt-1 text-xs text-muted">okuresō desu · “It looks like I’ll be late.”</p>
         <div className="mt-3 flex gap-1.5 text-[10px] font-semibold">

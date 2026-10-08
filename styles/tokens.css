@@ -1,0 +1,56 @@
+/*
+ * Corner radius tokens: the only radius values the app uses. Tailwind's rounded-* utilities read them, so
+ * rounded-md is --radius-md everywhere.
+ *
+ *   xs   6   checkboxes, inline code, keyboard keys
+ *   sm  10   small controls (32px): chips, badges
+ *   md  14   controls (40-44px): buttons, fields, icon buttons, list rows
+ *   lg  20   large controls (52px) and cards
+ *   xl  28   pop-ups, dialogs, toasts, floating panels
+ *   2xl 40   the largest shapes, and full-screen sheets (--radius-screen)
+ *
+ * Pills and circles use rounded-full. Browsers can't read a device's real corner radius, so --radius-screen is a
+ * single overridable guess.
+ */
+@theme {
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-2xl: 40px;
+  /* Off the scale, so they fold into the largest step. */
+  --radius-3xl: var(--radius-2xl);
+  --radius-4xl: var(--radius-2xl);
+  --radius-full: 9999px;
+}
+
+:root {
+  --radius-screen: var(--radius-2xl);
+  --radius-control-sm: var(--radius-sm);
+  --radius-control-md: var(--radius-md);
+  --radius-control-lg: var(--radius-lg);
+}
+
+@layer base {
+  /* Continuous (squircle) corners where the browser can draw them; elsewhere these are plain rounded corners. Borders,
+     outlines (focus rings) and shadows follow the same curve, since nothing is clipped. Pills and circles stay round. */
+  @supports (corner-shape: squircle) {
+    :where(.btn, .icon-btn, .field, .surface, .popup, .chip, [class*="rounded-"], [data-sonner-toast]):not([class*="rounded-full"]) {
+      corner-shape: squircle;
+    }
+  }
+}
+
+/*
+ * Concentric nesting. A shaped container publishes its radius (--r) and inner padding (--pad); a child marked
+ * .rounded-concentric takes the parent's radius minus its padding, so their curves stay parallel. Containers set --pad
+ * to match their padding, e.g. `popup p-1.5 [--pad:--spacing(1.5)]`.
+ */
+@layer components {
+  .surface { --r: var(--radius-lg); --pad: 0px; }
+  .popup { --r: var(--radius-xl); --pad: 0px; }
+}
+@utility rounded-concentric {
+  border-radius: max(calc(var(--r, var(--radius-md)) - var(--pad, 0px)), 0px);
+}

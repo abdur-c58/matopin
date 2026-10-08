@@ -22,7 +22,7 @@ type OnPick = ((id: string) => void) | undefined;
 
 /** A link to the chat page, or a button that opens the chat in place when there is an `onPick`. */
 function RowLink({ id, active, onPick, className, children }: { id: string; active: boolean; onPick: OnPick; className: string; children: React.ReactNode }) {
-  const cls = `flex w-full items-center gap-3 rounded-2xl px-2.5 py-2.5 text-left transition ${className}`;
+  const cls = `flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left transition ${className}`;
   return onPick
     ? <button type="button" className={cls} onClick={() => onPick(id)}>{children}</button>
     : <Link href={`/chat/${id}`} aria-current={active ? "page" : undefined} className={cls}>{children}</Link>;
@@ -140,7 +140,7 @@ function NewChat({ onPick }: { onPick?: OnPick }) {
             {people && shown.length === 0 && <li className="p-3 text-sm text-muted">{people.length ? "No one matches that name." : "No one else is here yet."}</li>}
             {shown.map((p) => (
               <li key={p.id}>
-                <button type="button" className="flex w-full items-center gap-3 rounded-2xl p-2 text-left transition hover:bg-raised" onClick={() => go(p.id)}>
+                <button type="button" className="flex w-full items-center gap-3 rounded-xl p-2 text-left transition hover:bg-raised" onClick={() => go(p.id)}>
                   <PersonAvatar person={p} className="size-10 text-sm" />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-semibold">{p.name}</span>
@@ -190,8 +190,8 @@ function ChatList({ activeId, className, onPick }: { activeId: string | null; cl
         {error && <p className="px-2 py-3 text-sm text-tone-1">{error}</p>}
         {!chats && !error && <p className="px-2 py-3 text-sm text-muted">Loading chats…</p>}
         {requests.length > 0 && (
-          <section className="mb-2 rounded-2xl bg-raised/50 p-1">
-            <button type="button" className="flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-xs font-semibold text-muted hover:text-ink" aria-expanded={showRequests} onClick={() => setShowRequests((s) => !s)}>
+          <section className="mb-2 rounded-xl bg-raised/50 p-1">
+            <button type="button" className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-semibold text-muted hover:text-ink" aria-expanded={showRequests} onClick={() => setShowRequests((s) => !s)}>
               Message requests
               <span className="grid h-5 min-w-5 place-items-center rounded-full bg-tone-2/20 px-1.5 text-[11px] text-tone-2">{requests.length}</span>
               <ChevronDown className={`ml-auto size-3.5 transition ${showRequests ? "rotate-180" : ""}`} />
@@ -245,11 +245,11 @@ export function NoChatOpen() {
   return (
     <div className="grid flex-1 place-items-center p-8 text-center">
       <div>
-        <span className="mx-auto grid size-14 place-items-center rounded-3xl bg-raised text-volt-500"><MessagesSquare className="size-6" /></span>
+        <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-raised text-volt-500"><MessagesSquare className="size-6" /></span>
         <p className="mt-3 font-semibold">Pick a chat</p>
         <p className="mx-auto mt-1 max-w-xs text-sm text-muted">
           {bao
-            ? <>Send decks, reply and react to messages, and type <span className="rounded bg-second-500/15 px-1 font-semibold text-second-300">@ask</span> to bring Bao in for a Chinese question. Or message Bao directly from the top of the list.</>
+            ? <>Send decks, reply and react to messages, and type <span className="rounded-xs bg-second-500/15 px-1 font-semibold text-second-300">@ask</span> to bring Bao in for a Chinese question. Or message Bao directly from the top of the list.</>
             : "Send decks, and reply and react to messages."}
         </p>
       </div>
@@ -262,7 +262,7 @@ export function BaoOff() {
   return (
     <div className="grid flex-1 place-items-center p-8 text-center">
       <div>
-        <span className="mx-auto grid size-14 place-items-center rounded-3xl bg-raised text-muted"><Sparkles className="size-6" /></span>
+        <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-raised text-muted"><Sparkles className="size-6" /></span>
         <p className="mt-3 font-semibold">Bao is turned off</p>
         <p className="mx-auto mt-1 max-w-xs text-sm text-muted">You turned off Bao, the study bot, for your account. Turn it back on any time in Settings.</p>
         <Link href="/settings#ai" className="btn btn-ghost mt-4">Open AI settings</Link>

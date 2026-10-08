@@ -38,7 +38,7 @@ export function OfflineIndicator() {
   const offline = useOffline();
   if (!offline) return null;
   return (
-    <span role="status" className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-line px-2 py-0.5 text-xs font-medium text-muted"
+    <span role="status" className="inline-flex shrink-0 items-center gap-1.5 rounded-sm border border-line px-2 py-0.5 text-xs font-medium text-muted"
       title="Changes are kept on this device and sync when you reconnect.">
       <span className="size-1.5 rounded-full bg-muted" aria-hidden />Offline
     </span>

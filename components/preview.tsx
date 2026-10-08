@@ -130,11 +130,11 @@ export function Preview({ card, listening, onListen, speed, speeds, onSpeed }: {
       </div>
       <div className="mt-3 flex items-center justify-center gap-2">
         <span className="text-xs text-muted">Speed</span>
-        <div role="radiogroup" aria-label="Playback speed" className="inline-flex rounded-lg border border-line p-0.5">
+        <div role="radiogroup" aria-label="Playback speed" className="inline-flex rounded-md border border-line p-0.5">
           {speeds.map((s) => (
             <button
               key={s} type="button" role="radio" aria-checked={speed === s} onClick={() => onSpeed(s)}
-              className={`h-7 rounded-md px-2 text-xs font-medium tabular-nums transition-colors ${speed === s ? "bg-volt-600 text-on-volt hover:bg-volt-700" : "text-muted hover:bg-volt-50 hover:text-ink"}`}
+              className={`h-7 rounded-sm px-2 text-xs font-medium tabular-nums transition-colors ${speed === s ? "bg-volt-600 text-on-volt hover:bg-volt-700" : "text-muted hover:bg-volt-50 hover:text-ink"}`}
             >
               {s}×
             </button>

@@ -55,7 +55,7 @@ export function JoinPage({ code }: { code: string }) {
           <p className="relative py-8 text-sm text-muted">Checking the invite…</p>
         ) : (
           <div className="relative">
-            <span className="mx-auto grid size-14 place-items-center rounded-lg bg-second-500 text-on-second"><Users className="size-7" /></span>
+            <span className="mx-auto grid size-14 place-items-center rounded-md bg-second-500 text-on-second"><Users className="size-7" /></span>
             <p className="mt-4 text-sm text-muted">You’re invited to collaborate on</p>
             <h2 className="mt-1 text-2xl font-bold">{deck.name}</h2>
             <Link href={`/u/${deck.owner.id}`} className="mx-auto mt-3 flex w-fit items-center gap-2 text-sm text-muted transition hover:text-ink">

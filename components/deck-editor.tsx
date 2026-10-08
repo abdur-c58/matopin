@@ -129,13 +129,13 @@ export function DeckEditor({ scope }: { scope: string }) {
     <main className={`grid gap-6 px-4 pt-5 md:px-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:pb-6 ${toned ? "pb-20" : "pb-6"}`}>
       <Tabs.Root value={tab} onValueChange={setTab} className="min-w-0">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-          <Tabs.List className="inline-flex rounded-xl border border-line bg-surface p-1">
+          <Tabs.List className="inline-flex rounded-lg border border-line bg-surface p-1">
             {tabs.map((t) => (
               <Tabs.Trigger
                 key={t.id} value={t.id} disabled={z.editing && t.id !== "cards"} title={z.editing && t.id !== "cards" ? "Save or cancel your edits first" : undefined}
-                className="relative h-8 rounded-lg px-3 text-sm font-medium text-muted transition-colors outline-none hover:bg-raised hover:text-ink disabled:opacity-40 data-[state=active]:text-ink focus-visible:text-ink"
+                className="relative h-8 rounded-md px-3 text-sm font-medium text-muted transition-colors outline-none hover:bg-raised hover:text-ink disabled:opacity-40 data-[state=active]:text-ink focus-visible:text-ink"
               >
-                {tab === t.id && <motion.span layoutId="editor-tab" className="absolute inset-0 rounded-lg bg-volt-50" transition={{ duration: 0.18 }} />}
+                {tab === t.id && <motion.span layoutId="editor-tab" className="absolute inset-0 rounded-md bg-volt-50" transition={{ duration: 0.18 }} />}
                 <span className="relative">{t.label}</span>
               </Tabs.Trigger>
             ))}
@@ -164,7 +164,7 @@ export function DeckEditor({ scope }: { scope: string }) {
         <Tabs.Content value="cards" asChild>
           <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
             {readOnly && (
-              <p className="mb-3 flex items-center gap-2 rounded-lg bg-raised px-4 py-3 text-sm text-muted">
+              <p className="mb-3 flex items-center gap-2 rounded-md bg-raised px-4 py-3 text-sm text-muted">
                 You follow this deck, so its cards are read-only. Your review progress is your own.
               </p>
             )}

@@ -24,7 +24,7 @@ export function ReachStats({ reach }: { reach: Reach | undefined }) {
               </span>
             </Tooltip.Trigger>
             <Tooltip.Portal>
-              <Tooltip.Content side="bottom" sideOffset={6} className="z-50 min-w-44 rounded-lg border border-line bg-surface px-3 py-2 text-xs text-ink shadow-pop">
+              <Tooltip.Content side="bottom" sideOffset={6} className="z-50 min-w-44 rounded-md border border-line bg-surface px-3 py-2 text-xs text-ink shadow-pop">
                 <p className="mb-1.5 text-muted">{total.toLocaleString()} {detail}</p>
                 {LANGS.map((l) => (
                   <p key={l} className="flex items-center gap-2 py-0.5">

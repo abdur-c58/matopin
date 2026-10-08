@@ -57,7 +57,7 @@ export function PeoplePicker({ exclude, picked, onToggle, max }: { exclude: Set<
           return (
             <li key={p.id}>
               <button type="button" role="checkbox" aria-checked={on} disabled={full} onClick={() => onToggle(p.id)}
-                className="flex w-full items-center gap-3 rounded-2xl p-2 text-left transition hover:bg-raised disabled:opacity-40">
+                className="flex w-full items-center gap-3 rounded-xl p-2 text-left transition hover:bg-raised disabled:opacity-40">
                 <PersonAvatar person={p} className="size-10 text-sm" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-semibold">{p.name}</span>
@@ -203,7 +203,7 @@ export function GroupInfoDialog({ group, open, onOpenChange, onGroup, onLeft }: 
               </div>
               <ul className="mt-1 min-h-0 flex-1 space-y-0.5 overflow-y-auto">
                 {group.members.map((m) => (
-                  <li key={m.id} className="flex items-center gap-3 rounded-2xl p-2">
+                  <li key={m.id} className="flex items-center gap-3 rounded-xl p-2">
                     <Link href={`/u/${m.id}`} className="flex min-w-0 flex-1 items-center gap-3">
                       <PersonAvatar person={m} className="size-10 text-sm" />
                       <span className="min-w-0">

@@ -83,7 +83,7 @@ function readSelection(menu: HTMLElement | null): Picked | "keep" | null {
   return { text, rect: { top: r.top, bottom: r.bottom, left: r.left, right: r.right }, tagged: isLang(tag) ? tag : null };
 }
 
-const BUTTON = "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl px-2.5 text-xs font-semibold text-muted transition hover:bg-raised hover:text-ink active:scale-95 disabled:opacity-50";
+const BUTTON = "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-muted transition hover:bg-raised hover:text-ink active:scale-95 disabled:opacity-50";
 
 /**
  * Highlight any text in the app for a small menu: copy, look it up in the pop-up dictionary, hear it, make flashcards
@@ -232,7 +232,7 @@ export function SelectionMenu() {
   return (
     <>
       <div ref={menu} role="toolbar" aria-label="Highlighted text"
-        className="fixed top-0 left-0 z-[60] w-max max-w-[min(28rem,calc(100vw-1rem))] animate-pop rounded-lg border border-line bg-surface/95 p-1 shadow-pop backdrop-blur-xl"
+        className="fixed top-0 left-0 z-[60] w-max max-w-[min(28rem,calc(100vw-1rem))] animate-pop rounded-md border border-line bg-surface/95 p-1 shadow-pop backdrop-blur-xl"
         style={{ visibility: "hidden" }}>
         <div className="flex items-center gap-0.5 overflow-x-auto [scrollbar-width:none]" onPointerDown={keep}>
           <button type="button" className={BUTTON} onClick={() => void copy(picked.text)}>

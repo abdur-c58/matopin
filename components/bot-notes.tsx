@@ -64,7 +64,7 @@ function WordRow({ word, lang, onLookUp }: { word: NoteWord; lang: Note["lang"];
   return (
     <li>
       <button type="button" onClick={onLookUp} title={`Look up ${word.text} in the dictionary`}
-        className="group/word flex w-full items-start gap-3 rounded-xl px-2 py-1.5 text-left transition hover:bg-raised">
+        className="group/word flex w-full items-start gap-3 rounded-lg px-2 py-1.5 text-left transition hover:bg-raised">
         <span className="shrink-0"><Ruby text={word.text} reading={word.reading} lang={lang} className="text-lg" /></span>
         <span className="min-w-0 flex-1 pt-0.5">
           <span className="block text-[13px] leading-snug">{word.meaning}</span>
@@ -111,7 +111,7 @@ function CardActions({ note, onCards }: { note: Note; onCards: () => void }) {
     }
   };
 
-  const button = "inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-muted transition hover:bg-raised hover:text-ink";
+  const button = "inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-xs font-semibold text-muted transition hover:bg-raised hover:text-ink";
   return (
     <div className="flex flex-wrap gap-0.5 border-t border-line p-1.5">
       {ai("voice") && (
@@ -234,7 +234,7 @@ export function NotedBody({ body, notes }: { body: string; notes: unknown }) {
         <div ref={card} role="dialog" aria-label={`Notes on ${open.note.text}`} style={{ visibility: "hidden" }}
           className="fixed top-0 left-0 z-[70] w-[min(21rem,calc(100vw-1rem))]"
           onPointerEnter={keep} onPointerLeave={(e) => { if (e.pointerType !== "touch") close(); }}>
-          <div key={open.note.text} className="animate-pop overflow-hidden rounded-2xl border border-line bg-surface/95 shadow-pop backdrop-blur-xl">
+          <div key={open.note.text} className="animate-pop overflow-hidden rounded-xl border border-line bg-surface/95 shadow-pop backdrop-blur-xl">
             <NoteCard note={open.note} onCards={() => { setCardsFrom(open.note); setOpen(null); }} />
           </div>
         </div>,

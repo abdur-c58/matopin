@@ -119,7 +119,7 @@ function MemberProfile({ id }: { id: string }) {
           </div>
         </div>
         {!self && view.chat?.myStatus === "declined" && (
-          <div className="mt-5 flex flex-wrap items-center gap-3 rounded-lg border border-line p-3">
+          <div className="mt-5 flex flex-wrap items-center gap-3 rounded-md border border-line p-3">
             <p className="min-w-0 flex-1 text-sm"><span className="font-semibold">You turned off messages from {person.name}.</span> <span className="text-muted">They can’t message you until you turn them back on.</span></p>
             <button type="button" className="btn btn-primary h-9" disabled={enabling} onClick={() => void allowMessages()}>
               {enabling && <LoaderCircle className="size-4 animate-spin" />}Turn messages back on
