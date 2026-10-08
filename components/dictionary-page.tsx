@@ -909,11 +909,9 @@ function ResultsList({ s, selected, recent, onSearch, onOpen }: {
 
 // Page --------------------------------------------------------------------------------------------------------------
 
-export function DictionaryPage() {
-  const [start] = useState(() => {
-    const params = new URLSearchParams(window.location.search);
-    return { q: (params.get("q") ?? "").slice(0, MAX_QUERY), id: Number(params.get("id")) || null };
-  });
+/** `params` is the page's query string, which can be ahead of `window.location` while a navigation is under way. */
+export function DictionaryPage({ params }: { params: URLSearchParams }) {
+  const [start] = useState(() => ({ q: (params.get("q") ?? "").slice(0, MAX_QUERY), id: Number(params.get("id")) || null }));
   const [selected, setSelected] = useState<number | null>(start.id);
   const [credits, setCredits] = useState(false);
   const [draft, setDraft] = useState<Card[] | null>(null);

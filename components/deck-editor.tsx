@@ -3,13 +3,15 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { Dialog, Tabs } from "radix-ui";
-import { Search, X } from "lucide-react";
+import { List, ListChecks, Rows3, Search, Split, X } from "lucide-react";
 import { toast } from "sonner";
 import { PLAYBACK_SPEEDS } from "@/lib/prefs";
 import { useDeckEditor } from "@/lib/use-deck-editor";
 import { type Card, cardMatches } from "@/lib/cards";
 import { CardList, EditTools } from "./card-list";
+import { CardActions } from "./card-actions";
 import { CardView } from "./card-view";
+import { DeckSplit } from "./deck-split";
 import { useDeckCheck } from "./deck-check";
 import { useDeckSummary } from "./deck-gate";
 import { ImportPanel } from "./import-panel";
@@ -19,6 +21,7 @@ import { useAi, useProfile } from "./profiles";
 import { Button, Toggle } from "./ui";
 
 const isBlank = (c: Card) => !c.term.trim() && !c.reading.trim() && !c.meaning.trim();
+const COMPACT_KEY = "matopin:cards-compact";
 
 /**
  * Unsaved edits live only in memory, so leaving the page must be confirmed. Link clicks are held back and
@@ -66,6 +69,22 @@ export function DeckEditor({ scope }: { scope: string }) {
   const [confirmClear, setConfirmClear] = useState(false);
   const [clearTyped, setClearTyped] = useState("");
   const [query, setQuery] = useState(() => (typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("q") ?? ""));
+  const [compact, setCompactState] = useState(false);
+  const [selecting, setSelecting] = useState(false);
+  const [picked, setPicked] = useState<Set<string>>(() => new Set());
+  const [splitting, setSplitting] = useState(false);
+  const deckId = scope.slice(scope.indexOf(":") + 1);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCompactState(localStorage.getItem(COMPACT_KEY) === "1");
+  }, []);
+  const setCompact = (on: boolean) => {
+    setCompactState(on);
+    if (on) localStorage.setItem(COMPACT_KEY, "1");
+    else localStorage.removeItem(COMPACT_KEY);
+  };
+  const toggle = (id: string) => setPicked((s) => { const next = new Set(s); if (next.has(id)) next.delete(id); else next.add(id); return next; });
+  const stopSelecting = () => { setSelecting(false); setPicked(new Set()); };
   const router = useRouter();
   const askLeave = useCallback((href: string) => { setLeaveTo(href); setConfirmDiscard(true); }, []);
   useLeaveGuard(z.dirty, askLeave);
@@ -132,10 +151,13 @@ export function DeckEditor({ scope }: { scope: string }) {
             <div className="flex flex-wrap items-center gap-2">
               {tab === "import" && simplifiedToggle}
               {tab === "cards" && !readOnly && z.filledCount > 0 && ai("check") && check.button}
+              {tab === "cards" && writing && z.filledCount > 1 && (
+                <Button variant="shard" onClick={() => setSplitting(true)} title="Split into themed decks with AI"><Split className="size-4" />Split</Button>
+              )}
               {ai("voice") && <Button variant="shard" disabled={z.busy} onClick={() => void z.voice(z.filled)} title="Generate audio for every card">Voice all</Button>}
               <Button variant="shard" onClick={z.exportCsv}>CSV</Button>
               <Button variant="shard" onClick={z.exportDeck}>Export to Anki</Button>
-              {tab === "cards" && !readOnly && <Button variant="primary" onClick={z.startEditing}>Edit cards</Button>}
+              {tab === "cards" && !readOnly && <Button variant="primary" onClick={() => { stopSelecting(); z.startEditing(); }}>Edit cards</Button>}
             </div>
           )}
         </div>
@@ -160,6 +182,16 @@ export function DeckEditor({ scope }: { scope: string }) {
                   )}
                 </div>
                 {searching && <span className="shrink-0 text-xs text-muted">{shown} of {z.filledCount}</span>}
+                {!z.editing && (
+                  <div className="flex shrink-0 items-center gap-1">
+                    <button type="button" className={`icon-btn ${compact ? "bg-volt-50 text-volt-700" : ""}`} aria-pressed={compact} aria-label="Compact view" title={compact ? "Full cards" : "Compact view"} onClick={() => setCompact(!compact)}>
+                      {compact ? <Rows3 className="size-4" /> : <List className="size-4" />}
+                    </button>
+                    <button type="button" className={`icon-btn ${selecting ? "bg-volt-50 text-volt-700" : ""}`} aria-pressed={selecting} aria-label="Select cards" title="Select cards" onClick={() => (selecting ? stopSelecting() : setSelecting(true))}>
+                      <ListChecks className="size-4" />
+                    </button>
+                  </div>
+                )}
               </div>
             )}
             {searching && shown === 0 && !z.editing ? (
@@ -170,7 +202,14 @@ export function DeckEditor({ scope }: { scope: string }) {
                 <CardList cards={editCards} selectedId={previewCard.id} clips={z.clips} busy={z.busy} simplified={prefs.simplified} onSelect={z.setSelectedId} onChange={z.update} onKind={z.setKind} onApplyMatch={z.applyMatch} onLookup={writing ? z.lookup : null} onRemove={z.remove} onVoice={ai("voice") ? (c) => void z.voice([c]) : null} />
               </>
             ) : (
-              <CardView cards={viewCards} selectedId={previewCard.id} clips={z.clips} onSelect={z.setSelectedId} onEdit={readOnly ? undefined : z.startEditing} />
+              <>
+                <CardView cards={viewCards} selectedId={previewCard.id} clips={z.clips} onSelect={z.setSelectedId} onEdit={readOnly ? undefined : z.startEditing}
+                  compact={compact} selection={{ selecting, selected: picked, onToggle: toggle }} />
+                {selecting && viewCards.length > 0 && (
+                  <CardActions deckId={deckId} lang={z.lang} cards={viewCards.filter((c) => picked.has(c.id))} total={viewCards.length} readOnly={readOnly} raised={toned}
+                    onSelectAll={() => setPicked(new Set(viewCards.map((c) => c.id)))} onClear={() => setPicked(new Set())} onExit={stopSelecting} onRemove={z.removeMany} />
+                )}
+              </>
             )}
           </motion.div>
         </Tabs.Content>
@@ -197,6 +236,7 @@ export function DeckEditor({ scope }: { scope: string }) {
       {toned && <ToneLegend className="fixed inset-x-0 bottom-0 z-20 md:left-[96px] flex justify-center border-t border-line bg-surface/95 px-3 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] backdrop-blur lg:hidden" />}
 
       {check.dialog}
+      <DeckSplit open={splitting} onOpenChange={setSplitting} deckId={deckId} lang={z.lang} cards={z.filled} readOnly={readOnly} onMoved={z.removeMany} />
 
       <Dialog.Root open={confirmDiscard} onOpenChange={closeDiscard}>
         <Dialog.Portal>

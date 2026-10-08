@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { isLang, type Lang } from "@/lib/lang";
 import { DictionaryPage } from "./dictionary-page";
 import { JDictPage } from "./jdict-page";
@@ -12,28 +13,30 @@ import { LOOKUP_EVENT, type LookupDetail } from "./quick-panels";
  */
 export function DictionaryRouter() {
   const { single } = useLearning();
-  return single ? <SingleDictionary lang={single} /> : <BothDictionaries />;
+  // Read through Next rather than `window.location`: right after a client-side navigation, such as Look up on a
+  // phone, the new page renders before the address bar has its query.
+  const params = useSearchParams();
+  const [start] = useState(() => new URLSearchParams(params.toString()));
+  return single ? <SingleDictionary lang={single} params={start} /> : <BothDictionaries params={start} />;
 }
 
 /** One language learned: only its dictionary, whatever a link or lookup asks for. */
-function SingleDictionary({ lang }: { lang: Lang }) {
-  return lang === "ja" ? <JDictPage /> : <DictionaryPage />;
+function SingleDictionary({ lang, params }: { lang: Lang; params: URLSearchParams }) {
+  return lang === "ja" ? <JDictPage params={params} /> : <DictionaryPage params={params} />;
 }
 
-function BothDictionaries() {
+function BothDictionaries({ params }: { params: URLSearchParams }) {
   const { lang: active } = useActiveLang();
-  const [state, setState] = useState<{ lang: Lang; run: number }>(() => {
-    const lang = new URLSearchParams(window.location.search).get("lang");
-    return { lang: isLang(lang) ? lang : active, run: 0 };
+  const [state, setState] = useState<{ lang: Lang; run: number; params: URLSearchParams }>(() => {
+    const lang = params.get("lang");
+    return { lang: isLang(lang) ? lang : active, run: 0, params };
   });
   const [followed, setFollowed] = useState(active);
   if (followed !== active) {
     setFollowed(active);
     if (state.lang !== active) {
-      // The other dictionary starts empty: the old query and entry id belong to this one. It reads the URL as it
-      // first renders, so this can't wait for an effect.
-      window.history.replaceState(window.history.state, "", `?lang=${active}`);
-      setState((s) => ({ lang: active, run: s.run + 1 }));
+      // The other dictionary starts empty: the old query and entry id belong to this one.
+      setState((s) => ({ lang: active, run: s.run + 1, params: new URLSearchParams({ lang: active }) }));
     }
   }
 
@@ -41,12 +44,13 @@ function BothDictionaries() {
     const listen = (e: Event) => {
       const { text, lang } = (e as CustomEvent<LookupDetail>).detail;
       if (lang === state.lang) return;
-      window.history.replaceState(window.history.state, "", `?${new URLSearchParams({ q: text, lang })}`);
-      setState((s) => ({ lang, run: s.run + 1 }));
+      setState((s) => ({ lang, run: s.run + 1, params: new URLSearchParams({ q: text, lang }) }));
     };
     window.addEventListener(LOOKUP_EVENT, listen);
     return () => window.removeEventListener(LOOKUP_EVENT, listen);
   }, [state.lang]);
 
-  return state.lang === "ja" ? <JDictPage key={`ja-${state.run}`} /> : <DictionaryPage key={`zh-${state.run}`} />;
+  return state.lang === "ja"
+    ? <JDictPage key={`ja-${state.run}`} params={state.params} />
+    : <DictionaryPage key={`zh-${state.run}`} params={state.params} />;
 }

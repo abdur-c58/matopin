@@ -24,6 +24,16 @@
   --color-second-500: var(--second);
   --color-second-600: color-mix(in srgb, var(--second) 85%, black);
   --color-on-second: var(--on-second);
+  /* Apple's corner sizes: badges, controls, cards, banners and sheets. They're drawn as continuous corners below. */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 9px;
+  --radius-lg: 12px;
+  --radius-xl: 18px;
+  --radius-2xl: 22px;
+  --radius-3xl: 28px;
+  --radius-4xl: 36px;
+
   --shadow-card: 0 1px 0 rgb(255 255 255 / 0.03) inset;
   --shadow-pop: 0 24px 60px -12px rgb(0 0 0 / 0.7);
 
@@ -63,6 +73,15 @@
   /* The installed app has no browser around it, so links shouldn't open the browser's long-press preview. */
   @media (display-mode: standalone) {
     a { -webkit-touch-callout: none; }
+  }
+  /* Continuous (squircle) corners like iOS and macOS, where the browser can draw them. Circles and pills stay round. */
+  :where(.btn, .icon-btn, .field, .surface, .popup, .chip, [class*="rounded-"], [data-sonner-toast]):not([class*="rounded-full"]) {
+    corner-shape: superellipse(1.5);
+  }
+  /* The installed app behaves like an app: no pinch or double-tap zoom, and no sideways swipe between pages. */
+  html, body { overscroll-behavior-x: none; }
+  @media (display-mode: standalone) {
+    html { touch-action: pan-x pan-y; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   }
   /* Japanese written in ordinary text (not font-hanzi) also gets Japanese glyph shapes. */
   :where(:lang(ja)) { font-family: var(--font-pinyin), var(--font-urbanist), var(--font-noto-jp), ui-sans-serif, system-ui, sans-serif; }
@@ -104,9 +123,19 @@
   .btn-second { @apply bg-second-500 text-on-second hover:bg-second-600; }
   .btn-secondary { @apply border border-line text-ink hover:border-ink/25 hover:bg-raised; }
   .btn-ghost { @apply text-muted hover:bg-raised hover:text-ink; }
-  .btn-shard { @apply border border-line text-ink hover:border-ink/25 hover:bg-raised; }
-  .btn-shard-second { @apply border-transparent bg-second-500 text-on-second hover:border-transparent hover:bg-second-600; }
-  .btn-shard.icon-btn { @apply border-transparent text-muted hover:text-ink; }
+  /* On hover it grows a little, fades to an accent gradient, and a shimmer sweeps across. */
+  .btn-shard {
+    @apply relative isolate overflow-hidden border border-line bg-linear-to-r from-transparent to-transparent text-ink transition-all duration-300 ease-in-out;
+    @apply hover:scale-105 hover:border-volt-500 hover:from-volt-900 hover:to-volt-800 hover:text-zinc-100 hover:shadow-md active:scale-[0.98];
+  }
+  .btn-shard::after {
+    content: "";
+    @apply pointer-events-none absolute inset-0 -z-10 w-[200%] -translate-x-full bg-linear-to-r from-transparent via-volt-500/30 to-transparent transition-transform duration-500 ease-in-out;
+  }
+  .btn-shard:hover::after { @apply translate-x-0; }
+  .btn-shard-second { @apply border-second-500 from-second-500 to-second-500 text-on-second hover:border-second-300 hover:from-second-500 hover:to-second-600 hover:text-on-second; }
+  .btn-shard-second::after { @apply via-on-second/20; }
+  .btn-shard.icon-btn { @apply border-transparent text-muted hover:scale-110 hover:border-volt-500 hover:text-zinc-100; }
   .btn-danger { @apply bg-tone-1 text-white hover:bg-tone-1/90; }
   .btn-danger-outline { @apply border border-tone-1/40 text-tone-1 hover:bg-tone-1/10; }
   .icon-btn { @apply inline-grid size-9 place-items-center rounded-lg text-muted transition-colors duration-150 hover:bg-raised hover:text-ink disabled:opacity-40; }
@@ -119,7 +148,7 @@
   .tab { @apply -mb-px inline-flex h-9 items-center border-b-2 border-transparent text-sm font-medium text-muted transition-colors hover:text-ink; }
   .tab-on { @apply border-volt-500 text-ink; }
   .overlay { @apply fixed inset-0 z-40 bg-black/60 data-[state=open]:animate-fade; }
-  .popup { @apply z-50 rounded-xl border border-line bg-surface shadow-pop data-[state=open]:animate-pop; }
+  .popup { @apply z-50 rounded-2xl border border-line bg-surface shadow-pop data-[state=open]:animate-pop; }
 }
 
 /* Japanese text gets Japanese glyph shapes (Chinese fonts draw kanji like 直 or 骨 differently). Outside the

@@ -156,6 +156,10 @@ export function useDeckEditor(scope: string, profileFluency: Fluency, speed = 1,
   const add = useCallback(() => { const c = newCard(); setCards((cs) => [...cs, c]); setSelectedId(c.id); }, [setCards]);
   const remove = useCallback((id: string) => setCards((cs) => (cs.length > 1 ? cs.filter((c) => c.id !== id) : [newCard()])), [setCards]);
   const clear = useCallback(() => setCards([newCard()]), [setCards]);
+  const removeMany = useCallback((ids: string[]) => {
+    const gone = new Set(ids);
+    setCards((cs) => { const left = cs.filter((c) => !gone.has(c.id)); return left.length ? left : [newCard()]; });
+  }, [setCards]);
   const patchSettings = useCallback((p: Partial<Settings>) => {
     setSettings((s) => ({ ...s, ...p }));
     notifyDecks();
@@ -280,6 +284,6 @@ export function useDeckEditor(scope: string, profileFluency: Fluency, speed = 1,
   return {
     cards, filled, current, clips, settings, fluency, lang, busy, filledCount: cards.filter((c) => c.term.trim() || c.reading.trim()).length,
     editing: draft !== null, dirty, startEditing, saveEdits, discardEdits,
-    setSelectedId, update, applyMatch, applyFixes, add, remove, clear, patchSettings, voice, importCards, fillDetails, createFromPrompt, lookup, exportDeck, exportCsv, listen, listening, setKind,
+    setSelectedId, update, applyMatch, applyFixes, add, remove, removeMany, clear, patchSettings, voice, importCards, fillDetails, createFromPrompt, lookup, exportDeck, exportCsv, listen, listening, setKind,
   };
 }

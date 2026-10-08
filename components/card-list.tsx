@@ -4,8 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ChevronDown, LoaderCircle, Mic, Search, Trash2 } from "lucide-react";
 import type { WordMatch } from "@/lib/ai";
 import { LANG_INFO, type Lang } from "@/lib/lang";
-import { CARD_KIND_LABELS, CARD_KINDS, type Card, type CardField, type CardKind, type Clips, hasExample, target, toneOf } from "@/lib/cards";
-import { stripe } from "./card-view";
+import { CARD_KIND_LABELS, CARD_KINDS, type Card, type CardField, type CardKind, type Clips, hasExample, target } from "@/lib/cards";
 import { useCardLang } from "./lang-context";
 import { Button } from "./ui";
 import { WordLookup } from "./word-lookup";
@@ -70,7 +69,6 @@ function Row({ card, active, voiced, busy, simplified, onSelect, onChange, onKin
   const [matches, setMatches] = useState<WordMatch[] | null>(null);
   const [looking, setLooking] = useState(false);
   const lookupOpenRef = useRef(false);
-  const tone = toneOf(card.reading.trim().split(/\s+/)[0] ?? "");
   const set = (f: CardField) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(card.id, f, e.target.value);
 
   async function search(clue = hint, subject: Card = card) {
@@ -107,9 +105,8 @@ function Row({ card, active, voiced, busy, simplified, onSelect, onChange, onKin
       transition={{ duration: 0.18 }}
       onFocusCapture={onSelect}
       data-card-id={card.id}
-      className={`surface relative overflow-hidden p-4 pl-5 transition-shadow ${active ? "ring-2 ring-volt-500/40" : ""}`}
+      className={`surface relative overflow-hidden p-4 transition-shadow ${active ? "ring-2 ring-volt-500/40" : ""}`}
     >
-      <span aria-hidden className="absolute inset-y-0 left-0 w-1.5 transition-colors" style={{ background: stripe(card.reading, tone) }} />
       {full && <div className="mb-3"><KindPicker kind={card.kind} onChange={(kind) => onKind(card.id, kind)} /></div>}
       <div className={`grid gap-3 sm:items-end ${!full ? "sm:grid-cols-[1.2fr_1.4fr_auto]" : card.kind === "sentence" ? "sm:grid-cols-[1.4fr_1.4fr_1.4fr_auto]" : "sm:grid-cols-[1fr_1.2fr_1.4fr_auto]"}`}>
         {full && <Cell label={labels.term} className="font-hanzi [&_input]:text-lg" lang={info.speech} value={card.term} onChange={set("term")} placeholder={labels.termHint} />}

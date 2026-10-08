@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState, ViewTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Dialog } from "radix-ui";
-import { BookA, BookOpen, CalendarDays, ChartColumn, House, Layers, LogOut, Menu, MessageCircle, PictureInPicture2, Rows3, Search, Settings, Settings2, Users, X } from "lucide-react";
+import { BookA, BookOpen, CalendarDays, ChevronLeft, ChartColumn, House, Layers, LogOut, Menu, MessageCircle, PictureInPicture2, Rows3, Search, Settings, Settings2, Users, X } from "lucide-react";
 import { APP_NAME } from "@/lib/brand";
 import { useChatBadge } from "@/lib/chat-client";
 import { LANG_INFO, type Lang } from "@/lib/lang";
@@ -15,6 +15,7 @@ import { LearningOnboarding } from "./learning-picker";
 import { LogoMark } from "./logo";
 import { OfflineIndicator, OfflineSetup } from "./offline";
 import { AccountMenu } from "./account-menu";
+import { OPEN_MENU_EVENT } from "./app-feel";
 import { type PanelKind, QuickPanelsProvider, useOpenPanel } from "./quick-panels";
 import { RailTip, RailTipProvider } from "./rail-tip";
 import { SelectionMenu } from "./selection-menu";
@@ -128,19 +129,28 @@ function AccountDock() {
 
 function MobileBar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const { leaving, logout } = useLogout();
   const { lang } = useActiveLang();
   useEffect(() => {
     const desktop = window.matchMedia("(width >= 48rem)");
     const close = () => { if (desktop.matches) setOpen(false); };
+    const show = () => { if (!desktop.matches) setOpen(true); };
     desktop.addEventListener("change", close);
-    return () => desktop.removeEventListener("change", close);
+    window.addEventListener(OPEN_MENU_EVENT, show);
+    return () => { desktop.removeEventListener("change", close); window.removeEventListener(OPEN_MENU_EVENT, show); };
   }, []);
   const current = NAV.find((item) => isActive(pathname, item.href));
+  const nested = !NAV.some((item) => item.href === pathname);
+  const back = () => {
+    if (window.history.length > 1) router.back();
+    else router.push(current?.href ?? "/app");
+  };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-30 flex h-[calc(3.5rem+env(safe-area-inset-top))] items-center gap-2 border-b border-line bg-porcelain/90 pt-[env(safe-area-inset-top)] pr-[max(0.75rem,env(safe-area-inset-right))] pl-[max(0.75rem,env(safe-area-inset-left))] backdrop-blur md:hidden">
+    <header className="fixed inset-x-0 top-0 z-30 flex h-[calc(3.5rem+env(safe-area-inset-top))] items-center gap-1.5 border-b border-line bg-porcelain/95 pt-[env(safe-area-inset-top)] pr-[max(0.75rem,env(safe-area-inset-right))] pl-[max(0.5rem,env(safe-area-inset-left))] backdrop-blur-xs md:hidden">
+      {nested && <button type="button" className="icon-btn -mr-1" aria-label="Back" onClick={back}><ChevronLeft className="size-5" /></button>}
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Trigger className="icon-btn relative" aria-label="Open menu"><Menu className="size-5" /><NavBadge href="/chat" className="absolute -top-1 -right-1" /></Dialog.Trigger>
         <Dialog.Portal>

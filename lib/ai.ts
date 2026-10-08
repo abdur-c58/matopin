@@ -730,3 +730,76 @@ export function sanitizeFormatRows(raw: unknown, count: number): { rows: CardDra
   });
   return { rows, kinds };
 }
+
+export const SPLIT_STYLES = ["auto", "topic", "place", "grammar", "situation", "level", "custom"] as const;
+export type SplitStyle = (typeof SPLIT_STYLES)[number];
+export const isSplitStyle = (v: unknown): v is SplitStyle => SPLIT_STYLES.includes(v as SplitStyle);
+export const SPLIT_STYLE_INFO: Record<SplitStyle, { label: string; hint: string }> = {
+  auto: { label: "Let AI decide", hint: "Whatever grouping fits these cards best" },
+  topic: { label: "Topics", hint: "Food, travel, work, family…" },
+  place: { label: "Places and rooms", hint: "Kitchen, bedroom, office, street…" },
+  grammar: { label: "Parts of speech", hint: "Verbs, nouns, adjectives…" },
+  situation: { label: "Situations", hint: "Ordering food, small talk, shopping…" },
+  level: { label: "Difficulty", hint: "Beginner, intermediate, advanced" },
+  custom: { label: "My own idea", hint: "Describe it below" },
+};
+export const SPLIT_MAX = 800;
+export type SplitGroup = { name: string; description: string; rows: number[] };
+
+const SPLIT_GUIDE: Record<SplitStyle, string> = {
+  auto: "Pick the grouping that makes the most useful study decks for these particular cards, such as topics, situations or word types.",
+  topic: "Group by topic or subject area, such as food, travel, work, family, health or weather.",
+  place: "Group by the place or room where the word is used, such as kitchen, bedroom, bathroom, office, school, street or shop.",
+  grammar: "Group by part of speech or grammatical role, such as verbs, nouns, adjectives, adverbs, measure words, particles and set phrases.",
+  situation: "Group by real-life situation, such as ordering food, small talk, shopping, asking directions or at work.",
+  level: "Group by difficulty for an adult learner: beginner, intermediate and advanced.",
+  custom: "Group the way the learner describes.",
+};
+
+/** `rows` are the deck's cards; each group lists the indexes of its cards. */
+export function splitRequest(rows: { term: string; reading: string; meaning: string; kind: CardKind; tags: string }[], style: SplitStyle, prompt: string, count: number | null, lang: Lang) {
+  const body = rows.map((r, i) => `${i}: ${[r.term, r.reading, r.meaning].filter((s) => s.trim()).join(" | ")}${r.kind !== "term" ? ` (${r.kind})` : ""}${r.tags.trim() ? ` [${r.tags.trim()}]` : ""}`).join("\n");
+  return {
+    system:
+      `You sort the cards of a ${LANG_INFO[lang].promptName} vocabulary deck into smaller themed decks for an adult learner. Reply with JSON only. ` +
+      `${SPLIT_GUIDE[style]} ` +
+      (count ? `Make exactly ${count} groups. ` : "Make between 2 and 10 groups, enough that each is a coherent deck, and avoid groups of only one or two cards when a broader group fits. ") +
+      "Every card goes in exactly one group; a card that fits nowhere goes in a group named Other. Use the row numbers given. " +
+      "name is a short English deck name of one to three words, in title case. description is one short English sentence saying what the deck covers.",
+    user:
+      (prompt.trim() ? `What the learner is looking for: ${prompt.trim()}\n\n` : "") +
+      `Sort these ${rows.length} cards.\n\n${body}`,
+    schema: {
+      type: "object",
+      properties: {
+        groups: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: { name: { type: "string" }, description: { type: "string" }, rows: { type: "array", items: { type: "integer" } } },
+            required: ["name", "description", "rows"],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ["groups"],
+      additionalProperties: false,
+    },
+  };
+}
+
+/** Drops unknown rows and repeats, so each card is in at most one group, and drops groups left empty. */
+export function sanitizeSplit(raw: unknown, count: number): SplitGroup[] {
+  const list = raw && typeof raw === "object" && Array.isArray((raw as { groups?: unknown }).groups) ? (raw as { groups: unknown[] }).groups : [];
+  const used = new Set<number>();
+  const out: SplitGroup[] = [];
+  for (const item of list) {
+    if (!item || typeof item !== "object") continue;
+    const g = item as Partial<SplitGroup>;
+    const rows = (Array.isArray(g.rows) ? g.rows : []).filter((n): n is number => Number.isInteger(n) && n >= 0 && n < count && !used.has(n));
+    rows.forEach((n) => used.add(n));
+    const name = typeof g.name === "string" ? g.name.trim().slice(0, 60) : "";
+    if (rows.length && name) out.push({ name, description: typeof g.description === "string" ? g.description.trim().slice(0, 200) : "", rows });
+  }
+  return out;
+}

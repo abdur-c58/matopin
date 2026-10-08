@@ -262,9 +262,41 @@ export type Session = {
 };
 
 const SIDE_ORDER: Record<Side, number> = { word: 0, meaning: 1 };
-const isLearning = (s: Schedule) => s.state === "learning" || s.state === "relearning";
+export const isLearning = (s: Schedule) => s.state === "learning" || s.state === "relearning";
 
-export function buildSession(cards: Card[], notetype: Notetype, store: Store, now = Date.now()): Session {
+export type SessionOptions = {
+  /** Only these cards are studied. The rest keep their schedules untouched. */
+  include?: (card: Card) => boolean;
+  /** Review cards come in a random order, fixed by this seed, instead of by due date. New cards keep their order. */
+  shuffleSeed?: number | null;
+  /**
+   * Learning cards the learner chose to see early, with the due time each had then. A card counts as due while its
+   * due time is unchanged, so answering it once ends the early pass for it; its schedule follows the normal steps.
+   */
+  early?: ReadonlyMap<string, number>;
+};
+
+/** A stable pseudo-random order for a key, so a shuffled queue doesn't reshuffle every second. */
+function shuffleRank(seed: number, key: string): number {
+  let h = 2166136261 ^ seed;
+  for (let i = 0; i < key.length; i++) h = Math.imul(h ^ key.charCodeAt(i), 16777619);
+  return h >>> 0;
+}
+
+/** Learning cards still on their timer, soonest first. */
+export function waitingLearning(cards: Card[], notetype: Notetype, store: Store, now = Date.now()): QueueItem[] {
+  const out: QueueItem[] = [];
+  for (const card of cards) {
+    if (!reviewable(card)) continue;
+    for (const side of sidesFor(notetype)) {
+      const schedule = store.cards[`${card.id}:${side}`];
+      if (schedule && !schedule.suspended && isLearning(schedule) && schedule.due > now) out.push({ card, schedule });
+    }
+  }
+  return out.sort((a, b) => a.schedule.due - b.schedule.due);
+}
+
+export function buildSession(cards: Card[], notetype: Notetype, store: Store, now = Date.now(), options: SessionOptions = {}): Session {
   if (store.day !== dayKey(now)) {
     store.day = dayKey(now);
     store.newToday = 0;
@@ -280,10 +312,17 @@ export function buildSession(cards: Card[], notetype: Notetype, store: Store, no
     if (!reviewable(card)) continue;
     for (const side of sidesFor(notetype)) all.push({ card, schedule: ensure(store, card, side) });
   }
-  const items = all.filter((item) => !item.schedule.suspended);
+  const items = all.filter((item) => !item.schedule.suspended && (!options.include || options.include(item.card)));
+  const early = options.early;
+  const dueNow = (s: Schedule) => s.due <= now || early?.get(s.key) === s.due;
 
-  const learning = items.filter((item) => isLearning(item.schedule) && item.schedule.due <= now).sort((a, b) => a.schedule.due - b.schedule.due);
-  const review = items.filter((item) => item.schedule.state === "review" && item.schedule.due <= now).sort((a, b) => a.schedule.due - b.schedule.due);
+  const learning = items.filter((item) => isLearning(item.schedule) && dueNow(item.schedule)).sort((a, b) => a.schedule.due - b.schedule.due);
+  const seed = options.shuffleSeed;
+  const review = items
+    .filter((item) => item.schedule.state === "review" && item.schedule.due <= now)
+    .sort(seed == null
+      ? (a, b) => a.schedule.due - b.schedule.due
+      : (a, b) => shuffleRank(seed, a.schedule.key) - shuffleRank(seed, b.schedule.key));
   const fresh = items
     .filter((item) => item.schedule.state === "new" && item.schedule.due <= now)
     .sort((a, b) => a.schedule.position - b.schedule.position || SIDE_ORDER[a.schedule.side] - SIDE_ORDER[b.schedule.side]);
@@ -295,7 +334,7 @@ export function buildSession(cards: Card[], notetype: Notetype, store: Store, no
   const newCap = Math.max(0, settings.newPerDay - store.newToday);
   const newLeft = settings.newIgnoresReviewLimit ? newCap : Math.min(newCap, reviewLeft - reviewsShown.length);
   const queue = [...learning, ...reviewsShown, ...fresh.slice(0, newLeft)];
-  const waitingAll = items.filter((item) => isLearning(item.schedule) && item.schedule.due > now).sort((a, b) => a.schedule.due - b.schedule.due);
+  const waitingAll = items.filter((item) => isLearning(item.schedule) && !dueNow(item.schedule)).sort((a, b) => a.schedule.due - b.schedule.due);
   const waiting = waitingAll[0];
   const today = waitingAll.filter((item) => item.schedule.due < dayStart(now, 1));
 

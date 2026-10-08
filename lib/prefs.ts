@@ -32,6 +32,8 @@ export type Prefs = {
   second: string;
   /** Studying shows pinyin or furigana before the answer. Off hides it until the answer is shown. */
   studyReading: boolean;
+  /** Review cards come in a random order instead of by due date. New cards keep their order. */
+  studyShuffle: boolean;
   /** Card editing shows only pinyin and meaning until a card is expanded. */
   simplified: boolean;
   /** Recent dictionary lookups, newest first. */
@@ -53,7 +55,7 @@ export function aiAllowed(prefs: Pick<Prefs, "aiMode" | "aiFeatures">, feature: 
 
 export const PLAYBACK_SPEEDS = [0.5, 0.75, 1, 1.25];
 export const MAX_DICT_RECENT = 12;
-export const DEFAULT_PREFS: Prefs = { learning: null, dailyGoal: 50, playbackSpeed: 1, accent: DEFAULT_ACCENT, second: DEFAULT_SECOND, studyReading: true, simplified: true, dictRecent: [], dictRecentJa: [], language: DEFAULT_LANG, botMode: "auto", aiMode: "all", aiFeatures: [...AI_FEATURES] };
+export const DEFAULT_PREFS: Prefs = { learning: null, dailyGoal: 50, playbackSpeed: 1, accent: DEFAULT_ACCENT, second: DEFAULT_SECOND, studyReading: true, studyShuffle: false, simplified: true, dictRecent: [], dictRecentJa: [], language: DEFAULT_LANG, botMode: "auto", aiMode: "all", aiFeatures: [...AI_FEATURES] };
 
 const recent = (raw: unknown[]) => {
   const words = raw.filter((w): w is string => typeof w === "string").map((w) => w.trim().slice(0, 64)).filter(Boolean);
@@ -72,6 +74,7 @@ function pick(raw: unknown): Partial<Prefs> {
   if (second) out.second = second;
   if (typeof o.simplified === "boolean") out.simplified = o.simplified;
   if (typeof o.studyReading === "boolean") out.studyReading = o.studyReading;
+  if (typeof o.studyShuffle === "boolean") out.studyShuffle = o.studyShuffle;
   if (Array.isArray(o.dictRecent)) out.dictRecent = recent(o.dictRecent);
   if (Array.isArray(o.dictRecentJa)) out.dictRecentJa = recent(o.dictRecentJa);
   if (isLang(o.language)) out.language = o.language;

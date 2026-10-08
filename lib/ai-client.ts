@@ -1,4 +1,4 @@
-import { type CardDraft, type CardIssue, type Translation, type WordMatch } from "./ai";
+import { type CardDraft, type CardIssue, type SplitGroup, type SplitStyle, type Translation, type WordMatch } from "./ai";
 import type { Lang } from "./lang";
 import { voiceFor, type Voice } from "./voice";
 import type { Card, CardKind, Fluency } from "./cards";
@@ -44,6 +44,12 @@ export function cardFromPrompt(prompt: string, tags: string[], level: Fluency, l
 
 export async function cardsFromText(text: string, tags: string[], level: Fluency, lang: Lang): Promise<{ draft: CardDraft; kind: CardKind }[]> {
   return (await ai<{ cards: { draft: CardDraft; kind: CardKind }[] }>({ task: "extract", text, tags, level, lang }, "Couldn’t make cards from that.")).cards;
+}
+
+/** Groups for splitting a deck; each group's rows are indexes into `cards`. */
+export async function splitDeck(cards: Card[], style: SplitStyle, prompt: string, count: number | null, lang: Lang): Promise<SplitGroup[]> {
+  const rows = cards.map((c) => ({ term: c.term, reading: c.reading, meaning: c.meaning, kind: c.kind, tags: c.tags }));
+  return (await ai<{ groups: SplitGroup[] }>({ task: "split", rows, style, prompt, count, lang }, "Couldn’t split this deck.")).groups;
 }
 
 /** Up to CHECK_BATCH cards; each issue's row is the card's index in `cards`. */

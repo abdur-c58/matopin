@@ -1,6 +1,7 @@
 import {
   applyRepairs, badTranslation, brokenFields, canFill, type CardDraft, CHECK_BATCH, CONVERT_BATCH, convertRequest, draftKind, extractRequest, fillRequest, formatRequest, lookupRequest, promptRequest, repairRequest,
-  sanitizeDraft, sanitizeExtracted, sanitizeFormatRows, sanitizeMatches, sanitizeTranslation, translateRequest,
+  sanitizeDraft, sanitizeExtracted, sanitizeFormatRows, sanitizeMatches, sanitizeSplit, sanitizeTranslation, translateRequest,
+  isSplitStyle, SPLIT_MAX, splitRequest,
 } from "@/lib/ai";
 import { checkBatch } from "@/lib/card-check";
 import { kanaKey } from "@/lib/jdict";
@@ -15,7 +16,7 @@ export const runtime = "nodejs";
 const MAX_TRANSLATE = 1500;
 
 const TASK_FEATURES: Record<string, AiFeature> = {
-  fill: "create", lookup: "create", prompt: "create", format: "create", extract: "create", check: "check", convert: "convert", translate: "translate",
+  fill: "create", lookup: "create", prompt: "create", format: "create", extract: "create", split: "create", check: "check", convert: "convert", translate: "translate",
 };
 
 type Body = {
@@ -31,6 +32,8 @@ type Body = {
   level?: string;
   lang?: string;
   from?: string;
+  style?: string;
+  count?: number;
 };
 
 /** Models occasionally slip a word from another language into a field. Those fields get one rewrite, else are blanked. */
@@ -116,6 +119,24 @@ export async function POST(request: Request) {
       const cards = sanitizeExtracted(json);
       const drafts = await repaired(key, model, cards.map((c) => c.draft), lang);
       return Response.json({ cards: cards.map((c, i) => ({ ...c, draft: drafts[i] })) });
+    }
+    if (body.task === "split") {
+      const rows = Array.isArray(body.rows)
+        ? body.rows.slice(0, SPLIT_MAX).map((row) => {
+          const d = sanitizeDraft(row);
+          return { term: d.term, reading: d.reading, meaning: d.meaning, tags: d.tags, kind: isCardKind(row?.kind) ? row.kind : "term" as const };
+        })
+        : [];
+      if (rows.length < 2) return Response.json({ error: "A deck needs at least two cards to split." }, { status: 400 });
+      const style = isSplitStyle(body.style) ? body.style : "auto";
+      const prompt = (body.prompt ?? "").slice(0, 500);
+      if (style === "custom" && !prompt.trim()) return Response.json({ error: "Describe how you’d like the deck split." }, { status: 400 });
+      const count = typeof body.count === "number" && Number.isInteger(body.count) && body.count >= 2 && body.count <= 12 ? body.count : null;
+      const spec = splitRequest(rows, style, prompt, count, lang);
+      const json = await generateJson(key, model, spec.system, spec.user, spec.schema, 180_000);
+      const groups = sanitizeSplit(json, rows.length);
+      if (!groups.length) return Response.json({ error: "The AI couldn’t find themes in these cards. Try another grouping." }, { status: 502 });
+      return Response.json({ groups });
     }
     if (body.task === "check") {
       const rows = Array.isArray(body.rows)
