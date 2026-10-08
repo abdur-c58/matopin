@@ -24,15 +24,16 @@
   --color-second-500: var(--second);
   --color-second-600: color-mix(in srgb, var(--second) 85%, black);
   --color-on-second: var(--on-second);
-  /* Apple's corner sizes: badges, controls, cards, banners and sheets. They're drawn as continuous corners below. */
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 9px;
-  --radius-lg: 12px;
-  --radius-xl: 18px;
-  --radius-2xl: 22px;
-  --radius-3xl: 28px;
-  --radius-4xl: 36px;
+  /* Every corner is a fixed share of the device corner (--corner, below), from badges up to sheets, so the whole
+     interface keeps the same proportions as the hardware around it. Drawn as continuous corners further down. */
+  --radius-xs: calc(var(--corner) * 0.083);
+  --radius-sm: calc(var(--corner) * 0.111);
+  --radius-md: calc(var(--corner) * 0.167);
+  --radius-lg: calc(var(--corner) * 0.222);
+  --radius-xl: calc(var(--corner) * 0.333);
+  --radius-2xl: calc(var(--corner) * 0.389);
+  --radius-3xl: calc(var(--corner) * 0.472);
+  --radius-4xl: calc(var(--corner) * 0.583);
 
   --shadow-card: 0 1px 0 rgb(255 255 255 / 0.03) inset;
   --shadow-pop: 0 24px 60px -12px rgb(0 0 0 / 0.7);
@@ -62,6 +63,10 @@
 }
 
 @layer base {
+  /* An Apple device's outer corner is about 11.5mm, which is about 72 CSS pixels at the size screens are designed for
+     (CSS can't measure real millimetres). Smaller screens scale it down with their short side, so a compact phone gets
+     proportionally smaller corners. */
+  :root { --corner: clamp(52px, 18vmin, 72px); }
   :root { --accent: #d7f25a; --on-accent: #131313; --second: #ff9a3c; --on-second: #131313; }
   html { color-scheme: dark; }
   /* Nothing on the page should ever scroll it sideways; clip (unlike hidden) keeps sticky headers working. */
@@ -76,7 +81,7 @@
   }
   /* Continuous (squircle) corners like iOS and macOS, where the browser can draw them. Circles and pills stay round. */
   :where(.btn, .icon-btn, .field, .surface, .popup, .chip, [class*="rounded-"], [data-sonner-toast]):not([class*="rounded-full"]) {
-    corner-shape: superellipse(1.5);
+    corner-shape: superellipse(1.2);
   }
   /* The installed app behaves like an app: no pinch or double-tap zoom, and no sideways swipe between pages. */
   html, body { overscroll-behavior-x: none; }

@@ -10,7 +10,7 @@ type Selection = { selecting: boolean; selected: ReadonlySet<string>; onToggle: 
 
 function Tick({ on }: { on: boolean }) {
   return (
-    <span aria-hidden className={`grid size-5 shrink-0 place-items-center rounded-md border transition-colors ${on ? "border-volt-500 bg-volt-500 text-on-volt" : "border-line bg-surface"}`}>
+    <span aria-hidden className={`grid size-5 shrink-0 place-items-center rounded-[6px] border transition-colors ${on ? "border-volt-500 bg-volt-500 text-on-volt" : "border-line bg-surface"}`}>
       {on && <Check className="size-3.5" strokeWidth={3} />}
     </span>
   );

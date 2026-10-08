@@ -143,7 +143,7 @@ export function AppSettings() {
           ))}
         </dl>
         <p className="mt-3 text-xs text-muted">Decks and review history are saved to your profile in Supabase. Each deck’s scheduling options live in its own settings.</p>
-        <Link href="/decks" className="btn btn-secondary mt-4">Manage decks</Link>
+        <Link href="/decks" className="btn btn-shard mt-4">Manage decks</Link>
       </Panel>
 
       <Panel title="Keyboard shortcuts" className="lg:col-span-12">

@@ -1,10 +1,7 @@
 "use client";
-import { useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { useEffect, useEffectEvent } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { isStandalone } from "@/lib/offline";
-
-/** Asks the mobile top bar to open its menu, as an edge swipe does. */
-export const OPEN_MENU_EVENT = "matopin:open-menu";
 
 const EDGE = 24;
 const NO_ZOOM = "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover";
@@ -12,10 +9,14 @@ const TAPPABLE = "button, a, input, textarea, select, label, [role=button], [rol
 
 /**
  * Makes the installed app feel native: no zooming (pinch, double tap, or the zoom into a small field on focus), and
- * a swipe in from the screen's edge opens the menu instead of going back or forward a page.
+ * a swipe in from the left edge goes back a page within the app instead of leaving it to the browser.
  */
 export function AppFeel() {
   const pathname = usePathname();
+  const router = useRouter();
+  const goBack = useEffectEvent(() => {
+    if (window.history.length > 1) router.back();
+  });
 
   useEffect(() => {
     if (!isStandalone()) return;
@@ -48,11 +49,11 @@ export function AppFeel() {
       if (!(e.target instanceof Element && e.target.closest(TAPPABLE))) e.preventDefault();
     };
     const onMove = (e: TouchEvent) => {
-      if (!start?.left || window.matchMedia("(width >= 48rem)").matches) return;
+      if (!start?.left) return;
       const t = e.touches[0];
-      if (t.clientX - start.x > 40 && Math.abs(t.clientY - start.y) < 40) {
+      if (t.clientX - start.x > 60 && Math.abs(t.clientY - start.y) < 40) {
         start = null;
-        window.dispatchEvent(new Event(OPEN_MENU_EVENT));
+        goBack();
       }
     };
     document.addEventListener("touchstart", onStart, { passive: false });

@@ -116,7 +116,7 @@ export function DeckSplit({ open, onOpenChange, deckId, lang, cards, readOnly, o
                   <li key={i} className={`rounded-lg border p-3 transition-colors ${g.on ? "border-line" : "border-line/60 opacity-60"}`}>
                     <div className="flex items-center gap-2">
                       <button type="button" role="checkbox" aria-checked={g.on} aria-label={`Include ${g.name}`} onClick={() => patch(i, { on: !g.on })}
-                        className={`grid size-5 shrink-0 place-items-center rounded-md border transition-colors ${g.on ? "border-volt-500 bg-volt-500 text-on-volt" : "border-line"}`}>
+                        className={`grid size-5 shrink-0 place-items-center rounded-[6px] border transition-colors ${g.on ? "border-volt-500 bg-volt-500 text-on-volt" : "border-line"}`}>
                         {g.on && <Check className="size-3.5" strokeWidth={3} />}
                       </button>
                       <input className="field h-8 min-w-0 flex-1 text-sm font-semibold" value={g.name} maxLength={60} aria-label="Deck name" onChange={(e) => patch(i, { name: e.target.value })} />

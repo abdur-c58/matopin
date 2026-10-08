@@ -86,7 +86,7 @@ function MemberProfile({ id }: { id: string }) {
       <section>
         <div className="flex flex-wrap items-start gap-5">
           <PersonAvatar person={person} className="size-20 text-3xl" />
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 basis-52">
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <h2 className="truncate text-2xl font-bold">{person.name}</h2>
               {person.followsYou && !self && <span className="text-xs text-muted">Follows you</span>}
@@ -104,11 +104,11 @@ function MemberProfile({ id }: { id: string }) {
               <ReachStats reach={view.person.reach} />
             </div>
           </div>
-          <div className="flex shrink-0 gap-2">
+          <div className="flex w-full gap-2 sm:w-auto sm:shrink-0 max-sm:[&>*]:flex-1">
             {self ? (
               <>
-                <button type="button" className="btn btn-secondary" onClick={() => setEditing(true)}>Edit profile</button>
-                <button type="button" className="btn btn-primary" onClick={() => setFinding(true)}>Find people</button>
+                <button type="button" className="btn btn-shard" onClick={() => setEditing(true)}>Edit profile</button>
+                <button type="button" className="btn btn-shard" onClick={() => setFinding(true)}>Find people</button>
               </>
             ) : (
               <>
@@ -145,7 +145,7 @@ function MemberProfile({ id }: { id: string }) {
       ) : (
         <div className="max-w-md text-sm text-muted">
           <p>{self ? "You haven’t shared a deck yet. Open a deck’s settings and set it to Public for anyone to import, or Collab to invite people with a link." : `${person.name} hasn’t shared a public deck yet.`}</p>
-          {self && <Link href="/decks" className="btn btn-secondary mt-3">Choose a deck</Link>}
+          {self && <Link href="/decks" className="btn btn-shard mt-3">Choose a deck</Link>}
         </div>
       ))}
       {(tab === "followers" || tab === "following") && (

@@ -132,7 +132,7 @@ function DeckSelect({ lang, selected, onToggle, newDeck, onNewDeck }: {
   if (newDeck) names.push("New deck");
   const label = !names.length ? "Choose decks" : names.length <= 2 ? names.join(", ") : `${names.slice(0, 2).join(", ")} +${names.length - 2}`;
   const item = "flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-sm transition hover:bg-raised";
-  const box = (on: boolean) => `grid size-4.5 shrink-0 place-items-center rounded-md border ${on ? "border-volt-500 bg-volt-500 text-on-volt" : "border-line"}`;
+  const box = (on: boolean) => `grid size-4.5 shrink-0 place-items-center rounded-[5px] border ${on ? "border-volt-500 bg-volt-500 text-on-volt" : "border-line"}`;
   return (
     <Popover.Root>
       <Popover.Trigger className="field flex h-10 items-center justify-between gap-2 text-left text-sm">

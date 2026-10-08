@@ -15,7 +15,6 @@ import { LearningOnboarding } from "./learning-picker";
 import { LogoMark } from "./logo";
 import { OfflineIndicator, OfflineSetup } from "./offline";
 import { AccountMenu } from "./account-menu";
-import { OPEN_MENU_EVENT } from "./app-feel";
 import { type PanelKind, QuickPanelsProvider, useOpenPanel } from "./quick-panels";
 import { RailTip, RailTipProvider } from "./rail-tip";
 import { SelectionMenu } from "./selection-menu";
@@ -136,10 +135,8 @@ function MobileBar() {
   useEffect(() => {
     const desktop = window.matchMedia("(width >= 48rem)");
     const close = () => { if (desktop.matches) setOpen(false); };
-    const show = () => { if (!desktop.matches) setOpen(true); };
     desktop.addEventListener("change", close);
-    window.addEventListener(OPEN_MENU_EVENT, show);
-    return () => { desktop.removeEventListener("change", close); window.removeEventListener(OPEN_MENU_EVENT, show); };
+    return () => desktop.removeEventListener("change", close);
   }, []);
   const current = NAV.find((item) => isActive(pathname, item.href));
   const nested = !NAV.some((item) => item.href === pathname);
@@ -285,7 +282,7 @@ function TopBar() {
       </div>
       <div className="flex w-full items-center gap-2 sm:w-auto">
         <GlobalSearch />
-        <button type="button" className="btn btn-second h-10 shrink-0" onClick={() => void create()}>New deck</button>
+        <button type="button" className="btn btn-shard btn-shard-second h-10 shrink-0" onClick={() => void create()}>New deck</button>
       </div>
     </div>
   );
