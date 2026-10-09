@@ -58,7 +58,7 @@ export const answerAgain = (m: Local, profile: string, asking: number[], ask: (q
 function Body({ text }: { text: string }) {
   return (
     <p className="text-[15px] leading-snug break-words whitespace-pre-wrap">
-      {text.split(/(@ask\b)/i).map((part, i) => (i % 2 ? <span key={i} className="rounded-sm bg-second-500/25 px-1 font-semibold text-second-300">{part}</span> : part))}
+      {text.split(/(@ask\b)/i).map((part, i) => (i % 2 ? <span key={i} className="rounded-sm bg-second-500/25 px-1 font-semibold text-second-ink">{part}</span> : part))}
     </p>
   );
 }
@@ -94,7 +94,7 @@ export function BotTyping({ lang }: { lang: Lang }) {
   return (
     <div className="mt-3 flex items-end gap-2 px-3 md:px-5" role="status" aria-label={`${BOT_NAME} is writing`}>
       <BotAvatar thinking />
-      <span className="flex animate-pop items-center gap-2.5 rounded-2xl rounded-bl-md border border-second-500/40 bg-second-500/10 py-2.5 pr-4 pl-3">
+      <span className="flex animate-pop items-center gap-2.5 rounded-2xl rounded-bl-md border border-second-edge/40 bg-second-500/10 py-2.5 pr-4 pl-3">
         <span className="grid grid-cols-2 gap-[3px]" aria-hidden>
           {[0, 1, 3, 2].map((step) => <span key={step} className="bot-tile size-[7px] rounded-[2.5px] bg-second-300" style={{ animationDelay: `${step * 0.25}s` }} />)}
         </span>
@@ -166,7 +166,7 @@ export function MessageRow({ m, mine, grouped, people, showName = false, active,
     return (
       <div className="my-3 flex justify-center px-4">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-raised px-3 py-1 text-center text-xs text-muted">
-          {m.body.startsWith("ai_") ? <Sparkles className="size-3 shrink-0 text-second-300" /> : <Users className="size-3 shrink-0" />}{noticeText(m.body, who(m.senderId), subject)}
+          {m.body.startsWith("ai_") ? <Sparkles className="size-3 shrink-0 text-second-ink" /> : <Users className="size-3 shrink-0" />}{noticeText(m.body, who(m.senderId), subject)}
         </span>
       </div>
     );
@@ -175,7 +175,7 @@ export function MessageRow({ m, mine, grouped, people, showName = false, active,
   const bubble = m.kind === "deck" ? "" : mine
     ? `rounded-2xl ${grouped ? "rounded-tr-md" : ""} rounded-br-md bg-volt-500 px-3.5 py-2 text-on-volt`
     : bot
-      ? `rounded-2xl ${grouped ? "rounded-tl-md" : ""} rounded-bl-md border border-second-500/40 bg-second-500/10 px-3.5 py-2`
+      ? `rounded-2xl ${grouped ? "rounded-tl-md" : ""} rounded-bl-md border border-second-edge/40 bg-second-500/10 px-3.5 py-2`
       : `rounded-2xl ${grouped ? "rounded-tl-md" : ""} rounded-bl-md bg-raised px-3.5 py-2`;
 
   return (
@@ -187,7 +187,7 @@ export function MessageRow({ m, mine, grouped, people, showName = false, active,
       )}
       <div className={`flex max-w-[min(34rem,78%)] min-w-0 flex-col ${mine ? "items-end" : "items-start"}`}>
         {(!grouped || m.replyTo) && bot && (
-          <span className="mb-1 ml-1 flex items-center gap-1.5 text-[11px] font-semibold text-second-300">
+          <span className="mb-1 ml-1 flex items-center gap-1.5 text-[11px] font-semibold text-second-ink">
             {BOT_NAME}
             {replyLang && (
               <span className="rounded-full bg-second-500/15 px-1.5 py-px font-medium text-muted" title={replyLang === "mixed" ? "About Mandarin and Japanese" : `About ${LANG_INFO[replyLang].name}`}>
@@ -210,7 +210,7 @@ export function MessageRow({ m, mine, grouped, people, showName = false, active,
           </>
         )}
         <div
-          className={`relative max-w-full transition ${bubble} ${m.local === "sending" ? "opacity-60" : ""} ${m.local === "failed" ? "ring-2 ring-tone-1/70" : ""} ${highlight ? "ring-2 ring-volt-500 ring-offset-2 ring-offset-surface" : ""}`}
+          className={`relative max-w-full transition ${bubble} ${m.local === "sending" ? "opacity-60" : ""} ${m.local === "failed" ? "ring-2 ring-tone-1/70" : ""} ${highlight ? "ring-2 ring-volt-edge ring-offset-2 ring-offset-surface" : ""}`}
           onDoubleClick={() => { if (!m.local) onReact("❤️"); }}
           onClick={onActive}
           title={new Date(m.createdAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}
@@ -223,7 +223,7 @@ export function MessageRow({ m, mine, grouped, people, showName = false, active,
               const reacted = r.by.includes(profile);
               return (
                 <button key={r.emoji} type="button" onClick={() => onReact(r.emoji)} title={r.by.map(who).join(", ")} aria-pressed={reacted}
-                  className={`inline-flex h-6 items-center gap-1 rounded-full border px-1.5 text-xs shadow-pop transition hover:scale-105 ${reacted ? "border-volt-500/60 bg-volt-100" : "border-line bg-surface"}`}>
+                  className={`inline-flex h-6 items-center gap-1 rounded-full border px-1.5 text-xs shadow-pop transition hover:scale-105 ${reacted ? "border-volt-edge/60 bg-volt-100" : "border-line bg-surface"}`}>
                   <span>{r.emoji}</span>{r.by.length > 1 && <span className="text-[11px] tabular-nums text-muted">{r.by.length}</span>}
                 </button>
               );
@@ -252,7 +252,7 @@ export function MessageRow({ m, mine, grouped, people, showName = false, active,
         ) : m.local === "sending" ? (
           <p className="mt-1 text-[11px] text-muted">Sending…</p>
         ) : receipt && (
-          <p className="mt-1 flex items-center gap-1 text-[11px] text-muted">{receipt.startsWith("Seen") ? <CheckCheck className="size-3 text-volt-500" /> : <Check className="size-3" />}{receipt}</p>
+          <p className="mt-1 flex items-center gap-1 text-[11px] text-muted">{receipt.startsWith("Seen") ? <CheckCheck className="size-3 text-volt-ink" /> : <Check className="size-3" />}{receipt}</p>
         )}
       </div>
       {!m.local && (
@@ -331,7 +331,7 @@ function PrivateDeckAlert({ deck, name, busy, onShare, onCancel }: { deck: DeckS
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {options.map(({ value, label, detail }) => (
             <button key={value} type="button" disabled={busy != null} onClick={() => onShare(value)}
-              className="rounded-xl border border-line bg-surface p-3 text-left transition hover:border-volt-500/60 hover:bg-raised disabled:opacity-60">
+              className="rounded-xl border border-line bg-surface p-3 text-left transition hover:border-volt-edge/60 hover:bg-raised disabled:opacity-60">
               <span className="flex items-center gap-2 text-sm font-semibold">{busy === value && <LoaderCircle className="size-4 animate-spin" />}{label}</span>
               <span className="mt-1 block text-xs text-muted">{detail}</span>
             </button>
@@ -695,7 +695,7 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
   const headerLabel = (
     <span className="min-w-0">
       <span className="block truncate font-semibold">{title}</span>
-      <span className={`flex items-center gap-1 truncate text-xs ${chat?.aiEnabled ? "text-second-300" : "text-muted"}`}>{chat?.aiEnabled && <Sparkles className="size-3" />}{status}</span>
+      <span className={`flex items-center gap-1 truncate text-xs ${chat?.aiEnabled ? "text-second-ink" : "text-muted"}`}>{chat?.aiEnabled && <Sparkles className="size-3" />}{status}</span>
     </span>
   );
 
@@ -827,18 +827,18 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
                 preview={previewText({ kind: replyTo.kind, body: replyTo.body, deckName: replyTo.deck && !replyTo.deck.unavailable ? replyTo.deck.name : null })} />
             )}
             {suggestAsk && (
-              <button type="button" className="mb-2 flex w-full animate-pop items-center gap-3 rounded-xl border border-second-500/40 bg-second-500/10 px-3 py-2 text-left" onMouseDown={(e) => e.preventDefault()} onClick={insertAsk}>
+              <button type="button" className="mb-2 flex w-full animate-pop items-center gap-3 rounded-xl border border-second-edge/40 bg-second-500/10 px-3 py-2 text-left" onMouseDown={(e) => e.preventDefault()} onClick={insertAsk}>
                 <BotAvatar className="size-7" />
                 <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-semibold text-second-300">@ask</span>
+                  <span className="block text-sm font-semibold text-second-ink">@ask</span>
                   <span className="block text-xs text-muted">Ask Bao a Chinese question</span>
                 </span>
                 <kbd className="rounded-sm border border-line px-1.5 py-0.5 text-[10px] text-muted">Tab</kbd>
               </button>
             )}
-            <form className={`flex items-end gap-1 rounded-xl border bg-porcelain p-1.5 transition ${asksBot ? "border-second-500/60" : "border-line focus-within:border-volt-500/60"}`} onSubmit={(e) => { e.preventDefault(); submit(); }}>
+            <form className={`flex items-end gap-1 rounded-xl border bg-porcelain p-1.5 transition ${asksBot ? "border-second-edge/60" : "border-line focus-within:border-volt-edge/60"}`} onSubmit={(e) => { e.preventDefault(); submit(); }}>
               <DeckPicker onPick={pickDeck} disabled={!canSend} />
-              {bao && <button type="button" className={`icon-btn shrink-0 ${asksBot ? "text-second-300" : ""}`} aria-label="Ask Bao" title="Ask Bao (@ask)" onClick={insertAsk}><Sparkles className="size-[18px]" /></button>}
+              {bao && <button type="button" className={`icon-btn shrink-0 ${asksBot ? "text-second-ink" : ""}`} aria-label="Ask Bao" title="Ask Bao (@ask)" onClick={insertAsk}><Sparkles className="size-[18px]" /></button>}
               <textarea
                 ref={input} rows={1} value={text} maxLength={MAX_MESSAGE + 200} aria-label={`Message ${title}`}
                 placeholder={asksBot ? "Ask Bao about Chinese…" : `Message ${title}`}
@@ -847,7 +847,7 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
                 onSelect={(e) => setCaret(e.currentTarget.selectionStart)}
                 onKeyDown={onKey}
               />
-              <button type="submit" className={`grid size-9 shrink-0 place-items-center rounded-full transition active:scale-90 disabled:opacity-40 ${asksBot ? "bg-second-500 text-on-second hover:bg-second-600" : "bg-volt-500 text-on-volt hover:bg-volt-700"}`}
+              <button type="submit" className={`grid size-9 shrink-0 place-items-center rounded-full transition active:scale-90 disabled:opacity-40 ${asksBot ? "bg-second-500 text-on-second hover:bg-second-600" : "bg-volt-500 text-on-volt hover:bg-volt-hover"}`}
                 disabled={!text.trim()} aria-label={asksBot ? "Send and ask Bao" : "Send"}>
                 {asksBot ? <Sparkles className="size-4" /> : <SendHorizontal className="size-4" />}
               </button>

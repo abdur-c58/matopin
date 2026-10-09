@@ -3,6 +3,7 @@ import { Eraser, LoaderCircle, Undo2, X } from "lucide-react";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { recognize, type Point, type Recognized, type Stroke } from "@/lib/handwriting";
 import { LANG_INFO, LANGS, type Lang } from "@/lib/lang";
+import { useResolvedTheme } from "./theme-sync";
 
 /** Recognition waits for a short pause so a character isn't read after every stroke. */
 const SETTLE_MS = 350;
@@ -75,6 +76,9 @@ export function HandwritingPad({ onPick, onClose, compact = false, lang = "zh", 
   }, []);
 
   const redraw = () => paint(canvas.current, drawing.current ? [...strokes.current, drawing.current] : strokes.current);
+
+  const theme = useResolvedTheme();
+  useEffect(() => paint(canvas.current, strokes.current), [theme]);
 
   const read = () => {
     request.current?.abort();
@@ -163,7 +167,7 @@ export function HandwritingPad({ onPick, onClose, compact = false, lang = "zh", 
       <div className="mt-3 flex min-h-12 items-center gap-1 overflow-x-auto" role="listbox" aria-label="Recognized characters" aria-busy={busy}>
         {candidates.map((c) => (
           <button key={c} type="button" role="option" aria-selected={false} onClick={() => { onPick(c); reset(); }}
-            lang={lang === "ja" ? "ja" : "zh-CN"} className="h-11 shrink-0 rounded-lg border border-line bg-surface px-3 font-hanzi text-2xl leading-none transition-colors hover:border-volt-500 hover:bg-volt-500/10">
+            lang={lang === "ja" ? "ja" : "zh-CN"} className="h-11 shrink-0 rounded-lg border border-line bg-surface px-3 font-hanzi text-2xl leading-none transition-colors hover:border-volt-edge hover:bg-volt-500/10">
             {c}
           </button>
         ))}

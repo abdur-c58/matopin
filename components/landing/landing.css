@@ -116,6 +116,21 @@
   @keyframes landing-wave { from { transform: scaleY(0.3); opacity: 0.5; } to { transform: scaleY(1); opacity: 1; } }
   @keyframes landing-ink { from { background-position: 0 0; } to { background-position: 0 100%; } }
 
+  /* Light theme: shadows soften from black pools to gentle lift, the front card turns white, and glows only tint. */
+  :root[data-theme="light"] {
+    .landing-card-far { box-shadow: 0 24px 55px color-mix(in srgb, var(--color-tone-4) 16%, transparent), 0 10px 24px rgb(0 0 0 / 0.08); }
+    .landing-card-mid { box-shadow: 0 30px 70px color-mix(in srgb, var(--second) 18%, transparent), 0 14px 32px rgb(0 0 0 / 0.1); }
+    .landing-card-near {
+      background: var(--color-surface);
+      border-color: var(--color-line);
+      box-shadow: 0 38px 85px rgb(0 0 0 / 0.16), 0 0 48px color-mix(in srgb, var(--accent) 22%, transparent);
+    }
+    .landing-step { box-shadow: 0 30px 80px rgb(0 0 0 / 0.1), 0 0 48px color-mix(in srgb, var(--step, var(--accent)) 16%, transparent); }
+    .landing-portal { box-shadow: 0 0 90px color-mix(in srgb, var(--accent) 12%, transparent); }
+    .landing-hero-glow { opacity: var(--theme-glow); }
+    .landing-grain { opacity: 0.05; mix-blend-mode: multiply; }
+  }
+
   @media (max-width: 767px) {
     .landing-scene { perspective: none; }
     .landing-rig { transform: none !important; transform-style: flat; }

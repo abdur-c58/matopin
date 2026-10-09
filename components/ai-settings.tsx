@@ -49,12 +49,12 @@ export function AiPanel({ id, className = "" }: { id?: string; className?: strin
           const on = prefs.aiMode === m.value;
           return (
             <button key={m.value} type="button" role="radio" aria-checked={on} disabled={busy != null} onClick={() => { if (!on) pickMode(m.value); }}
-              className={`flex items-start gap-3 rounded-md border p-3 text-left transition-colors disabled:cursor-wait ${on ? "border-volt-500 bg-volt-50" : "border-line hover:border-ink/25 hover:bg-raised"}`}>
+              className={`flex items-start gap-3 rounded-md border p-3 text-left transition-colors disabled:cursor-wait ${on ? "border-volt-edge bg-volt-50" : "border-line hover:border-ink/25 hover:bg-raised"}`}>
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-semibold">{m.label}</span>
                 <span className="block text-xs text-muted">{m.detail}</span>
               </span>
-              {busy === m.value ? <LoaderCircle className="size-4 shrink-0 animate-spin" /> : on && <Check className="size-4 shrink-0 text-volt-500" />}
+              {busy === m.value ? <LoaderCircle className="size-4 shrink-0 animate-spin" /> : on && <Check className="size-4 shrink-0 text-volt-ink" />}
             </button>
           );
         })}

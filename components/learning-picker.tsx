@@ -23,7 +23,7 @@ function LearningOptions({ value, busy, onPick }: { value: Learning | null; busy
         const on = o.value === value;
         return (
           <button key={o.value} type="button" role="radio" aria-checked={on} disabled={busy != null} onClick={() => { if (!on) onPick(o.value); }}
-            className={`flex items-center gap-3 rounded-md border p-3 text-left transition-colors disabled:cursor-wait ${on ? "border-volt-500 bg-volt-50" : "border-line hover:border-ink/25 hover:bg-raised"}`}>
+            className={`flex items-center gap-3 rounded-md border p-3 text-left transition-colors disabled:cursor-wait ${on ? "border-volt-edge bg-volt-50" : "border-line hover:border-ink/25 hover:bg-raised"}`}>
             <span className={`grid h-11 min-w-11 shrink-0 place-items-center rounded-lg px-2 font-hanzi text-lg leading-none ${on ? "bg-volt-500 text-on-volt" : "bg-raised"}`}>
               {busy === o.value ? <LoaderCircle className="size-5 animate-spin" /> : o.badge}
             </span>
@@ -31,7 +31,7 @@ function LearningOptions({ value, busy, onPick }: { value: Learning | null; busy
               <span className="block text-sm font-semibold">{o.label} <span className="font-hanzi font-normal text-muted">{o.native}</span></span>
               <span className="block text-xs text-muted">{o.detail}</span>
             </span>
-            {on && <Check className="size-4 shrink-0 text-volt-500" />}
+            {on && <Check className="size-4 shrink-0 text-volt-ink" />}
           </button>
         );
       })}

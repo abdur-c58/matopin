@@ -13,7 +13,7 @@ import { isOfflineError, store, type ProfileInfo } from "@/lib/store-client";
 import { forgetOffline, isStandalone } from "@/lib/offline";
 import { aiAllowed, DEFAULT_PREFS, type AiFeature, type Prefs } from "@/lib/prefs";
 import { flushPending, pullDecks, startSync } from "@/lib/sync";
-import { applyAccent, applySecond, DEFAULT_ACCENT, DEFAULT_SECOND } from "@/lib/theme";
+import { applyAccent, applySecond, applyTheme, DEFAULT_ACCENT, DEFAULT_SECOND } from "@/lib/theme";
 import { FLUENCY_LABELS, FLUENCY_LEVELS, type Fluency } from "@/lib/cards";
 import { Avatar } from "./avatar";
 import { GoogleMark } from "./google-mark";
@@ -115,6 +115,8 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => applyAccent(accent), [accent]);
   const second = me?.prefs?.second ?? DEFAULT_SECOND;
   useEffect(() => applySecond(second), [second]);
+  const theme = me?.prefs?.theme;
+  useEffect(() => { if (theme) applyTheme(theme); }, [theme]);
 
   const load = useCallback(async () => {
     setError("");
@@ -334,7 +336,7 @@ export function ProfileDialog({ open, onOpenChange }: { open: boolean; onOpenCha
 
           <form className="mt-5 space-y-5" onSubmit={(e) => { e.preventDefault(); void save(); }}>
             <div className="flex items-center gap-4">
-              <button type="button" className="group relative shrink-0 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-volt-500 focus-visible:ring-offset-2 focus-visible:ring-offset-surface" disabled={reading} onClick={() => file.current?.click()} aria-label="Upload a profile picture">
+              <button type="button" className="group relative shrink-0 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-volt-edge focus-visible:ring-offset-2 focus-visible:ring-offset-surface" disabled={reading} onClick={() => file.current?.click()} aria-label="Upload a profile picture">
                 <Avatar name={draft.name || name} avatar={draft.avatar} crop={draft.avatarCrop} color={draft.color} className="size-20 text-3xl" />
                 <span className={`absolute inset-0 grid place-items-center rounded-full bg-black/55 text-white transition ${reading ? "opacity-100" : "opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"}`}>
                   {reading ? <LoaderCircle className="size-5 animate-spin" /> : <Camera className="size-5" />}

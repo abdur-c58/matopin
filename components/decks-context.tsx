@@ -112,13 +112,13 @@ export function DecksProvider({ children }: { children: React.ReactNode }) {
               {LANGS.map((l) => (
                 <button key={l} type="button" role="radio" aria-checked={choice === l} onClick={() => setChoice(l)}
                   onDoubleClick={() => { setAsking(false); void make(l); }}
-                  className={`flex items-center gap-3 rounded-md border p-3 text-left transition-colors ${choice === l ? "border-volt-500 bg-volt-50" : "border-line hover:bg-raised"}`}>
+                  className={`flex items-center gap-3 rounded-md border p-3 text-left transition-colors ${choice === l ? "border-volt-edge bg-volt-50" : "border-line hover:bg-raised"}`}>
                   <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-raised font-hanzi text-lg">{LANG_INFO[l].badge}</span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-semibold">{LANG_INFO[l].name}</span>
                     <span className="block text-xs text-muted">{LANG_INFO[l].native}{l === active ? " · used last" : ""}</span>
                   </span>
-                  {choice === l && <Check className="size-4 text-volt-600" />}
+                  {choice === l && <Check className="size-4 text-volt-ink" />}
                 </button>
               ))}
             </div>

@@ -111,7 +111,7 @@ export function Preview({ card, listening, onListen, speed, speeds, onSpeed }: {
           className="space-y-4 text-center"
         >
           <div className="grid min-h-28 place-items-center pt-2">
-            {card.term || card.reading ? <RubyLine hanzi={card.term} pinyin={card.reading} large /> : <span className="font-hanzi text-6xl text-volt-500/25">{lang === "ja" ? "語" : "字"}</span>}
+            {card.term || card.reading ? <RubyLine hanzi={card.term} pinyin={card.reading} large /> : <span className="font-hanzi text-6xl text-volt-ink/25">{lang === "ja" ? "語" : "字"}</span>}
           </div>
           <p className="min-h-6 text-base">{card.meaning || <span className="text-muted">Meaning</span>}</p>
           <ExampleBlock card={card} />
@@ -134,7 +134,7 @@ export function Preview({ card, listening, onListen, speed, speeds, onSpeed }: {
           {speeds.map((s) => (
             <button
               key={s} type="button" role="radio" aria-checked={speed === s} onClick={() => onSpeed(s)}
-              className={`h-7 rounded-sm px-2 text-xs font-medium tabular-nums transition-colors ${speed === s ? "bg-volt-600 text-on-volt hover:bg-volt-700" : "text-muted hover:bg-volt-50 hover:text-ink"}`}
+              className={`h-7 rounded-sm px-2 text-xs font-medium tabular-nums transition-colors ${speed === s ? "bg-volt-600 text-on-volt hover:bg-volt-hover" : "text-muted hover:bg-volt-50 hover:text-ink"}`}
             >
               {s}×
             </button>

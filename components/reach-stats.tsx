@@ -19,7 +19,7 @@ export function ReachStats({ reach }: { reach: Reach | undefined }) {
         return (
           <Tooltip.Root key={key}>
             <Tooltip.Trigger asChild>
-              <span tabIndex={0} className="cursor-default rounded-sm text-muted underline decoration-line decoration-dotted underline-offset-4 outline-none focus-visible:ring-2 focus-visible:ring-volt-500/50">
+              <span tabIndex={0} className="cursor-default rounded-sm text-muted underline decoration-line decoration-dotted underline-offset-4 outline-none focus-visible:ring-2 focus-visible:ring-volt-edge/50">
                 <span className="font-semibold text-ink tabular-nums">{total.toLocaleString()}</span> {label.toLowerCase()}
               </span>
             </Tooltip.Trigger>

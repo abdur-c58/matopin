@@ -29,7 +29,7 @@ function LanguageOptions({ onPicked, compact = false }: { onPicked?: () => void;
                 <span lang={LANG_INFO[l].speech}>{LANG_INFO[l].native}</span> · {n} deck{n === 1 ? "" : "s"}
               </span>
             </span>
-            {on && <Check className="size-4 shrink-0 text-volt-500" />}
+            {on && <Check className="size-4 shrink-0 text-volt-ink" />}
           </button>
         );
       })}

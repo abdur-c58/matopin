@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { dayKey } from "@/lib/srs";
 import { entriesOf, groupByDay, streaks } from "@/lib/stats";
 import { FLUENCY_LABELS, FLUENCY_LEVELS, type Fluency } from "@/lib/cards";
+import { applyTheme, THEME_LABELS, THEME_MODES, type ThemeMode } from "@/lib/theme";
 import { Avatar } from "./avatar";
 import { ProgressBar } from "./charts";
 import { RailTip } from "./rail-tip";
@@ -31,7 +32,7 @@ function Today() {
       <div className="rounded-md bg-porcelain p-3">
         <p className="text-xs text-muted">Streak</p>
         <p className="mt-0.5 flex items-center gap-1.5 text-lg font-bold tabular-nums">
-          <Flame className={`size-4 ${streak ? "text-volt-500" : "text-muted"}`} />{streak}
+          <Flame className={`size-4 ${streak ? "text-volt-ink" : "text-muted"}`} />{streak}
           <span className="text-sm font-normal text-muted">day{streak === 1 ? "" : "s"}</span>
         </p>
       </div>
@@ -41,9 +42,14 @@ function Today() {
 
 /** The sidebar avatar: who is signed in, today's progress, and quick profile actions. */
 export function AccountMenu() {
-  const { profile, name, email, avatar, avatarCrop, color, fluency, setFluency, leave } = useProfile();
+  const { profile, name, email, avatar, avatarCrop, color, fluency, setFluency, leave, prefs, setPrefs } = useProfile();
   const [editing, setEditing] = useState(false);
   const [leaving, setLeaving] = useState(false);
+
+  function changeTheme(theme: ThemeMode) {
+    applyTheme(theme);
+    void setPrefs({ theme }).catch(() => toast.error("Couldn't save the appearance."));
+  }
 
   async function changeFluency(next: Fluency) {
     if (next === fluency) return;
@@ -65,7 +71,7 @@ export function AccountMenu() {
       <DropdownMenu.Root>
         <RailTip label={name} zh="账户" pinyin="zhànghù">
           <DropdownMenu.Trigger
-            className="shrink-0 rounded-full ring-2 ring-transparent transition outline-none hover:ring-volt-500/50 hover:brightness-110 focus-visible:ring-volt-500 active:scale-90 data-[state=open]:ring-volt-500"
+            className="shrink-0 rounded-full ring-2 ring-transparent transition outline-none hover:ring-volt-edge/50 hover:brightness-110 focus-visible:ring-volt-edge active:scale-90 data-[state=open]:ring-volt-edge"
             aria-label={`Account menu for ${name}`}
           >
             <Avatar name={name} avatar={avatar} crop={avatarCrop} color={color} />
@@ -101,7 +107,27 @@ export function AccountMenu() {
                     {FLUENCY_LEVELS.map((level) => (
                       <DropdownMenu.RadioItem key={level} value={level} className={item}>
                         <span className="flex-1">{FLUENCY_LABELS[level]}</span>
-                        <DropdownMenu.ItemIndicator><Check className="size-4 text-volt-500" /></DropdownMenu.ItemIndicator>
+                        <DropdownMenu.ItemIndicator><Check className="size-4 text-volt-ink" /></DropdownMenu.ItemIndicator>
+                      </DropdownMenu.RadioItem>
+                    ))}
+                  </DropdownMenu.RadioGroup>
+                </DropdownMenu.SubContent>
+              </DropdownMenu.Portal>
+            </DropdownMenu.Sub>
+
+            <DropdownMenu.Sub>
+              <DropdownMenu.SubTrigger className={`${item} data-[state=open]:bg-raised`}>
+                <span className="flex-1">Appearance</span>
+                <span className="truncate text-xs text-muted">{THEME_LABELS[prefs.theme]}</span>
+                <ChevronRight className="size-4 text-muted" />
+              </DropdownMenu.SubTrigger>
+              <DropdownMenu.Portal>
+                <DropdownMenu.SubContent sideOffset={10} collisionPadding={12} className="popup w-48 p-2 [--pad:--spacing(2)]">
+                  <DropdownMenu.RadioGroup value={prefs.theme} onValueChange={(v) => changeTheme(v as ThemeMode)}>
+                    {THEME_MODES.map((mode) => (
+                      <DropdownMenu.RadioItem key={mode} value={mode} className={item} onSelect={(e) => e.preventDefault()}>
+                        <span className="flex-1">{THEME_LABELS[mode]}</span>
+                        <DropdownMenu.ItemIndicator><Check className="size-4 text-volt-ink" /></DropdownMenu.ItemIndicator>
                       </DropdownMenu.RadioItem>
                     ))}
                   </DropdownMenu.RadioGroup>

@@ -35,8 +35,8 @@ function BaoArt() {
       <div data-part className="flex items-end gap-2">
         <BotAvatar className="size-9" />
         <div className="landing-art-card max-w-[85%] rounded-2xl rounded-bl-md px-4 py-3">
-          <p className="text-xs font-semibold text-second-500">Bao</p>
-          <p className="mt-1 text-sm">Try <span lang="ja" className="font-hanzi text-base underline decoration-second-500 decoration-dotted underline-offset-4">遅れそうです</span>. It’s polite and works for work or friends.</p>
+          <p className="text-xs font-semibold text-second-ink">Bao</p>
+          <p className="mt-1 text-sm">Try <span lang="ja" className="font-hanzi text-base underline decoration-second-edge decoration-dotted underline-offset-4">遅れそうです</span>. It’s polite and works for work or friends.</p>
         </div>
       </div>
       <div data-part className="landing-art-card ml-11 w-fit rounded-xl p-4">
@@ -44,7 +44,7 @@ function BaoArt() {
         <p className="mt-1 text-xs text-muted">okuresō desu · “It looks like I’ll be late.”</p>
         <div className="mt-3 flex gap-1.5 text-[10px] font-semibold">
           <span className="rounded-full bg-raised px-2 py-0.5 text-muted">Polite</span>
-          <span className="rounded-full bg-second-500/15 px-2 py-0.5 text-second-500">+ Add to deck</span>
+          <span className="rounded-full bg-second-500/15 px-2 py-0.5 text-second-ink">+ Add to deck</span>
         </div>
       </div>
     </div>
@@ -76,13 +76,13 @@ function TogetherArt() {
         <span className="ml-auto grid size-9 place-items-center rounded-full bg-raised text-muted"><Share2 className="size-4" /></span>
       </div>
       <div data-part className="landing-art-card p-4">
-        <div className="mb-3 flex items-center justify-between text-xs"><span className="font-semibold">Last {WEEKS} weeks</span><span className="text-volt-500">{STREAK}-day streak</span></div>
+        <div className="mb-3 flex items-center justify-between text-xs"><span className="font-semibold">Last {WEEKS} weeks</span><span className="text-volt-ink">{STREAK}-day streak</span></div>
         <div className="grid grid-flow-col grid-rows-7 gap-[3px]">
           {HEAT.map((v, i) => <span key={i} className="aspect-square rounded-[3px]" style={{ background: v ? `color-mix(in srgb, var(--color-volt-500) ${Math.round(v * 100)}%, var(--color-raised))` : "var(--color-raised)" }} />)}
         </div>
       </div>
       <div data-part className="landing-art-card flex items-center gap-3 p-4 text-sm">
-        <UserPlus className="size-4 text-volt-500" /><span><span className="font-semibold">Kenji</span> started following you</span>
+        <UserPlus className="size-4 text-volt-ink" /><span><span className="font-semibold">Kenji</span> started following you</span>
       </div>
     </div>
   );
@@ -194,7 +194,7 @@ export function Scenes() {
           const left = i !== 1;
           return (
             <article key={scene.id} data-scene className="absolute inset-0 grid min-h-svh grid-cols-12 items-center gap-6 px-[max(2rem,6vw)] py-20" style={{ opacity: i === 0 ? 1 : 0 }}>
-              <div data-glow className="pointer-events-none absolute top-1/2 left-1/2 h-[70vh] w-[70vw] -translate-x-1/2 -translate-y-1/2 rounded-[45%] opacity-90 blur-3xl" style={{ background: `radial-gradient(ellipse, color-mix(in srgb, ${scene.accent} 22%, transparent), transparent 68%)` }} aria-hidden />
+              <div data-glow className="pointer-events-none absolute top-1/2 left-1/2 h-[70vh] w-[70vw] -translate-x-1/2 -translate-y-1/2 rounded-[45%] opacity-90 blur-3xl" style={{ background: `radial-gradient(ellipse, color-mix(in srgb, ${scene.accent} calc(22% * var(--theme-glow)), transparent), transparent 68%)` }} aria-hidden />
               <div data-copy className={`relative z-20 col-span-5 max-w-xl ${left ? "col-start-1" : "col-start-8 row-start-1"}`}><Copy scene={scene} /></div>
               <div className={`relative col-span-6 ${left ? "col-start-7" : "col-start-1 row-start-1"}`}><Visual scene={scene} /></div>
             </article>
@@ -211,7 +211,7 @@ export function Scenes() {
       <div className="grid gap-4 py-10 md:motion-safe:hidden">
         {SCENES.map((scene) => (
           <article key={scene.id} data-scene-mobile className="relative overflow-hidden px-5 py-10 sm:px-8">
-            <div className="pointer-events-none absolute inset-0 opacity-70" style={{ background: `radial-gradient(ellipse at 50% 30%, color-mix(in srgb, ${scene.accent} 18%, transparent), transparent 65%)` }} aria-hidden />
+            <div className="pointer-events-none absolute inset-0 opacity-70" style={{ background: `radial-gradient(ellipse at 50% 30%, color-mix(in srgb, ${scene.accent} calc(18% * var(--theme-glow)), transparent), transparent 65%)` }} aria-hidden />
             <div className="relative mx-auto max-w-lg"><scene.Art /></div>
             <div className="relative mx-auto mt-8 max-w-xl"><Copy scene={scene} /></div>
           </article>

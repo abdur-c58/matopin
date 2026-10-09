@@ -61,7 +61,7 @@ export function AvatarCropper({ source, busy, onCancel, onApply }: { source: Ava
 
           <div
             ref={frame} tabIndex={0} role="application" aria-label="Crop area. Arrow keys move the photo, plus and minus zoom."
-            className="relative mx-auto mt-4 cursor-grab touch-none overflow-hidden rounded-xl bg-porcelain outline-none select-none focus-visible:ring-2 focus-visible:ring-volt-500 active:cursor-grabbing"
+            className="relative mx-auto mt-4 cursor-grab touch-none overflow-hidden rounded-xl bg-porcelain outline-none select-none focus-visible:ring-2 focus-visible:ring-volt-edge active:cursor-grabbing"
             style={{ width: VIEW, height: VIEW }}
             onPointerDown={(e) => {
               e.currentTarget.setPointerCapture(e.pointerId);

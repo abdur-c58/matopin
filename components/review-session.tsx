@@ -18,7 +18,7 @@ import { Button, Dropdown } from "./ui";
 const RATINGS: { rating: Rating; label: string; className: string }[] = [
   { rating: 1, label: "Again", className: "border border-tone-1/40 text-tone-1 hover:bg-tone-1/10" },
   { rating: 2, label: "Hard", className: "border border-line hover:bg-volt-50" },
-  { rating: 3, label: "Good", className: "bg-volt-600 text-on-volt hover:bg-volt-700" },
+  { rating: 3, label: "Good", className: "bg-volt-600 text-on-volt hover:bg-volt-hover" },
   { rating: 4, label: "Easy", className: "border border-tone-3/40 text-tone-3 hover:bg-tone-3/10" },
 ];
 

@@ -136,7 +136,7 @@ function NoteCard({ note, onCards }: { note: Note; onCards: () => void }) {
         <div className="flex items-start justify-between gap-3">
           <Ruby text={note.text} reading={note.reading} lang={note.lang} className={[...note.text].length > 10 ? "text-xl" : "text-2xl"} />
           <span className="flex shrink-0 gap-1 pt-1">
-            {note.register && note.register !== "neutral" && <span className="rounded-full bg-second-500/15 px-1.5 py-px text-[10px] font-bold tracking-wide text-second-300 uppercase">{REGISTER_LABELS[note.register]}</span>}
+            {note.register && note.register !== "neutral" && <span className="rounded-full bg-second-500/15 px-1.5 py-px text-[10px] font-bold tracking-wide text-second-ink uppercase">{REGISTER_LABELS[note.register]}</span>}
             <span className="rounded-full bg-raised px-1.5 py-px font-hanzi text-[11px] text-muted" lang={LANG_INFO[note.lang].speech} title={LANG_INFO[note.lang].name}>{LANG_INFO[note.lang].badge}</span>
           </span>
         </div>
@@ -219,7 +219,7 @@ export function NotedBody({ body, notes }: { body: string; notes: unknown }) {
       <p className="text-[15px] leading-snug break-words whitespace-pre-wrap" data-lang={tag}>
         {segments.map((s, i) => !s.note ? s.text : (
           <span key={i} role="button" tabIndex={0} title="" lang={LANG_INFO[s.note.lang].speech} aria-label={`${s.text}: ${s.note.translation}`}
-            className={`cursor-help rounded-[4px] underline decoration-second-500/60 decoration-dotted decoration-[1.5px] underline-offset-[5px] transition-colors hover:bg-second-500/20 hover:decoration-second-300 ${open?.anchor && open.note === s.note ? "bg-second-500/20" : ""}`}
+            className={`cursor-help rounded-[4px] underline decoration-second-edge/60 decoration-dotted decoration-[1.5px] underline-offset-[5px] transition-colors hover:bg-second-500/20 hover:decoration-second-edge ${open?.anchor && open.note === s.note ? "bg-second-500/20" : ""}`}
             onPointerEnter={(e) => { if (e.pointerType === "touch") return; keep(); const note = s.note!; const anchor = e.currentTarget; setOpen((o) => (o?.anchor === anchor ? o : { note, anchor, pinned: false })); }}
             onPointerLeave={(e) => { if (e.pointerType !== "touch") close(); }}
             onFocus={(e) => { keep(); setOpen({ note: s.note!, anchor: e.currentTarget, pinned: false }); }}

@@ -79,7 +79,7 @@ function DayDetails({ dayEntries, at, now, names, cards }: { dayEntries: Entry[]
             <ul className="space-y-1.5">
               {[...byDeck].sort((a, b) => b[1] - a[1]).map(([deck, n]) => (
                 <li key={deck} className="flex items-center gap-3 text-sm">
-                  <Link href={`/decks/${deck}/review`} className="min-w-0 flex-1 truncate hover:text-volt-500">{names.get(deck) ?? "Deleted deck"}</Link>
+                  <Link href={`/decks/${deck}/review`} className="min-w-0 flex-1 truncate hover:text-volt-ink">{names.get(deck) ?? "Deleted deck"}</Link>
                   <div className="h-2 w-24 overflow-hidden rounded-full bg-raised"><div className="h-full rounded-full" style={{ width: `${(n / dayEntries.length) * 100}%`, background: COLORS.volt }} /></div>
                   <span className="w-8 text-right tabular-nums">{n}</span>
                 </li>
@@ -126,7 +126,7 @@ export function CalendarPage() {
         {([["Current streak", `${current} day${current === 1 ? "" : "s"}`, true], ["Longest streak", `${longest} day${longest === 1 ? "" : "s"}`, false], ["Days studied", `${days.size}`, false]] as const).map(([label, value, accent]) => (
           <div key={label}>
             <p className="text-sm text-muted">{label}</p>
-            <p className={`mt-1 text-3xl font-bold tracking-tight tabular-nums ${accent ? "text-volt-500" : ""}`}>{value}</p>
+            <p className={`mt-1 text-3xl font-bold tracking-tight tabular-nums ${accent ? "text-volt-ink" : ""}`}>{value}</p>
           </div>
         ))}
       </div>

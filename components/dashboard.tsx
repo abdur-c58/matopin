@@ -144,10 +144,10 @@ function MyDecks({ decks }: { decks: DeckData[] }) {
             <li key={deck.id}>
               <Link
                 href={`/decks/${deck.id}/review`}
-                className={`flex h-28 flex-col justify-between rounded-md border p-4 transition-colors ${featured ? "border-second-500 bg-second-500 text-on-second hover:bg-second-600" : "border-line hover:border-ink/25"}`}
+                className={`flex h-28 flex-col justify-between rounded-md border p-4 transition-colors ${featured ? "border-second-edge bg-second-500 text-on-second hover:bg-second-600" : "border-line hover:border-ink/25"}`}
               >
                 <p className="line-clamp-2 font-semibold">{deck.name}</p>
-                <p className={`text-xl font-bold tabular-nums ${featured ? "" : n ? "text-volt-500" : "text-muted"}`}>{n ? `${n} due` : "Done"}</p>
+                <p className={`text-xl font-bold tabular-nums ${featured ? "" : n ? "text-volt-ink" : "text-muted"}`}>{n ? `${n} due` : "Done"}</p>
               </Link>
             </li>
           );

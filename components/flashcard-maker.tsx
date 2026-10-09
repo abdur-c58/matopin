@@ -89,7 +89,7 @@ function CardEditor({ card, lang, open, onToggle, onChange, onRemove }: {
   const fields = details(lang).filter((d) => !d.example || hasExample(card));
   const extra = fields.filter((d) => card[d.field].trim()).length;
   return (
-    <li className="rounded-md border border-line bg-surface p-3 transition focus-within:border-volt-500/50">
+    <li className="rounded-md border border-line bg-surface p-3 transition focus-within:border-volt-edge/50">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.4fr)]">
         <input className="field h-10 text-lg" aria-label={info.termLabel} placeholder={lang === "ja" ? "日本語" : "汉字"} value={card.term} onChange={(e) => onChange({ term: e.target.value })} spellCheck={false} />
         <input className="field h-10 text-sm" aria-label={info.readingLabel} placeholder={lang === "ja" ? "にほんご" : "pīnyīn"} value={card.reading} onChange={(e) => onChange({ reading: e.target.value })} spellCheck={false} />
@@ -133,7 +133,7 @@ function DeckSelect({ lang, selected, onToggle, newDeck, onNewDeck }: {
   if (newDeck) names.push("New deck");
   const label = !names.length ? "Choose decks" : names.length <= 2 ? names.join(", ") : `${names.slice(0, 2).join(", ")} +${names.length - 2}`;
   const item = "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition hover:bg-raised";
-  const box = (on: boolean) => `grid size-4.5 shrink-0 place-items-center rounded-xs border ${on ? "border-volt-500 bg-volt-500 text-on-volt" : "border-line"}`;
+  const box = (on: boolean) => `grid size-4.5 shrink-0 place-items-center rounded-xs border ${on ? "border-volt-edge bg-volt-500 text-on-volt" : "border-line"}`;
   return (
     <Popover.Root>
       <Popover.Trigger className="field flex h-10 items-center justify-between gap-2 text-left text-sm">
@@ -334,7 +334,7 @@ export function FlashcardMaker({ text, initial, lang: given, onClose }: { text: 
                   ))}
                 </ul>
                 <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                  {writing && <form className="flex flex-1 items-center gap-1 rounded-full border border-line bg-porcelain p-1 pl-3 transition focus-within:border-volt-500/60" onSubmit={(e) => { e.preventDefault(); void addWithAi(); }}>
+                  {writing && <form className="flex flex-1 items-center gap-1 rounded-full border border-line bg-porcelain p-1 pl-3 transition focus-within:border-volt-edge/60" onSubmit={(e) => { e.preventDefault(); void addWithAi(); }}>
                     <input className="min-w-0 flex-1 bg-transparent px-1 text-sm outline-none placeholder:text-muted/80" placeholder="Add a card with AI, e.g. “how to say I’m full”" aria-label="Describe a card to add"
                       value={prompt} onChange={(e) => setPrompt(e.target.value)} disabled={adding} />
                     <button type="submit" className="btn btn-shard h-8 px-3 text-xs" disabled={adding || !prompt.trim()}>

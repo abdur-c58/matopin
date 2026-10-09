@@ -45,7 +45,7 @@ export function Hero({ error }: { error: string }) {
         <div data-hero-copy>
           <div data-enter><Eyebrow>Mandarin · Japanese · Spaced repetition</Eyebrow></div>
           <h1 data-enter className="landing-giant mt-5 max-w-[13ch] text-[clamp(2.75rem,8vw,6rem)]">
-            Remember every word you <span className="text-volt-500">learn.</span>
+            Remember every word you <span className="text-volt-ink">learn.</span>
           </h1>
           <p data-enter className="mt-6 max-w-lg text-base leading-relaxed text-muted md:text-lg">
             Matopin writes your flashcards, reads them aloud, and schedules every review with FSRS, the algorithm inside Anki,

@@ -45,7 +45,7 @@ function KindPicker({ kind, onChange }: { kind: CardKind; onChange: (kind: CardK
       {CARD_KINDS.map((k) => (
         <button
           key={k} type="button" role="radio" aria-checked={kind === k} onClick={() => onChange(k)}
-          className={`h-7 rounded-sm px-2.5 text-xs font-medium transition-colors ${kind === k ? "bg-volt-600 text-on-volt hover:bg-volt-700" : "text-muted hover:bg-volt-50 hover:text-ink"}`}
+          className={`h-7 rounded-sm px-2.5 text-xs font-medium transition-colors ${kind === k ? "bg-volt-600 text-on-volt hover:bg-volt-hover" : "text-muted hover:bg-volt-50 hover:text-ink"}`}
         >
           {CARD_KIND_LABELS[k]}
         </button>
@@ -105,7 +105,7 @@ function Row({ card, active, voiced, busy, simplified, onSelect, onChange, onKin
       transition={{ duration: 0.18 }}
       onFocusCapture={onSelect}
       data-card-id={card.id}
-      className={`surface relative overflow-hidden p-4 transition-shadow ${active ? "ring-2 ring-volt-500/40" : ""}`}
+      className={`surface relative overflow-hidden p-4 transition-shadow ${active ? "ring-2 ring-volt-edge/40" : ""}`}
     >
       {full && <div className="mb-3"><KindPicker kind={card.kind} onChange={(kind) => onKind(card.id, kind)} /></div>}
       <div className={`grid gap-3 sm:items-end ${!full ? "sm:grid-cols-[1.2fr_1.4fr_auto]" : card.kind === "sentence" ? "sm:grid-cols-[1.4fr_1.4fr_1.4fr_auto]" : "sm:grid-cols-[1fr_1.2fr_1.4fr_auto]"}`}>

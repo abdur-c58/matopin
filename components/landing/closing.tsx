@@ -49,7 +49,7 @@ export function Closing({ error }: { error: string }) {
 
       <div data-cta-box className="relative mx-auto mt-20 grid max-w-[1400px] gap-8 px-5 sm:px-8 md:mt-28 md:grid-cols-[1.2fr_0.8fr] md:items-end">
         <div>
-          <h2 data-cta className="landing-giant max-w-[12ch] text-[clamp(2.6rem,7vw,5.5rem)]">Start remembering <span className="text-volt-500">today.</span></h2>
+          <h2 data-cta className="landing-giant max-w-[12ch] text-[clamp(2.6rem,7vw,5.5rem)]">Start remembering <span className="text-volt-ink">today.</span></h2>
           <p data-cta className="mt-5 max-w-md text-base leading-relaxed text-muted md:text-lg">Free to use. Make your first deck in under a minute, and export it to Anki whenever you like.</p>
         </div>
         <div data-cta className="md:justify-self-end md:pb-3">

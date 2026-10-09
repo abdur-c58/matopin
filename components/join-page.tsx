@@ -44,7 +44,7 @@ export function JoinPage({ code }: { code: string }) {
   return (
     <main className="grid min-h-[60dvh] place-items-center px-4 pb-10">
       <section className="surface relative w-full max-w-md overflow-hidden p-6 text-center">
-        <div aria-hidden className="pointer-events-none absolute -top-20 left-1/2 size-64 -translate-x-1/2 rounded-full bg-second-500/20 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute -top-20 left-1/2 size-64 -translate-x-1/2 theme-glow rounded-full bg-second-500/20 blur-3xl" />
         {error ? (
           <div className="relative">
             <p className="text-lg font-semibold">Invite not available</p>

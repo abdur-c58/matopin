@@ -110,7 +110,9 @@ function Rail() {
           className={`pointer-events-none absolute top-0 left-1/2 transition-[transform,opacity] ease-in-out ${activeIndex < 0 ? "opacity-0" : ""}`}
           style={{ width: RAIL_GLOW, height: RAIL_GLOW, transitionDuration: `${RAIL_MOVE_MS}ms`, transform: `translate(-50%, ${RAIL_PAD + Math.max(0, activeIndex) * RAIL_STEP + RAIL_BUTTON / 2 - RAIL_GLOW / 2}px)` }}
         >
-          <span ref={glow} className="absolute inset-0 rounded-full bg-volt-500/25 blur-[120px]" style={{ opacity: RAIL_GLOW_OPACITY }} />
+          <span className="theme-glow absolute inset-0">
+            <span ref={glow} className="absolute inset-0 rounded-full bg-volt-500/25 blur-[120px]" style={{ opacity: RAIL_GLOW_OPACITY }} />
+          </span>
         </span>
         <nav className="relative flex flex-col gap-6 rounded-full border border-line/60 bg-surface/40 p-1 backdrop-blur-xl" aria-label="Main">
           <span
@@ -193,7 +195,7 @@ function MobileBar() {
                 const active = isActive(pathname, href);
                 return (
                   <Link key={href} href={href} onClick={() => setOpen(false)} aria-current={active ? "page" : undefined}
-                    className={`flex h-11 items-center gap-3 rounded-full px-4 text-sm font-semibold transition ${active ? "bg-volt-500 text-on-volt hover:bg-volt-700" : "text-muted hover:bg-raised hover:text-ink"}`}>
+                    className={`flex h-11 items-center gap-3 rounded-full px-4 text-sm font-semibold transition ${active ? "bg-volt-500 text-on-volt hover:bg-volt-hover" : "text-muted hover:bg-raised hover:text-ink"}`}>
                     <Icon className="size-4" />{label}
                     <NavBadge href={href} className="ml-auto" />
                   </Link>
@@ -253,7 +255,7 @@ function GlobalSearch() {
 
   return (
     <div ref={box} className="relative w-full sm:w-72">
-      <label className="flex h-10 items-center gap-2 rounded-md border border-line pr-3 pl-3 transition focus-within:border-volt-500/60">
+      <label className="flex h-10 items-center gap-2 rounded-md border border-line pr-3 pl-3 transition focus-within:border-volt-edge/60">
         <Search className="size-4 shrink-0 text-muted" />
         <input
           className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted/80" placeholder="Search cards and decks" aria-label="Search cards and decks"

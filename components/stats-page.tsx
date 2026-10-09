@@ -20,7 +20,7 @@ function Tile({ label, value, note, accent }: { label: string; value: string; no
   return (
     <div>
       <p className="text-sm text-muted">{label}</p>
-      <p className={`mt-1 text-3xl font-bold tracking-tight tabular-nums ${accent ? "text-volt-500" : ""}`}>{value}</p>
+      <p className={`mt-1 text-3xl font-bold tracking-tight tabular-nums ${accent ? "text-volt-ink" : ""}`}>{value}</p>
       <p className="mt-1 text-xs text-muted">{note}</p>
     </div>
   );
@@ -56,12 +56,12 @@ function DeckTable({ decks, since }: { decks: DeckData[]; since: number }) {
             <tbody className="tabular-nums">
               {rows.map(({ deck, reviews, retention: r, due, time }) => (
                 <tr key={deck.id} className="border-t border-line">
-                  <td className="max-w-40 truncate px-2 py-2.5 font-semibold"><Link href={`/decks/${deck.id}/review`} className="hover:text-volt-500">{deck.name}</Link></td>
+                  <td className="max-w-40 truncate px-2 py-2.5 font-semibold"><Link href={`/decks/${deck.id}/review`} className="hover:text-volt-ink">{deck.name}</Link></td>
                   <td className="px-2 text-right text-muted">{deck.cards.length}</td>
                   <td className="px-2 text-right">{reviews}</td>
                   <td className="px-2 text-right">{pct(r)}</td>
                   <td className="px-2 text-right text-muted">{formatDuration(time)}</td>
-                  <td className={`px-2 text-right font-semibold ${due ? "text-volt-500" : "text-muted"}`}>{due}</td>
+                  <td className={`px-2 text-right font-semibold ${due ? "text-volt-ink" : "text-muted"}`}>{due}</td>
                 </tr>
               ))}
             </tbody>
@@ -126,13 +126,13 @@ export function StatsPage() {
               { label: "Learning", value: states.learning, color: COLORS.orange },
               { label: "Young", value: states.young, color: COLORS.green },
               { label: "Mature", value: states.mature, color: COLORS.volt },
-              { label: "Suspended", value: states.suspended, color: "#555" },
+              { label: "Suspended", value: states.suspended, color: "var(--color-tone-5)" },
             ]}>
               <p className="text-2xl font-bold tabular-nums">{states.new + states.learning + states.young + states.mature + states.suspended}</p>
               <p className="text-xs text-muted">cards</p>
             </Donut>
             <ul className="w-full space-y-2 text-sm">
-              {([["New", states.new, COLORS.sky], ["Learning", states.learning, COLORS.orange], ["Young", states.young, COLORS.green], ["Mature", states.mature, COLORS.volt], ["Suspended", states.suspended, "#555"]] as const).map(([label, value, color]) => (
+              {([["New", states.new, COLORS.sky], ["Learning", states.learning, COLORS.orange], ["Young", states.young, COLORS.green], ["Mature", states.mature, COLORS.volt], ["Suspended", states.suspended, "var(--color-tone-5)"]] as const).map(([label, value, color]) => (
                 <li key={label} className="flex items-center gap-2">
                   <span className="size-2.5 rounded-full" style={{ background: color }} />
                   <span className="flex-1 text-muted">{label}</span>

@@ -36,9 +36,9 @@ function DeckCard({ deck, mature, kept, showLang, onDelete, onConvert }: {
   return (
     <li className="surface flex flex-col p-5">
       <div className="flex items-start gap-3">
-        <span className={`grid size-11 shrink-0 place-items-center rounded-md ${due ? "bg-second-500 text-on-second" : "bg-raised text-volt-500"}`}><Layers className="size-5" /></span>
+        <span className={`grid size-11 shrink-0 place-items-center rounded-md ${due ? "bg-second-500 text-on-second" : "bg-raised text-volt-ink"}`}><Layers className="size-5" /></span>
         <div className="min-w-0 flex-1">
-          <Link href={`/decks/${deck.id}/review`} className="block truncate text-base font-bold hover:text-volt-500">{deck.name}</Link>
+          <Link href={`/decks/${deck.id}/review`} className="block truncate text-base font-bold hover:text-volt-ink">{deck.name}</Link>
           <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted">
             {showLang && <LangBadge lang={deck.language} short className="px-1.5 py-0" />}
             {deck.cards} card{deck.cards === 1 ? "" : "s"}{kept != null && ` · ${Math.round(kept * 100)}% retention`}{downloaded && " · Offline"}
@@ -57,7 +57,7 @@ function DeckCard({ deck, mature, kept, showLang, onDelete, onConvert }: {
       {(deck.visibility !== "private" || !owner) && (
         <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted">
           <VisibilityBadge visibility={deck.visibility} />
-          {!owner && <span>{ROLE_LABELS[deck.role]} · by <Link href={`/u/${deck.ownerId}`} className="font-semibold text-ink hover:text-volt-500">{deck.ownerName ?? "its owner"}</Link></span>}
+          {!owner && <span>{ROLE_LABELS[deck.role]} · by <Link href={`/u/${deck.ownerId}`} className="font-semibold text-ink hover:text-volt-ink">{deck.ownerName ?? "its owner"}</Link></span>}
         </div>
       )}
       <div className="mt-4"><DueCounts due={deck.due} /></div>
@@ -115,7 +115,7 @@ function ArchiveView({ decks, detail, onDelete, onBack }: {
           <h2 className="text-lg font-bold">Archive</h2>
           <p className="text-sm text-muted">
             Decks in a language you aren’t learning right now. Their cards and progress are kept, and you can still open and study them.{" "}
-            <Link href="/settings#learning" className="font-semibold text-ink hover:text-volt-500">Learn {learning === "both" ? "another language" : "both languages"}</Link> to bring them back.
+            <Link href="/settings#learning" className="font-semibold text-ink hover:text-volt-ink">Learn {learning === "both" ? "another language" : "both languages"}</Link> to bring them back.
           </p>
         </div>
         <Button variant="ghost" onClick={onBack}>Back to decks</Button>
@@ -165,7 +165,7 @@ export function DeckList() {
         <button type="button" onClick={() => setArchiveOpen(true)}
           className="mb-4 flex w-full items-center gap-3 rounded-md border border-line bg-raised/50 px-4 py-2.5 text-left text-sm transition hover:bg-raised">
           <span className="min-w-0 flex-1"><span className="font-semibold">{archived.length} {archived.length === 1 ? "deck" : "decks"} in the archive</span> <span className="text-muted">from a language you aren’t learning now</span></span>
-          <span className="shrink-0 font-semibold text-volt-600">View</span>
+          <span className="shrink-0 font-semibold text-volt-ink">View</span>
         </button>
       )}
       {decks && decks.length > 0 && (
@@ -202,7 +202,7 @@ export function DeckList() {
           {shown.map((deck) => <DeckCard key={deck.id} deck={deck} showLang={language === "all"} mature={detail.get(deck.id)?.mature ?? 0} kept={detail.get(deck.id)?.kept ?? null} onDelete={() => requestDelete(deck)} onConvert={single || !converts ? null : () => setConverting(deck)} />)}
           {filter === "all" && (
             <li>
-              <button type="button" onClick={() => void create()} className="flex size-full min-h-56 flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-line text-sm font-semibold text-muted transition hover:border-volt-500/60 hover:text-ink">
+              <button type="button" onClick={() => void create()} className="flex size-full min-h-56 flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-line text-sm font-semibold text-muted transition hover:border-volt-edge/60 hover:text-ink">
                 New deck
               </button>
             </li>

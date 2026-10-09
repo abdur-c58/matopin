@@ -10,7 +10,7 @@ type Selection = { selecting: boolean; selected: ReadonlySet<string>; onToggle: 
 
 function Tick({ on }: { on: boolean }) {
   return (
-    <span aria-hidden className={`grid size-5 shrink-0 place-items-center rounded-xs border transition-colors ${on ? "border-volt-500 bg-volt-500 text-on-volt" : "border-line bg-surface"}`}>
+    <span aria-hidden className={`grid size-5 shrink-0 place-items-center rounded-xs border transition-colors ${on ? "border-volt-edge bg-volt-500 text-on-volt" : "border-line bg-surface"}`}>
       {on && <Check className="size-3.5" strokeWidth={3} />}
     </span>
   );
@@ -26,7 +26,7 @@ function ViewRow({ card, active, voiced, onSelect, selecting, picked }: { card: 
         onClick={onSelect}
         aria-current={!selecting && active ? true : undefined}
         aria-pressed={selecting ? picked : undefined}
-        className={`surface block w-full p-4 text-left transition-shadow hover:shadow-pop ${(selecting ? picked : active) ? "ring-2 ring-volt-500/40" : ""}`}
+        className={`surface block w-full p-4 text-left transition-shadow hover:shadow-pop ${(selecting ? picked : active) ? "ring-2 ring-volt-edge/40" : ""}`}
       >
         <div className="flex items-start gap-3">
           {selecting && <span className="pt-1.5"><Tick on={picked} /></span>}
@@ -39,7 +39,7 @@ function ViewRow({ card, active, voiced, onSelect, selecting, picked }: { card: 
             {turns.length > 0 && (
               <div className="mt-2 space-y-0.5 border-l-2 border-line pl-2.5 font-hanzi text-sm">
                 {turns.map((turn, i) => (
-                  <p key={i}>{conversation && <span className="mr-1 font-sans text-xs font-semibold text-volt-600">{turn.speaker}</span>}{turn.text}</p>
+                  <p key={i}>{conversation && <span className="mr-1 font-sans text-xs font-semibold text-volt-ink">{turn.speaker}</span>}{turn.text}</p>
                 ))}
               </div>
             )}

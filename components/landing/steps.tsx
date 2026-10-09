@@ -3,7 +3,7 @@ import { useRef, useState, type CSSProperties } from "react";
 import gsap from "gsap";
 import { AnimatePresence, motion } from "motion/react";
 import { BookA, Copy, Layers, Play, Sparkles, Volume2 } from "lucide-react";
-import { Eyebrow, Furigana, Toned, toneColor } from "./bits";
+import { Eyebrow, Furigana, inkOf, Toned, toneColor } from "./bits";
 import { DESKTOP, EASE, MOBILE, MOTION_OK, useGsap } from "./motion";
 
 function CreateDemo() {
@@ -15,7 +15,7 @@ function CreateDemo() {
   return (
     <div className="flex h-full flex-col gap-3">
       <div className="flex items-center gap-2 rounded-xl border border-line bg-porcelain px-3 py-2.5 text-sm">
-        <Sparkles className="size-4 shrink-0 text-volt-500" />
+        <Sparkles className="size-4 shrink-0 text-volt-ink" />
         <span className="landing-type relative">Ordering coffee in Shanghai</span>
         <span className="landing-caret h-4 w-px bg-ink" />
       </div>
@@ -160,7 +160,7 @@ function StepCopy({ step, index }: { step: (typeof STEPS)[number]; index: number
   return (
     <>
       <span data-step-num className="landing-giant text-[3.5rem] leading-none text-ink/15">{String(index + 1).padStart(2, "0")}</span>
-      <p className="mt-2 text-[11px] font-semibold tracking-[0.18em] uppercase" style={{ color: step.accent }}>Step {index + 1}</p>
+      <p className="mt-2 text-[11px] font-semibold tracking-[0.18em] uppercase" style={{ color: inkOf(step.accent) }}>Step {index + 1}</p>
       <h3 className="mt-3 text-2xl font-bold tracking-tight lg:text-3xl">{step.title}</h3>
       <p className="mt-4 text-sm leading-relaxed text-ink/80 lg:text-base">{step.body}</p>
       <p className="mt-5 text-xs text-muted">{step.hint}</p>
@@ -233,7 +233,7 @@ export function Steps() {
             {STEPS.map((step, i) => (
               <article key={step.id} data-step-card className="landing-step landing-shell absolute top-1/2 left-1/2 h-[30rem] w-[min(66vw,780px)] -translate-y-1/2 overflow-hidden rounded-xl border bg-surface"
                 style={{ "--step": step.accent, borderColor: `color-mix(in srgb, ${step.accent} 55%, var(--color-line))` } as CSSProperties}>
-                <div className="pointer-events-none absolute -inset-10 opacity-60 blur-3xl" style={{ background: `radial-gradient(ellipse at 30% 45%, color-mix(in srgb, ${step.accent} 40%, transparent), transparent 62%)` }} aria-hidden />
+                <div className="pointer-events-none absolute -inset-10 opacity-60 blur-3xl" style={{ background: `radial-gradient(ellipse at 30% 45%, color-mix(in srgb, ${step.accent} calc(40% * var(--theme-glow)), transparent), transparent 62%)` }} aria-hidden />
                 <div className="relative grid h-full grid-cols-[1.1fr_0.9fr]">
                   <div className="min-h-0 p-6"><step.Demo /></div>
                   <div className="flex flex-col justify-center border-l border-line/70 p-7"><StepCopy step={step} index={i} /></div>

@@ -168,9 +168,9 @@ export function AnkiImport({ open, onOpenChange }: { open: boolean; onOpenChange
                 onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
                 onDragLeave={() => setDragging(false)}
                 onDrop={(e) => { e.preventDefault(); setDragging(false); void pick(e.dataTransfer.files[0]); }}
-                className={`flex min-h-48 w-full flex-col items-center justify-center gap-3 rounded-md border-2 border-dashed p-6 text-center transition ${dragging ? "border-volt-500 bg-volt-50" : "border-line hover:border-volt-500/60"}`}
+                className={`flex min-h-48 w-full flex-col items-center justify-center gap-3 rounded-md border-2 border-dashed p-6 text-center transition ${dragging ? "border-volt-edge bg-volt-50" : "border-line hover:border-volt-edge/60"}`}
               >
-                <span className="grid size-12 place-items-center rounded-full bg-raised text-volt-500">
+                <span className="grid size-12 place-items-center rounded-full bg-raised text-volt-ink">
                   {reading ? <LoaderCircle className="size-6 animate-spin" /> : <FileUp className="size-6" />}
                 </span>
                 <span className="text-sm font-semibold">{reading ? "Reading your deck…" : "Drop an .apkg file here, or click to choose one"}</span>

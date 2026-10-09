@@ -259,7 +259,7 @@ export function SelectionMenu() {
             <button type="button" className={`${BUTTON} ${translation ? "bg-raised text-ink" : ""}`} disabled={translation != null && !translation.result && !translation.error}
               onClick={() => void translate()} title="Translate with AI">
               {translation && !translation.result && !translation.error && <LoaderCircle className="size-3.5 animate-spin" />}
-              Translate<Sparkles className="size-3 text-second-300" aria-label="uses AI" />
+              Translate<Sparkles className="size-3 text-second-ink" aria-label="uses AI" />
             </button>
           )}
         </div>
@@ -287,7 +287,7 @@ function TranslationView({ result, lang, copied, onCopy }: { result: Translation
       </div>
       <button type="button" className="icon-btn size-8 shrink-0" aria-label="Copy translation" title="Copy translation"
         onPointerDown={(e) => e.preventDefault()} onClick={() => onCopy(result.translation)}>
-        {copied === result.translation ? <Check className="size-3.5 text-volt-500" /> : <Copy className="size-3.5" />}
+        {copied === result.translation ? <Check className="size-3.5 text-volt-ink" /> : <Copy className="size-3.5" />}
       </button>
     </div>
   );

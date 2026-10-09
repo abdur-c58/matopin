@@ -37,8 +37,11 @@ export function Furigana({ parts, className = "text-4xl", rtClass = "text-xs" }:
   );
 }
 
+/** A theme colour as text: the accent and second colour have text shades that stay readable on either theme. */
+export const inkOf = (color: string) => color.replace("--color-volt-500", "--color-volt-ink").replace("--color-second-500", "--color-second-ink");
+
 export function Eyebrow({ children, color }: { children: React.ReactNode; color?: string }) {
-  return <p className="text-[11px] font-semibold tracking-[0.22em] text-muted uppercase" style={color ? { color } : undefined}>{children}</p>;
+  return <p className="text-[11px] font-semibold tracking-[0.22em] text-muted uppercase" style={color ? { color: inkOf(color) } : undefined}>{children}</p>;
 }
 
 type Start = { signedIn: boolean; busy: boolean; start: () => void };

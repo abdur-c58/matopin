@@ -26,7 +26,7 @@ function Suggestion({ pinyin, meaning, onSwap }: Pick<Props, "pinyin" | "meaning
   const lang = useCardLang();
   const py = pinyin.trim();
   const en = meaning.trim();
-  const link = "font-medium text-volt-700 underline underline-offset-2 hover:text-volt-600";
+  const link = "font-medium text-volt-700 underline underline-offset-2 hover:text-volt-ink";
   // A Japanese reading may be kana or any romaji, so there is nothing to second-guess.
   if (lang === "ja") return null;
   if (py && !isPinyin(py)) {

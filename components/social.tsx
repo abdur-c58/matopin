@@ -18,7 +18,7 @@ export const VISIBILITY_ICONS = { private: Lock, public: Globe, unlisted: EyeOff
 
 export function VisibilityBadge({ visibility, className = "" }: { visibility: Visibility; className?: string }) {
   const Icon = VISIBILITY_ICONS[visibility];
-  const tone = visibility === "public" ? "bg-volt-50 text-volt-700" : visibility === "collab" ? "bg-second-500/15 text-second-300" : visibility === "unlisted" ? "bg-tone-2/15 text-tone-2" : "bg-raised text-muted";
+  const tone = visibility === "public" ? "bg-volt-50 text-volt-700" : visibility === "collab" ? "bg-second-500/15 text-second-ink" : visibility === "unlisted" ? "bg-tone-2/15 text-tone-2" : "bg-raised text-muted";
   return <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${tone} ${className}`}><Icon className="size-3" />{VISIBILITY_LABELS[visibility]}</span>;
 }
 
@@ -58,7 +58,7 @@ export function PersonRow({ person, self, onChange }: { person: Person; self: bo
         <PersonAvatar person={person} className="size-11 text-base" />
         <span className="min-w-0">
           <span className="flex items-center gap-2">
-            <span className="truncate font-semibold hover:text-volt-500">{person.name}</span>
+            <span className="truncate font-semibold hover:text-volt-ink">{person.name}</span>
             {person.followsYou && !self && <span className="shrink-0 text-xs text-muted">Follows you</span>}
           </span>
           <span className="block truncate text-xs text-muted">{person.bio || `${plural(person.followers, "follower")} · ${plural(person.publicDecks, "public deck")}`}</span>
@@ -114,7 +114,7 @@ export function DeckTile({ deck, onSaved, showOwner = true }: { deck: SharedDeck
     <li className="surface flex flex-col p-5">
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
-          <button type="button" className="block max-w-full truncate text-left text-base font-bold transition hover:text-volt-500" onClick={() => setPreviewing(true)}>{deck.name}</button>
+          <button type="button" className="block max-w-full truncate text-left text-base font-bold transition hover:text-volt-ink" onClick={() => setPreviewing(true)}>{deck.name}</button>
           <p className="text-xs text-muted">{deckStats(deck)}</p>
         </div>
         <VisibilityBadge visibility={deck.visibility} className="shrink-0" />

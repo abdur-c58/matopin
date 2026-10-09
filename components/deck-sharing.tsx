@@ -73,10 +73,10 @@ export function DeckSharing({ deckId, scope }: { deckId: string; scope: string }
           return (
             <button key={value} type="button" role="radio" aria-checked={on} disabled={busy != null}
               onClick={() => { if (!on) void share(value); }}
-              className={`rounded-md border p-3 text-left transition disabled:cursor-wait ${on ? "border-volt-500 bg-volt-50" : "border-line hover:border-ink/25 hover:bg-raised"}`}>
+              className={`rounded-md border p-3 text-left transition disabled:cursor-wait ${on ? "border-volt-edge bg-volt-50" : "border-line hover:border-ink/25 hover:bg-raised"}`}>
               <span className="flex items-center gap-2 text-sm font-semibold">
-                {busy === value ? <LoaderCircle className="size-4 animate-spin" /> : <Icon className={`size-4 ${on ? "text-volt-500" : "text-muted"}`} />}{label}
-                {on && <Check className="ml-auto size-4 text-volt-500" />}
+                {busy === value ? <LoaderCircle className="size-4 animate-spin" /> : <Icon className={`size-4 ${on ? "text-volt-ink" : "text-muted"}`} />}{label}
+                {on && <Check className="ml-auto size-4 text-volt-ink" />}
               </span>
               <span className="mt-1 block text-xs text-muted">{detail}</span>
             </button>
@@ -124,7 +124,7 @@ export function DeckSharing({ deckId, scope }: { deckId: string; scope: string }
                 <Link href={`/u/${m.id}`} className="flex min-w-0 flex-1 items-center gap-2.5">
                   <PersonAvatar person={m} className="size-8 text-sm" />
                   <span className="min-w-0">
-                    <span className="block truncate text-sm font-semibold hover:text-volt-500">{m.name}</span>
+                    <span className="block truncate text-sm font-semibold hover:text-volt-ink">{m.name}</span>
                     <span className="block text-xs text-muted">Joined {new Date(m.joinedAt).toLocaleDateString(undefined, { dateStyle: "medium" })}</span>
                   </span>
                 </Link>

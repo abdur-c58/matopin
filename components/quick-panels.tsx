@@ -151,7 +151,7 @@ export function QuickPanelsProvider({ children }: { children: React.ReactNode })
       <SideTab kinds={shown.length ? [] : tabKinds} onOpen={show} />
       {shown.length > 0 && (
         <>
-          <button type="button" aria-label="Close" className="fixed inset-0 z-40 animate-fade bg-black/50 md:hidden" onClick={() => setOpen([])} />
+          <button type="button" aria-label="Close" className="fixed inset-0 z-40 animate-fade bg-scrim md:hidden" onClick={() => setOpen([])} />
           <div className="pointer-events-none fixed inset-x-2 top-[calc(0.5rem+env(safe-area-inset-top))] bottom-[calc(0.5rem+env(safe-area-inset-bottom))] z-40 flex items-end gap-3 md:inset-auto md:right-4 md:bottom-4 max-md:[&>*:not(:last-child)]:hidden">
             {order.map((kind) => <PanelDockContext key={kind} value={dockFor(kind)}>{panel(kind)}</PanelDockContext>)}
           </div>

@@ -121,8 +121,8 @@ function KanjiStrokes({ char, size = 136, delay = 0 }: { char: string; size?: nu
         {paths && (
           <svg ref={svg} viewBox="0 0 109 109" className="relative size-full p-1.5" role="img" aria-label={`Stroke order for ${char}`}>
             <g fill="none" strokeLinecap="round" strokeLinejoin="round">
-              {paths.map((d, i) => <path key={`o${i}`} d={d} stroke="#363636" strokeWidth={4} />)}
-              {paths.map((d, i) => <path key={i} data-stroke d={d} stroke={i === 0 ? "var(--accent)" : "#f4f4f2"} strokeWidth={4} />)}
+              {paths.map((d, i) => <path key={`o${i}`} d={d} stroke="var(--color-ghost)" strokeWidth={4} />)}
+              {paths.map((d, i) => <path key={i} data-stroke d={d} stroke={i === 0 ? "var(--color-volt-ink)" : "var(--color-ink)"} strokeWidth={4} />)}
             </g>
           </svg>
         )}
@@ -268,7 +268,7 @@ function KanjiPanel({ k, index, focused, compact, onSearch }: { k: JKanji; index
     k.radical && { label: "Radical", value: `no. ${k.radical}` },
   ].filter((s): s is { label: string; value: string } => Boolean(s));
   return (
-    <div id={`dict-char-${index}`} className={`flex gap-4 rounded-lg border transition ${compact ? "flex-row p-3" : "flex-col p-4 sm:flex-row"} ${focused ? "border-volt-500/60 bg-volt-50" : "border-line"}`}>
+    <div id={`dict-char-${index}`} className={`flex gap-4 rounded-lg border transition ${compact ? "flex-row p-3" : "flex-col p-4 sm:flex-row"} ${focused ? "border-volt-edge/60 bg-volt-50" : "border-line"}`}>
       <KanjiStrokes char={k.character} delay={index * 600} size={compact ? 104 : 136} />
       <div className="min-w-0 flex-1 space-y-2.5">
         <div className="flex items-center gap-2">
@@ -344,7 +344,7 @@ function SenseList({ senses, onSearch }: { senses: JSense[]; onSearch: (q: strin
                     {notes.map((n, j) => <span key={j}>{n}</span>)}
                     {only.length > 0 && (
                       <span>only {only.map((o, j) => (
-                        <button key={o} type="button" className="font-hanzi text-ink hover:text-volt-500" lang="ja" onClick={() => onSearch(o)}>{j > 0 && "、"}{o}</button>
+                        <button key={o} type="button" className="font-hanzi text-ink hover:text-volt-ink" lang="ja" onClick={() => onSearch(o)}>{j > 0 && "、"}{o}</button>
                       ))}</span>
                     )}
                   </span>
@@ -460,7 +460,7 @@ function EntryView({ id, compact = false, onSearch, onOpen, onBack, onAdd }: {
           <SpeakButton text={e.headword} lang="ja" load={say(e.headword, e.reading)} label={`Play ${e.headword}`}
             className="grid size-11 place-items-center rounded-full bg-raised text-ink transition hover:bg-volt-500 hover:text-on-volt active:scale-90" />
           <button type="button" className="grid size-11 place-items-center rounded-full bg-raised text-muted transition hover:text-ink active:scale-90" aria-label="Copy" title="Copy" onClick={() => void copy()}>
-            {copied ? <Check className="size-4 text-volt-500" /> : <Copy className="size-4" />}
+            {copied ? <Check className="size-4 text-volt-ink" /> : <Copy className="size-4" />}
           </button>
           <Button variant="primary" className="h-11" disabled={adding} onClick={() => void add()}>
             {adding && <LoaderCircle className="size-4 animate-spin" />}Add to deck
@@ -632,7 +632,7 @@ export function JDictPage({ params }: { params: URLSearchParams }) {
               <div className="max-w-sm">
                 <div className="relative mx-auto grid size-28 place-items-center rounded-lg border border-line bg-porcelain">
                   <RiceGrid />
-                  <span className="relative font-hanzi text-6xl text-volt-500/40" lang="ja">語</span>
+                  <span className="relative font-hanzi text-6xl text-volt-ink/40" lang="ja">語</span>
                 </div>
                 <p className="mt-5 text-base font-semibold">Look up any Japanese word</p>
                 <p className="mt-1 text-sm text-muted">Type kanji, kana, romaji or English, paste a conjugated verb like 食べなかった, or tap the brush to draw a kanji you can’t type. Use ↑ ↓ to move through results and press / to search from anywhere.</p>

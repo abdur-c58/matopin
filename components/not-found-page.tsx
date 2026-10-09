@@ -121,7 +121,7 @@ export function NotFoundPage() {
   return (
     <main ref={stage} onPointerMove={onPointerMove} className="relative isolate grid min-h-dvh place-items-center overflow-hidden px-6 py-16 [--mx:0] [--my:0]">
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute top-1/2 left-1/2 size-[36rem] -translate-1/2 rounded-full bg-volt-500/10 blur-[120px]" />
+        <div className="absolute top-1/2 left-1/2 size-[36rem] -translate-1/2 theme-glow rounded-full bg-volt-500/10 blur-[120px]" />
         {DRIFT.map((d, i) => (
           <span key={i} className="absolute transition-transform duration-700 ease-out"
             style={{ left: `${d.x}%`, top: `${d.y}%`, transform: `translate(calc(var(--mx) * ${d.depth * 24}px), calc(var(--my) * ${d.depth * 24}px))` }}>
@@ -145,13 +145,13 @@ export function NotFoundPage() {
 
           <div className="relative [perspective:900px]">
             <motion.button type="button" onClick={flip} aria-label={flipped ? `${word.term}: ${word.reading}, ${word.meaning}. Next card` : `Flip the card: ${word.term}`}
-              className="relative block h-44 w-32 cursor-pointer rounded-3xl outline-none [transform-style:preserve-3d] focus-visible:ring-2 focus-visible:ring-volt-500 sm:h-60 sm:w-44"
+              className="relative block h-44 w-32 cursor-pointer rounded-3xl outline-none [transform-style:preserve-3d] focus-visible:ring-2 focus-visible:ring-volt-edge sm:h-60 sm:w-44"
               initial={still ? false : { rotateY: -90, opacity: 0 }}
               animate={{ rotateY: flipped ? 180 : 0, opacity: 1 }}
               whileHover={still ? undefined : { scale: 1.04, rotateZ: flipped ? 0 : -2 }}
               whileTap={still ? undefined : { scale: 0.96 }}
               transition={{ duration: FLIP_MS / 1000, ease: [0.3, 0.9, 0.3, 1.1] }}>
-              <span className="absolute inset-0 grid place-items-center rounded-3xl border-2 border-volt-500 bg-surface shadow-[0_20px_60px_-20px] shadow-volt-500/40 [backface-visibility:hidden]">
+              <span className="absolute inset-0 grid place-items-center rounded-3xl border-2 border-volt-edge bg-surface shadow-[0_20px_60px_-20px] shadow-volt-500/40 [backface-visibility:hidden]">
                 <span lang={LANG_INFO[word.lang].speech} className={`font-hanzi font-bold text-ink ${termSize(word.term)}`}>{word.term}</span>
                 <span className="absolute bottom-3 text-[11px] font-semibold tracking-wide text-muted uppercase">tap to flip</span>
               </span>

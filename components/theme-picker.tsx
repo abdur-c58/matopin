@@ -1,9 +1,9 @@
 "use client";
 import { useRef, useState } from "react";
 import { Popover } from "radix-ui";
-import { Check, Pipette } from "lucide-react";
+import { Check, Monitor, Moon, Pipette, Sun } from "lucide-react";
 import { toast } from "sonner";
-import { ACCENT_PRESETS, applyAccent, applySecond, hexToHsv, SECOND_PRESETS, hsvToHex, normalizeHex, textOn, type Hsv } from "@/lib/theme";
+import { ACCENT_PRESETS, applyAccent, applySecond, applyTheme, hexToHsv, SECOND_PRESETS, hsvToHex, normalizeHex, textOn, type Hsv, type ThemeMode } from "@/lib/theme";
 import { useProfile } from "./profiles";
 import { Panel } from "./ui";
 
@@ -68,7 +68,7 @@ function ColorPicker({ initial, onChange }: { initial: string; onChange: (hex: s
       </div>
       <div className="flex items-center gap-2">
         <span className="size-10 shrink-0 rounded-lg border border-line" style={{ background: hex }} />
-        <label className="flex h-10 min-w-0 flex-1 items-center rounded-lg border border-line bg-porcelain px-3 text-sm focus-within:border-volt-500/70">
+        <label className="flex h-10 min-w-0 flex-1 items-center rounded-lg border border-line bg-porcelain px-3 text-sm focus-within:border-volt-edge/70">
           <span className="text-muted">#</span>
           <input
             className="min-w-0 flex-1 bg-transparent pl-1 font-mono uppercase outline-none"
@@ -108,7 +108,7 @@ function ColourChoice({ label, value, presets, apply, onSave }: {
     else save(draft.current);
   }
 
-  const swatch = "relative grid size-11 place-items-center rounded-full ring-offset-2 ring-offset-surface transition hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink";
+  const swatch = "relative grid size-11 place-items-center rounded-full shadow-[inset_0_0_0_1px] shadow-ink/10 ring-offset-2 ring-offset-surface transition hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink";
 
   return (
     <div role="radiogroup" aria-label={label} className="grid w-fit grid-cols-5 gap-3">
@@ -145,15 +145,39 @@ function ColourChoice({ label, value, presets, apply, onSave }: {
   );
 }
 
+const MODES: { mode: ThemeMode; label: string; icon: typeof Sun }[] = [
+  { mode: "system", label: "System", icon: Monitor },
+  { mode: "light", label: "Light", icon: Sun },
+  { mode: "dark", label: "Dark", icon: Moon },
+];
+
+function AppearancePicker({ value, onPick }: { value: ThemeMode; onPick: (mode: ThemeMode) => void }) {
+  return (
+    <div role="radiogroup" aria-label="Appearance" className="inline-flex gap-1 rounded-full border border-line bg-porcelain p-1">
+      {MODES.map(({ mode, label, icon: Icon }) => {
+        const on = mode === value;
+        return (
+          <button key={mode} type="button" role="radio" aria-checked={on} onClick={() => { if (!on) onPick(mode); }}
+            className={`inline-flex h-8 items-center gap-1.5 rounded-full px-3.5 text-sm font-semibold transition-colors ${on ? "bg-volt-500 text-on-volt" : "text-muted hover:bg-raised hover:text-ink"}`}>
+            <Icon className="size-4" />{label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function ThemePanel({ className = "" }: { className?: string }) {
   const { prefs, setPrefs } = useProfile();
-  const save = (patch: { accent: string } | { second: string }) =>
+  const save = (patch: { accent: string } | { second: string } | { theme: ThemeMode }) =>
     void setPrefs(patch).catch((e) => toast.error(e instanceof Error ? e.message : "Couldn't save the theme."));
 
   return (
-    <Panel title="Theme colours" className={className}>
-      <p className="text-sm text-muted">Changes the colours across the app, on every device.</p>
-      <p className="mt-4 mb-2 text-sm font-semibold">Highlight</p>
+    <Panel title="Theme" className={className}>
+      <p className="text-sm text-muted">Changes the look across the app, on every device.</p>
+      <p className="mt-4 mb-2 text-sm font-semibold">Appearance</p>
+      <AppearancePicker value={prefs.theme} onPick={(theme) => { applyTheme(theme); save({ theme }); }} />
+      <p className="mt-5 mb-2 text-sm font-semibold">Highlight</p>
       <ColourChoice label="Highlight colour" value={prefs.accent} presets={ACCENT_PRESETS} apply={applyAccent} onSave={(hex) => save({ accent: hex })} />
       <p className="mt-5 text-sm font-semibold">Second colour</p>
       <p className="mb-2 text-xs text-muted">Bao, due decks, and secondary buttons and badges.</p>

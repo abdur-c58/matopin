@@ -47,7 +47,7 @@ function ChatRow({ chat, active, onPick }: { chat: ChatSummary; active: boolean;
   const title = chat.group ? groupTitle(chat.group.name, chat.group.members, chat.group.memberCount - 1) : chat.person?.name ?? "Someone";
   return (
     <li>
-      <RowLink id={chatRouteId(chat)} active={active} onPick={onPick} className={active ? "bg-volt-50 ring-1 ring-volt-500/30" : "hover:bg-raised"}>
+      <RowLink id={chatRouteId(chat)} active={active} onPick={onPick} className={active ? "bg-volt-50 ring-1 ring-volt-edge/30" : "hover:bg-raised"}>
         <span className="relative shrink-0">
           {chat.group ? <GroupAvatar members={chat.group.members} /> : chat.person && <PersonAvatar person={chat.person} className="size-11 text-base" />}
           {chat.aiEnabled && <span className="absolute -right-1 -bottom-1 grid size-5 place-items-center rounded-full border-2 border-surface bg-second-500 text-on-second" title="Bao is in this chat"><Sparkles className="size-2.5" /></span>}
@@ -74,12 +74,12 @@ function BotRow({ bot, active, onPick }: { bot: BotSummary | null; active: boole
   const last = bot?.last;
   return (
     <li>
-      <RowLink id={BOT_ID} active={active} onPick={onPick} className={active ? "bg-second-500/10 ring-1 ring-second-500/30" : "hover:bg-raised"}>
+      <RowLink id={BOT_ID} active={active} onPick={onPick} className={active ? "bg-second-500/10 ring-1 ring-second-edge/30" : "hover:bg-raised"}>
         <BotAvatar className="size-11" />
         <span className="min-w-0 flex-1">
           <span className="flex items-baseline gap-2">
             <span className="truncate font-semibold">{BOT_NAME}</span>
-            <span className="rounded-full bg-second-500/15 px-1.5 py-px text-[10px] font-bold tracking-wide text-second-300 uppercase">AI</span>
+            <span className="rounded-full bg-second-500/15 px-1.5 py-px text-[10px] font-bold tracking-wide text-second-ink uppercase">AI</span>
             {last && <span className="ml-auto shrink-0 text-[11px] text-muted">{shortTime(last.createdAt)}</span>}
           </span>
           <span className="block truncate text-xs text-muted">{last ? `${last.kind === "ai" ? "" : "You: "}${previewText(last)}` : "Ask me anything about Chinese"}</span>
@@ -130,7 +130,7 @@ function NewChat({ onPick }: { onPick?: OnPick }) {
             ))}
           </div>
           {mode === "group" ? <NewGroupForm onCreated={(id) => go(groupRoute(id))} /> : <>
-          <label className="mt-4 flex h-10 items-center gap-2 rounded-full border border-line bg-porcelain pr-4 pl-3 transition focus-within:border-volt-500/60">
+          <label className="mt-4 flex h-10 items-center gap-2 rounded-full border border-line bg-porcelain pr-4 pl-3 transition focus-within:border-volt-edge/60">
             <Search className="size-4 shrink-0 text-muted" />
             <input autoFocus className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted/80" placeholder="Find someone" aria-label="Find someone" value={query} onChange={(e) => setQuery(e.target.value)} />
           </label>
@@ -245,11 +245,11 @@ export function NoChatOpen() {
   return (
     <div className="grid flex-1 place-items-center p-8 text-center">
       <div>
-        <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-raised text-volt-500"><MessagesSquare className="size-6" /></span>
+        <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-raised text-volt-ink"><MessagesSquare className="size-6" /></span>
         <p className="mt-3 font-semibold">Pick a chat</p>
         <p className="mx-auto mt-1 max-w-xs text-sm text-muted">
           {bao
-            ? <>Send decks, reply and react to messages, and type <span className="rounded-xs bg-second-500/15 px-1 font-semibold text-second-300">@ask</span> to bring Bao in for a Chinese question. Or message Bao directly from the top of the list.</>
+            ? <>Send decks, reply and react to messages, and type <span className="rounded-xs bg-second-500/15 px-1 font-semibold text-second-ink">@ask</span> to bring Bao in for a Chinese question. Or message Bao directly from the top of the list.</>
             : "Send decks, and reply and react to messages."}
         </p>
       </div>

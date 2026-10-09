@@ -29,7 +29,7 @@ function useSpotlight(id: string) {
     window.history.replaceState(window.history.state, "", window.location.pathname);
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     el.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "center" });
-    const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "#d7f25a";
+    const accent = "var(--color-volt-edge)";
     const off = "0 0 0 0 transparent, 0 0 0 0 transparent";
     const on = `0 0 0 2px ${accent}, 0 0 0 0 transparent`;
     el.animate(

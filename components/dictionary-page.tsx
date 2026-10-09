@@ -18,6 +18,7 @@ import { HandwritingPad, RiceGrid } from "./handwriting-pad";
 import { PanelFrame } from "./panel-frame";
 import { LOOKUP_EVENT, type LookupDetail } from "./quick-panels";
 import { useAi, useProfile } from "./profiles";
+import { cssColorHex, useResolvedTheme } from "./theme-sync";
 import { Button } from "./ui";
 
 const TRY = ["书", "学习", "你好", "我的书", "shū", "xuexi", "ni hao", "book", "study"];
@@ -151,7 +152,7 @@ export function SpeakButton({ text, pinyin = "", sentence, label, className = "i
   const title = credit ? `${label} · Recording: ${credit}` : label;
   return (
     <button type="button" className={className} aria-label={label} title={title} aria-busy={state === "loading"} onClick={() => void play()}>
-      {state === "loading" ? <LoaderCircle className="size-4 animate-spin" /> : <Volume2 className={`size-4 ${state === "playing" ? "animate-pulse text-volt-500" : ""}`} />}
+      {state === "loading" ? <LoaderCircle className="size-4 animate-spin" /> : <Volume2 className={`size-4 ${state === "playing" ? "animate-pulse text-volt-ink" : ""}`} />}
     </button>
   );
 }
@@ -211,7 +212,7 @@ function HanText({ text, onOpen }: { text: string; onOpen: (id: number) => void 
   return (
     <>
       {text.split(HAN_RUN).map((piece, i) => (i % 2
-        ? <WordPeek key={i} word={piece} onOpen={onOpen} className="font-hanzi text-volt-700 underline decoration-volt-500/30 underline-offset-4" />
+        ? <WordPeek key={i} word={piece} onOpen={onOpen} className="font-hanzi text-volt-700 underline decoration-volt-edge/30 underline-offset-4" />
         : piece))}
     </>
   );
@@ -228,6 +229,7 @@ function StrokeOrder({ char, size = 136, delay = 0 }: { char: string; size?: num
   const [status, setStatus] = useState<"loading" | "ready" | "missing">("loading");
   const [mode, setMode] = useState<"idle" | "playing" | "quiz">("idle");
   const [result, setResult] = useState("");
+  const theme = useResolvedTheme();
 
   useEffect(() => {
     const el = box.current;
@@ -236,11 +238,10 @@ function StrokeOrder({ char, size = 136, delay = 0 }: { char: string; size?: num
     let timer = 0;
     void import("hanzi-writer").then(({ default: HanziWriter }) => {
       if (!live) return;
-      const css = getComputedStyle(document.documentElement);
-      const accent = css.getPropertyValue("--accent").trim() || "#d7f25a";
+      const accent = cssColorHex("var(--color-volt-ink)");
       const w = HanziWriter.create(el, char, {
         width: size, height: size, padding: 8, showOutline: true,
-        strokeColor: "#f4f4f2", radicalColor: accent, outlineColor: "#363636", drawingColor: accent, highlightColor: accent,
+        strokeColor: cssColorHex("var(--color-ink)"), radicalColor: accent, outlineColor: cssColorHex("var(--color-ghost)"), drawingColor: accent, highlightColor: accent,
         strokeAnimationSpeed: 1.1, delayBetweenStrokes: 160, drawingWidth: 6, showHintAfterMisses: 2,
         onLoadCharDataSuccess: () => {
           if (!live) return;
@@ -258,7 +259,7 @@ function StrokeOrder({ char, size = 136, delay = 0 }: { char: string; size?: num
       writer.current = null;
       el.replaceChildren();
     };
-  }, [char, size, delay]);
+  }, [char, size, delay, theme]);
 
   const play = () => {
     const w = writer.current;
@@ -289,7 +290,7 @@ function StrokeOrder({ char, size = 136, delay = 0 }: { char: string; size?: num
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className={`relative rounded-md border bg-porcelain transition ${mode === "quiz" ? "border-volt-500/60 shadow-[0_0_0_4px] shadow-volt-500/10" : "border-line"}`} style={{ width: size, height: size }}>
+      <div className={`relative rounded-md border bg-porcelain transition ${mode === "quiz" ? "border-volt-edge/60 shadow-[0_0_0_4px] shadow-volt-500/10" : "border-line"}`} style={{ width: size, height: size }}>
         <RiceGrid />
         <div ref={box} className={`relative ${mode === "quiz" ? "cursor-crosshair touch-none" : ""}`} aria-label={`Stroke order for ${char}`} role="img" />
         {status === "loading" && <LoaderCircle className="absolute inset-0 m-auto size-5 animate-spin text-muted" />}
@@ -307,7 +308,7 @@ function StrokeOrder({ char, size = 136, delay = 0 }: { char: string; size?: num
           </button>
         </div>
       )}
-      <p className="h-4 text-[11px] font-medium text-volt-500" role="status">{mode === "quiz" ? "Trace the strokes in order" : result}</p>
+      <p className="h-4 text-[11px] font-medium text-volt-ink" role="status">{mode === "quiz" ? "Trace the strokes in order" : result}</p>
     </div>
   );
 }
@@ -395,7 +396,7 @@ function ExampleRow({ ex, word, onOpen }: { ex: DictExample; word: string; onOpe
       <div className="flex items-start gap-2">
         <p className="min-w-0 flex-1 font-hanzi text-xl leading-relaxed" lang="zh-CN">
           {ex.tokens.map((t, i) => (hasHan(t)
-            ? <WordPeek key={i} word={t} onOpen={onOpen} className={`px-px ${t === word ? "text-volt-500" : ""}`} />
+            ? <WordPeek key={i} word={t} onOpen={onOpen} className={`px-px ${t === word ? "text-volt-ink" : ""}`} />
             : <span key={i}>{t}</span>))}
         </p>
         <SpeakButton text={ex.simplified} pinyin={ex.syllables ?? ""} sentence={{ id: ex.id, words: ex.tokens.filter(hasHan) }} label="Play sentence" className="icon-btn size-8 shrink-0" />
@@ -464,7 +465,7 @@ function CharacterPanel({ c, index, focused, compact, onSearch }: { c: DictChara
   const traditional = c.traditional.filter((t) => t !== c.character);
   const simplified = c.simplified.filter((s) => s !== c.character);
   return (
-    <div id={`dict-char-${index}`} className={`flex gap-4 rounded-lg border transition ${compact ? "flex-row p-3" : "flex-col p-4 sm:flex-row"} ${focused ? "border-volt-500/60 bg-volt-50" : "border-line"}`}>
+    <div id={`dict-char-${index}`} className={`flex gap-4 rounded-lg border transition ${compact ? "flex-row p-3" : "flex-col p-4 sm:flex-row"} ${focused ? "border-volt-edge/60 bg-volt-50" : "border-line"}`}>
       <StrokeOrder char={c.character} delay={index * 500} size={compact ? 104 : 136} />
       <div className="min-w-0 flex-1 space-y-2.5">
         <div className="flex items-center gap-2">
@@ -646,7 +647,7 @@ function EntryView({ id, compact = false, onSearch, onOpen, onBack, onAdd }: {
         <div className="flex items-center gap-1.5">
           <SpeakButton text={e.simplified} pinyin={e.pinyinNumeric} label={`Play ${e.simplified}`} className="grid size-11 place-items-center rounded-full bg-raised text-ink transition hover:bg-volt-500 hover:text-on-volt active:scale-90" />
           <button type="button" className="grid size-11 place-items-center rounded-full bg-raised text-muted transition hover:text-ink active:scale-90" aria-label="Copy" title="Copy" onClick={() => void copy()}>
-            {copied ? <Check className="size-4 text-volt-500" /> : <Copy className="size-4" />}
+            {copied ? <Check className="size-4 text-volt-ink" /> : <Copy className="size-4" />}
           </button>
           <Button variant="primary" className="h-11" disabled={adding} onClick={() => void add()}>
             {adding && <LoaderCircle className="size-4 animate-spin" />}Add to deck
@@ -730,7 +731,7 @@ export function CreditCard({ name, url, license, licenseUrl, covers, note }: { n
   return (
     <section className="rounded-md border border-line p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <a href={url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-semibold hover:text-volt-500">{name}<ExternalLink className="size-3.5" /></a>
+        <a href={url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-semibold hover:text-volt-ink">{name}<ExternalLink className="size-3.5" /></a>
         <a href={licenseUrl} target="_blank" rel="noreferrer" className="text-xs font-medium text-muted hover:text-ink">{license}</a>
       </div>
       {covers && <p className="mt-1 text-xs text-muted">{covers}</p>}
@@ -874,7 +875,7 @@ export function SearchBox({ s, input, compact = false, drawing, onDraw, onKeyDow
         ) : !compact && (
           <kbd className="mr-1 hidden rounded-sm border border-line px-1.5 py-0.5 font-mono text-[11px] text-muted md:block">/</kbd>
         )}
-        <button type="button" className={`icon-btn ${drawing ? "text-volt-500" : ""}`} aria-label={drawLabel} aria-pressed={drawing}
+        <button type="button" className={`icon-btn ${drawing ? "text-volt-ink" : ""}`} aria-label={drawLabel} aria-pressed={drawing}
           title={drawLabel} onClick={onDraw}>
           <Brush className="size-4" />
         </button>
@@ -1003,7 +1004,7 @@ export function DictionaryPage({ params }: { params: URLSearchParams }) {
               <div className="max-w-sm">
                 <div className="relative mx-auto grid size-28 place-items-center rounded-lg border border-line bg-porcelain">
                   <RiceGrid />
-                  <span className="relative font-hanzi text-6xl text-volt-500/40">字</span>
+                  <span className="relative font-hanzi text-6xl text-volt-ink/40">字</span>
                 </div>
                 <p className="mt-5 text-base font-semibold">Look up any word</p>
                 <p className="mt-1 text-sm text-muted">Type characters, pinyin (with or without tones) or English, or tap the brush to draw a character you can’t type. Use ↑ ↓ to move through results and press / to search from anywhere.</p>

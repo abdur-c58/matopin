@@ -40,7 +40,7 @@ export function PanelFrame({ title, zh, zhLang = "zh-CN", full, actions, onClose
           <span className="ml-auto flex items-center">
             {actions}
             {dock && (
-              <button type="button" className={`icon-btn max-md:hidden ${dock.pinned ? "text-volt-500" : ""}`} aria-pressed={dock.pinned}
+              <button type="button" className={`icon-btn max-md:hidden ${dock.pinned ? "text-volt-ink" : ""}`} aria-pressed={dock.pinned}
                 aria-label={dock.pinned ? `Unpin ${title}` : `Pin ${title} open`} title={dock.pinned ? "Unpin" : "Pin open"} onClick={dock.togglePin}>
 <Pin className={`size-4 ${dock.pinned ? "fill-current" : ""}`} />
               </button>

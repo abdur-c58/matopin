@@ -228,7 +228,7 @@ export function BotThread({ onBack }: { onBack?: () => void } = {}) {
           <BotAvatar className="size-10" thinking={asking.length > 0} />
           <span className="min-w-0">
             <span className="block truncate font-semibold">{BOT_NAME}</span>
-            <span className="block truncate text-xs text-second-300">{asking.length ? "Writing…" : "Always Online"}</span>
+            <span className="block truncate text-xs text-second-ink">{asking.length ? "Writing…" : "Always Online"}</span>
           </span>
         </div>
         <div role="radiogroup" aria-label="Which language Bao answers about" className={`ml-auto flex shrink-0 rounded-full bg-porcelain p-0.5 ${single ? "hidden" : ""}`}
@@ -276,7 +276,7 @@ export function BotThread({ onBack }: { onBack?: () => void } = {}) {
               <div className="mt-4 flex flex-wrap justify-center gap-2">
                 {(mode === "auto" ? AUTO_STARTERS : BOT_STARTERS[mode]).map((starter) => (
                   <button key={starter} type="button" onClick={() => submit(starter)}
-                    className="rounded-full border border-second-500/40 bg-second-500/10 px-3 py-1.5 text-sm transition hover:border-second-500 hover:bg-second-500/20">
+                    className="rounded-full border border-second-edge/40 bg-second-500/10 px-3 py-1.5 text-sm transition hover:border-second-edge hover:bg-second-500/20">
                     {starter}
                   </button>
                 ))}
@@ -323,7 +323,7 @@ export function BotThread({ onBack }: { onBack?: () => void } = {}) {
         {retryable && !asking.length && (
           <p className="mt-2 flex items-center justify-end gap-2 px-5 text-[11px] text-muted">
             Not answered yet
-            <button type="button" className="inline-flex items-center gap-0.5 font-semibold text-second-300 underline-offset-2 hover:underline" onClick={() => void ask(retryable.id)}>Ask again</button>
+            <button type="button" className="inline-flex items-center gap-0.5 font-semibold text-second-ink underline-offset-2 hover:underline" onClick={() => void ask(retryable.id)}>Ask again</button>
           </p>
         )}
         {asking.length > 0 && <BotTyping lang={typingLang(messages, asking, mode, lean)} />}
@@ -331,7 +331,7 @@ export function BotThread({ onBack }: { onBack?: () => void } = {}) {
 
       <footer className="border-t border-line p-2.5 md:p-3">
         {replyTo && <ReplyBar name={replyTo.senderId === profile ? "yourself" : BOT_NAME} preview={previewText(replyTo)} onCancel={() => setReplyTo(null)} />}
-        <form className="flex items-end gap-1 rounded-xl border border-line bg-porcelain p-1.5 pl-3 transition focus-within:border-second-500/60" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+        <form className="flex items-end gap-1 rounded-xl border border-line bg-porcelain p-1.5 pl-3 transition focus-within:border-second-edge/60" onSubmit={(e) => { e.preventDefault(); submit(); }}>
           <textarea
             ref={input} rows={1} value={text} maxLength={MAX_MESSAGE + 200} aria-label={`Message ${BOT_NAME}`} autoFocus
             placeholder="Type your message"

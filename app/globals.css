@@ -6,27 +6,40 @@
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
   --font-hanzi: var(--font-noto-sc), "PingFang SC", "Microsoft YaHei", sans-serif;
 
-  --color-porcelain: #121212;
-  --color-surface: #1f1f1f;
-  --color-raised: #2a2a2a;
-  --color-ink: #f4f4f2;
+  /* Every colour reads a --theme-* variable, set per theme in the base layer below. */
+  --color-porcelain: var(--theme-porcelain);
+  --color-surface: var(--theme-surface);
+  --color-raised: var(--theme-raised);
+  --color-ink: var(--theme-ink);
   --color-night: #131313;
-  --color-muted: #8d8d8a;
-  --color-line: #2f2f2f;
-  --color-volt-50: color-mix(in srgb, var(--accent) 9%, transparent);
-  --color-volt-100: color-mix(in srgb, var(--accent) 20%, transparent);
+  --color-muted: var(--theme-muted);
+  --color-line: var(--theme-line);
+  --color-ghost: var(--theme-ghost);
+  --color-scrim: var(--theme-scrim);
+  --color-volt-50: color-mix(in srgb, var(--accent) var(--theme-tint), transparent);
+  --color-volt-100: color-mix(in srgb, var(--accent) var(--theme-tint-strong), transparent);
   --color-volt-500: var(--accent);
   --color-volt-600: var(--accent);
-  --color-volt-700: color-mix(in srgb, var(--accent) 70%, white);
-  --color-volt-800: color-mix(in srgb, var(--accent) 50%, #1a1a1a);
-  --color-volt-900: color-mix(in srgb, var(--accent) 34%, #1a1a1a);
+  /* Accent text on a tinted chip (bg-volt-50). */
+  --color-volt-700: var(--accent-chip-text);
+  --color-volt-800: var(--accent-deep);
+  --color-volt-900: var(--accent-deeper);
+  /* Accent as text or an icon on the page: always readable on the theme's background. */
+  --color-volt-ink: var(--accent-ink);
+  /* Accent as a border or ring, strong enough to see on the theme's background. */
+  --color-volt-edge: var(--accent-edge);
+  /* An accent-filled control under the pointer. */
+  --color-volt-hover: var(--accent-hover);
   --color-on-volt: var(--on-accent);
   --color-second-300: color-mix(in srgb, var(--second) 60%, white);
   --color-second-500: var(--second);
   --color-second-600: color-mix(in srgb, var(--second) 85%, black);
+  --color-second-ink: var(--second-ink);
+  --color-second-edge: var(--second-edge);
   --color-on-second: var(--on-second);
-  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.03) inset;
-  --shadow-pop: 0 24px 60px -12px rgb(0 0 0 / 0.7);
+  --color-chart-purple: var(--theme-chart-purple);
+  --shadow-card: var(--theme-shadow-card);
+  --shadow-pop: var(--theme-shadow-pop);
 
   --animate-pop: pop 0.16s ease-out;
   --animate-fade: fade 0.16s ease-out;
@@ -45,16 +58,84 @@
 }
 
 @theme static {
-  --color-tone-1: #ff5f61;
-  --color-tone-2: #ffad42;
-  --color-tone-3: #46d68c;
-  --color-tone-4: #7b93ff;
-  --color-tone-5: #9ba3b2;
+  --color-tone-1: var(--theme-tone-1);
+  --color-tone-2: var(--theme-tone-2);
+  --color-tone-3: var(--theme-tone-3);
+  --color-tone-4: var(--theme-tone-4);
+  --color-tone-5: var(--theme-tone-5);
 }
 
 @layer base {
-  :root { --accent: #d7f25a; --on-accent: #131313; --second: #ff9a3c; --on-second: #131313; }
-  html { color-scheme: dark; }
+  /*
+   * The two themes. lib/theme.ts sets data-theme on <html> before the first paint, and sets the --accent-* and
+   * --second-* colours from the profile (a near-white or near-black colour gets its opposite on the theme where it
+   * would vanish). Everything derived from them is worked out here, so custom colours follow both themes.
+   */
+  :root {
+    --accent-dark: #d7f25a; --on-accent-dark: #131313; --accent-light: #d7f25a; --on-accent-light: #131313;
+    --second-dark: #ff9a3c; --on-second-dark: #131313; --second-light: #ff9a3c; --on-second-light: #131313;
+
+    color-scheme: dark;
+    --accent: var(--accent-dark); --on-accent: var(--on-accent-dark);
+    --second: var(--second-dark); --on-second: var(--on-second-dark);
+    --theme-porcelain: #121212; --theme-surface: #1f1f1f; --theme-raised: #2a2a2a; --theme-ink: #f4f4f2;
+    --theme-muted: #8d8d8a; --theme-line: #2f2f2f; --theme-ghost: #363636; --theme-scrim: rgb(0 0 0 / 0.6);
+    --theme-tone-1: #ff5f61; --theme-tone-2: #ffad42; --theme-tone-3: #46d68c; --theme-tone-4: #7b93ff; --theme-tone-5: #9ba3b2;
+    --theme-chart-purple: #a78bfa;
+    --theme-tint: 9%; --theme-tint-strong: 20%;
+    --theme-shadow-card: 0 1px 0 rgb(255 255 255 / 0.03) inset;
+    --theme-shadow-pop: 0 24px 60px -12px rgb(0 0 0 / 0.7);
+    /* How strongly coloured glows show. They light up a dark page; on a light one they only need to tint it. */
+    --theme-glow: 1;
+    --shimmer-hi: #fff;
+
+    --accent-chip-text: color-mix(in srgb, var(--accent) 70%, white);
+    --accent-deep: color-mix(in srgb, var(--accent) 50%, #1a1a1a);
+    --accent-deeper: color-mix(in srgb, var(--accent) 34%, #1a1a1a);
+    --accent-ink: var(--accent);
+    --accent-edge: var(--accent);
+    --accent-hover: color-mix(in srgb, var(--accent) 70%, white);
+    --second-ink: color-mix(in srgb, var(--second) 60%, white);
+    --second-edge: var(--second);
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --accent: var(--accent-light); --on-accent: var(--on-accent-light);
+    --second: var(--second-light); --on-second: var(--on-second-light);
+    --theme-porcelain: #f6f6f3; --theme-surface: #ffffff; --theme-raised: #eeeeea; --theme-ink: #161616;
+    --theme-muted: #676763; --theme-line: #e2e2dc; --theme-ghost: #dcdcd5; --theme-scrim: rgb(24 24 22 / 0.32);
+    --theme-tone-1: #dc2f3a; --theme-tone-2: #c46800; --theme-tone-3: #12904d; --theme-tone-4: #3d5ce6; --theme-tone-5: #737b8c;
+    --theme-chart-purple: #7c5cf0;
+    --theme-tint: 15%; --theme-tint-strong: 28%;
+    --theme-shadow-card: 0 1px 2px rgb(0 0 0 / 0.04);
+    --theme-shadow-pop: 0 24px 60px -16px rgb(0 0 0 / 0.2), 0 4px 14px -4px rgb(0 0 0 / 0.08);
+    --theme-glow: 0.55;
+    --shimmer-hi: var(--second);
+
+    /* Without relative colours, mixing with black darkens a light accent enough to read. */
+    --accent-chip-text: color-mix(in oklab, var(--accent) 45%, black);
+    --accent-deep: color-mix(in srgb, var(--accent) 42%, white);
+    --accent-deeper: color-mix(in srgb, var(--accent) 24%, white);
+    --accent-ink: color-mix(in oklab, var(--accent) 52%, black);
+    --accent-edge: color-mix(in oklab, var(--accent) 78%, black);
+    --accent-hover: color-mix(in oklab, var(--accent) 88%, black);
+    --second-ink: color-mix(in oklab, var(--second) 55%, black);
+    --second-edge: color-mix(in oklab, var(--second) 80%, black);
+  }
+  /* With relative colours, only as much darkening (or lightening) as the colour needs, keeping its hue. */
+  @supports (color: oklch(from red l c h)) {
+    :root {
+      --accent-ink: oklch(from var(--accent) max(l, 0.72) c h);
+      --accent-edge: oklch(from var(--accent) max(l, 0.6) c h);
+    }
+    :root[data-theme="light"] {
+      --accent-chip-text: oklch(from var(--accent) min(l, 0.42) min(c, 0.18) h);
+      --accent-ink: oklch(from var(--accent) min(l, 0.5) min(c, 0.2) h);
+      --accent-edge: oklch(from var(--accent) min(l, 0.7) c h);
+      --second-ink: oklch(from var(--second) min(l, 0.52) min(c, 0.2) h);
+      --second-edge: oklch(from var(--second) min(l, 0.72) c h);
+    }
+  }
   /* Nothing on the page should ever scroll it sideways; clip (unlike hidden) keeps sticky headers working. */
   html, body { overflow-x: clip; }
   /* Keeps things scrolled into view clear of the fixed mobile top bar. */
@@ -72,13 +153,13 @@
   }
   /* Japanese written in ordinary text (not font-hanzi) also gets Japanese glyph shapes. */
   :where(:lang(ja)) { font-family: var(--font-pinyin), var(--font-urbanist), var(--font-noto-jp), ui-sans-serif, system-ui, sans-serif; }
-  :focus-visible { @apply outline-2 outline-offset-2 outline-volt-500; }
+  :focus-visible { @apply outline-2 outline-offset-2 outline-volt-edge; }
   ::selection { @apply bg-volt-100; }
   button:not(:disabled), [role="button"]:not([aria-disabled="true"]), [role="tab"], [role="radio"], [role="menuitem"], [role="menuitemradio"], [role="option"], label:has(> input[type="checkbox"]), summary { cursor: pointer; }
 
   input[type="checkbox"] {
     @apply relative grid size-[18px] shrink-0 appearance-none place-items-center rounded-xs border-[1.5px] border-muted/60 bg-transparent transition-colors duration-150;
-    @apply hover:border-ink checked:border-volt-500 checked:bg-volt-500 checked:hover:border-volt-700 checked:hover:bg-volt-700 disabled:cursor-not-allowed disabled:opacity-40;
+    @apply hover:border-ink checked:border-volt-edge checked:bg-volt-500 checked:hover:border-volt-hover checked:hover:bg-volt-hover disabled:cursor-not-allowed disabled:opacity-40;
   }
   /* The tick is a mask so it takes the theme's on-accent colour. */
   input[type="checkbox"]::before {
@@ -106,36 +187,38 @@
 
 @layer components {
   .btn { @apply inline-flex h-10 items-center justify-center gap-2 rounded-md px-4 text-sm font-semibold whitespace-nowrap transition-colors duration-150 select-none disabled:pointer-events-none disabled:opacity-45; }
-  .btn-primary { @apply bg-volt-600 text-on-volt hover:bg-volt-700; }
+  .btn-primary { @apply bg-volt-600 text-on-volt hover:bg-volt-hover; }
   .btn-second { @apply bg-second-500 text-on-second hover:bg-second-600; }
   .btn-secondary { @apply border border-line text-ink hover:border-ink/25 hover:bg-raised; }
   .btn-ghost { @apply text-muted hover:bg-raised hover:text-ink; }
   /* On hover it grows a little, fades to an accent gradient, and a shimmer sweeps across. */
   .btn-shard {
     @apply relative isolate overflow-hidden border border-line bg-linear-to-r from-transparent to-transparent text-ink transition-all duration-300 ease-in-out;
-    @apply hover:scale-105 hover:border-volt-500 hover:from-volt-900 hover:to-volt-800 hover:text-zinc-100 hover:shadow-md active:scale-[0.98];
+    @apply hover:scale-105 hover:border-volt-edge hover:from-volt-900 hover:to-volt-800 hover:text-ink hover:shadow-md active:scale-[0.98];
   }
   .btn-shard::after {
     content: "";
     @apply pointer-events-none absolute inset-0 -z-10 w-[200%] -translate-x-full bg-linear-to-r from-transparent via-volt-500/30 to-transparent transition-transform duration-500 ease-in-out;
   }
   .btn-shard:hover::after { @apply translate-x-0; }
-  .btn-shard-second { @apply border-second-500 from-second-500 to-second-500 text-on-second hover:border-second-300 hover:from-second-500 hover:to-second-600 hover:text-on-second; }
+  .btn-shard-second { @apply border-second-edge from-second-500 to-second-500 text-on-second hover:border-second-edge hover:from-second-500 hover:to-second-600 hover:text-on-second; }
   .btn-shard-second::after { @apply via-on-second/20; }
-  .btn-shard.icon-btn { @apply border-transparent text-muted hover:scale-110 hover:border-volt-500 hover:text-zinc-100; }
+  .btn-shard.icon-btn { @apply border-transparent text-muted hover:scale-110 hover:border-volt-edge hover:text-ink; }
   .btn-danger { @apply bg-tone-1 text-white hover:bg-tone-1/90; }
   .btn-danger-outline { @apply border border-tone-1/40 text-tone-1 hover:bg-tone-1/10; }
   .icon-btn { @apply inline-grid size-9 place-items-center rounded-md text-muted transition-colors duration-150 hover:bg-raised hover:text-ink disabled:opacity-40; }
-  .field { @apply h-10 w-full rounded-md border border-line bg-porcelain px-3 text-sm text-ink transition duration-150 outline-none placeholder:text-muted/70 hover:border-ink/20 focus:border-volt-500/70 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-line; }
+  .field { @apply h-10 w-full rounded-md border border-line bg-porcelain px-3 text-sm text-ink transition duration-150 outline-none placeholder:text-muted/70 hover:border-ink/20 focus:border-volt-edge/70 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-line; }
   .label { @apply mb-1.5 block text-xs font-medium text-muted; }
   .surface { @apply rounded-lg border border-line bg-surface; }
   .chip { @apply inline-flex h-7 items-center rounded-sm border border-line px-2.5 text-xs font-medium text-muted transition-colors hover:border-ink/25 hover:text-ink; }
   .chip-on { @apply border-ink bg-ink text-porcelain hover:border-ink hover:text-porcelain; }
   /* Section tabs and filters: plain words, the chosen one underlined. */
   .tab { @apply -mb-px inline-flex h-9 items-center border-b-2 border-transparent text-sm font-medium text-muted transition-colors hover:text-ink; }
-  .tab-on { @apply border-volt-500 text-ink; }
-  .overlay { @apply fixed inset-0 z-40 bg-black/60 data-[state=open]:animate-fade; }
+  .tab-on { @apply border-volt-edge text-ink; }
+  .overlay { @apply fixed inset-0 z-40 bg-scrim data-[state=open]:animate-fade; }
   .popup { @apply z-50 rounded-xl border border-line bg-surface shadow-pop data-[state=open]:animate-pop; }
+  /* On a wrapper around a coloured glow, so it lights up the dark theme and only tints the light one. */
+  .theme-glow { opacity: var(--theme-glow); }
 }
 
 /* Japanese text gets Japanese glyph shapes (Chinese fonts draw kanji like 直 or 骨 differently). Outside the
@@ -179,13 +262,13 @@
 @keyframes bot-tile { 0%, 100% { opacity: 0.25; transform: scale(0.8); } 25% { opacity: 1; transform: scale(1.05); background-color: var(--color-volt-500); } }
 .bot-shimmer {
   color: transparent; background-clip: text;
-  background-image: linear-gradient(100deg, var(--color-second-300) 35%, #fff 50%, var(--color-second-300) 65%);
+  background-image: linear-gradient(100deg, var(--color-second-ink) 35%, var(--shimmer-hi) 50%, var(--color-second-ink) 65%);
   background-size: 250% 100%; animation: bot-shimmer 1.8s linear infinite;
 }
 @keyframes bot-shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
 @media (prefers-reduced-motion: reduce) {
   .bot-eyes, .bot-face[data-thinking] .bot-glance, .bot-shimmer { animation: none; }
-  .bot-shimmer { color: var(--color-second-300); }
+  .bot-shimmer { color: var(--color-second-ink); }
   .bot-tile { animation-duration: 3s; }
 }
 

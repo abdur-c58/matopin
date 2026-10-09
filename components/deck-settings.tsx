@@ -125,7 +125,7 @@ export function DeckSettings({ deckId, scope }: { deckId: string; scope: string 
             <div className="min-w-0">
               <p className="flex items-center gap-2 text-sm font-semibold">{ROLE_LABELS[deck.role]}<VisibilityBadge visibility={deck.visibility} /></p>
               <p className="mt-0.5 text-sm text-muted">
-                Shared by <Link href={`/u/${deck.ownerId}`} className="font-semibold text-ink hover:text-volt-500">{deck.ownerName ?? "its owner"}</Link>.
+                Shared by <Link href={`/u/${deck.ownerId}`} className="font-semibold text-ink hover:text-volt-ink">{deck.ownerName ?? "its owner"}</Link>.
                 {readOnly ? " You can study it, but only collaborators edit cards." : " You can add and edit cards."}
               </p>
             </div>
@@ -230,7 +230,7 @@ export function DeckSettings({ deckId, scope }: { deckId: string; scope: string 
                   const active = opts.easyDays[i] === option.value;
                   return (
                     <button key={option.label} type="button" role="radio" aria-checked={active}
-                      className={`h-7 rounded-sm px-2.5 text-xs font-medium transition-colors ${active ? "bg-volt-600 text-on-volt hover:bg-volt-700" : "text-muted hover:bg-volt-50 hover:text-ink"}`}
+                      className={`h-7 rounded-sm px-2.5 text-xs font-medium transition-colors ${active ? "bg-volt-600 text-on-volt hover:bg-volt-hover" : "text-muted hover:bg-volt-50 hover:text-ink"}`}
                       onClick={() => commit({ easyDays: opts.easyDays.map((d, j) => (j === i ? option.value : d)) })}>
                       {option.label}
                     </button>

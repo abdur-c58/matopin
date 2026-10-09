@@ -13,7 +13,7 @@ type DeckFilter = "all" | "following" | "joined";
 
 function SearchBox({ value, onChange, label, autoFocus = false }: { value: string; onChange: (v: string) => void; label: string; autoFocus?: boolean }) {
   return (
-    <label className="flex h-10 items-center gap-2 rounded-md border border-line bg-porcelain pr-4 pl-3 transition focus-within:border-volt-500/60">
+    <label className="flex h-10 items-center gap-2 rounded-md border border-line bg-porcelain pr-4 pl-3 transition focus-within:border-volt-edge/60">
       <Search className="size-4 shrink-0 text-muted" />
       <input className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted/80" placeholder={label} aria-label={label} value={value} autoFocus={autoFocus}
         onChange={(e) => onChange(e.target.value)} onKeyDown={(e) => { if (e.key === "Escape" && value) { e.stopPropagation(); onChange(""); } }} />
@@ -113,7 +113,7 @@ export function FindPeopleDialog({ open, onOpenChange }: { open: boolean; onOpen
                   <PersonAvatar person={p} className="size-10 text-base" />
                   <span className="min-w-0">
                     <span className="flex items-center gap-2">
-                      <span className="truncate font-semibold hover:text-volt-500">{p.name}</span>
+                      <span className="truncate font-semibold hover:text-volt-ink">{p.name}</span>
                       {p.followsYou && <span className="shrink-0 rounded-full bg-raised px-2 py-0.5 text-[11px] text-muted">Follows you</span>}
                     </span>
                     <span className="block truncate text-xs text-muted">{p.bio || `${plural(p.followers, "follower")} · ${plural(p.publicDecks, "public deck")}`}</span>

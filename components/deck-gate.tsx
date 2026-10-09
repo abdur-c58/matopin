@@ -71,7 +71,7 @@ export function DeckHeader() {
           <p className="mt-0.5 text-sm text-muted">
             {deck ? `${deck.cards} card${deck.cards === 1 ? "" : "s"} · ${due ? `${due} to study today` : "nothing due right now"}` : "\u00a0"}
             {deck && deck.role !== "owner" && (
-              <> · {ROLE_LABELS[deck.role]} of <Link href={`/u/${deck.ownerId}`} className="font-semibold text-ink hover:text-volt-500">{deck.ownerName ?? "its owner"}</Link>’s deck</>
+              <> · {ROLE_LABELS[deck.role]} of <Link href={`/u/${deck.ownerId}`} className="font-semibold text-ink hover:text-volt-ink">{deck.ownerName ?? "its owner"}</Link>’s deck</>
             )}
           </p>
         </div>
@@ -81,7 +81,7 @@ export function DeckHeader() {
             return (
               <Link
                 key={href} href={href} aria-current={active ? "page" : undefined}
-                className={`flex h-9 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-3 text-sm font-semibold sm:flex-none sm:px-4 transition-colors ${active ? "bg-volt-500 text-on-volt hover:bg-volt-700" : "text-muted hover:bg-raised hover:text-ink"}`}
+                className={`flex h-9 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-3 text-sm font-semibold sm:flex-none sm:px-4 transition-colors ${active ? "bg-volt-500 text-on-volt hover:bg-volt-hover" : "text-muted hover:bg-raised hover:text-ink"}`}
               >
                 <Icon className="size-4" />{label}
                 {label === "Study" && due > 0 && <span className={`rounded-full px-1.5 text-xs tabular-nums ${active ? "bg-on-volt/15" : "bg-volt-50 text-volt-700"}`}>{due}</span>}

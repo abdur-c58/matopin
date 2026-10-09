@@ -120,7 +120,7 @@ export function Story() {
                 <text x={x(9)} y={y(0.06) - 10} className="fill-muted text-[12px] max-sm:text-[22px]">Forgotten by day 7</text>
               </g>
               <g data-curve-label="remember">
-                <text x={x(27.5)} y={y(0.42)} textAnchor="end" className="fill-volt-500 text-[12px] font-semibold max-sm:text-[22px]">Still there on day 30</text>
+                <text x={x(27.5)} y={y(0.42)} textAnchor="end" className="fill-volt-ink text-[12px] font-semibold max-sm:text-[22px]">Still there on day 30</text>
               </g>
             </svg>
           </figure>

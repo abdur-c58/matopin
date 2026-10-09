@@ -55,7 +55,7 @@ export function MonthCalendar({ month, counts, now, selected, onSelect, variant 
           const tone = accent
             ? `${count ? "bg-on-volt/85 text-volt-500" : "bg-on-volt/10 text-on-volt/70"} ${isToday ? "ring-2 ring-on-volt ring-offset-2 ring-offset-volt-500" : ""}`
             : isToday ? "bg-volt-500 text-on-volt" : count ? "bg-volt-500/80 text-on-volt" : "bg-raised text-muted";
-          const cell = `relative mx-auto grid aspect-square w-full max-w-11 place-items-center rounded-full text-xs font-semibold tabular-nums transition ${tone} ${future ? "opacity-40" : ""} ${selected === key ? "ring-2 ring-offset-2 ring-offset-surface " + (accent ? "ring-on-volt" : "ring-volt-500") : ""}`;
+          const cell = `relative mx-auto grid aspect-square w-full max-w-11 place-items-center rounded-full text-xs font-semibold tabular-nums transition ${tone} ${future ? "opacity-40" : ""} ${selected === key ? "ring-2 ring-offset-2 ring-offset-surface " + (accent ? "ring-on-volt" : "ring-volt-edge") : ""}`;
           const dot = count > 0 && !isToday && <span className={`absolute bottom-1 size-1 rounded-full ${accent ? "bg-volt-500" : "bg-on-volt/60"}`} />;
           return onSelect ? (
             <button key={i} type="button" className={`${cell} hover:brightness-110`} aria-label={label} aria-pressed={selected === key} onClick={() => onSelect(key)}>{new Date(day).getDate()}{dot}</button>

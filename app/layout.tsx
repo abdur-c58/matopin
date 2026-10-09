@@ -2,12 +2,13 @@ import type { Metadata, Viewport } from "next";
 import { Noto_Sans_JP, Noto_Sans_SC, Urbanist } from "next/font/google";
 import localFont from "next/font/local";
 import { GeistMono } from "geist/font/mono";
-import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/next";
+import { ThemedToaster, ThemeSync } from "@/components/theme-sync";
 import { TitleTips } from "@/components/title-tips";
 import { APP_NAME } from "@/lib/brand";
 import { pagePreview, TAGLINE } from "@/lib/link-preview";
 import { SITE_URL } from "@/lib/site";
+import { THEME_BACKGROUND, THEME_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
 const urbanist = Urbanist({ subsets: ["latin"], variable: "--font-urbanist" });
@@ -36,16 +37,24 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#121212",
-  colorScheme: "dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: THEME_BACKGROUND.light },
+    { media: "(prefers-color-scheme: dark)", color: THEME_BACKGROUND.dark },
+  ],
+  colorScheme: "dark light",
   viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${urbanist.variable} ${pinyin.variable} ${notoSc.variable} ${notoJp.variable} ${GeistMono.variable}`}>
+    // The head script sets data-theme before React loads, so the server's markup can't match it.
+    <html lang="en" suppressHydrationWarning className={`${urbanist.variable} ${pinyin.variable} ${notoSc.variable} ${notoJp.variable} ${GeistMono.variable}`}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body>
-        <Toaster theme="dark" position="bottom-right" toastOptions={{ classNames: { toast: "!rounded-xl !border-line !bg-surface !text-ink !shadow-pop" } }} />
+        <ThemeSync />
+        <ThemedToaster />
         {children}
         <TitleTips />
         <Analytics />

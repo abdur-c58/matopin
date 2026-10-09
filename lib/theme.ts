@@ -80,16 +80,62 @@ export function hsvToHex({ h, s, v }: Hsv): string {
   return `#${[f(5), f(3), f(1)].map((c) => c.toString(16).padStart(2, "0")).join("")}`;
 }
 
-/** Repaints every accent-coloured element in the app. */
-export function applyAccent(hex: string) {
-  const root = document.documentElement.style;
-  root.setProperty("--accent", hex);
-  root.setProperty("--on-accent", textOn(hex));
+/**
+ * The colour a fill takes on each background. A near-white colour would vanish on the light theme and a near-black
+ * one on the dark theme, so those swap for their opposite: Snow is white on dark and ink-black on light.
+ */
+function fillsFor(hex: string): { dark: string; light: string } {
+  const l = luminance(hex);
+  return { dark: l < 0.03 ? "#f4f4f2" : hex, light: l > 0.82 ? "#1c1c1c" : hex };
 }
 
-/** Repaints every second-colour element in the app. */
-export function applySecond(hex: string) {
+function applyColour(name: "accent" | "second", hex: string) {
   const root = document.documentElement.style;
-  root.setProperty("--second", hex);
-  root.setProperty("--on-second", textOn(hex));
+  const { dark, light } = fillsFor(hex);
+  root.setProperty(`--${name}-dark`, dark);
+  root.setProperty(`--on-${name}-dark`, textOn(dark));
+  root.setProperty(`--${name}-light`, light);
+  root.setProperty(`--on-${name}-light`, textOn(light));
+}
+
+/** Repaints every accent-coloured element in the app. */
+export const applyAccent = (hex: string) => applyColour("accent", hex);
+
+/** Repaints every second-colour element in the app. */
+export const applySecond = (hex: string) => applyColour("second", hex);
+
+/** "system" follows the device's light or dark setting. */
+export type ThemeMode = "system" | "light" | "dark";
+export const THEME_MODES: ThemeMode[] = ["system", "light", "dark"];
+export const THEME_LABELS: Record<ThemeMode, string> = { system: "System", light: "Light", dark: "Dark" };
+export const isThemeMode = (v: unknown): v is ThemeMode => THEME_MODES.includes(v as ThemeMode);
+export const DEFAULT_THEME: ThemeMode = "system";
+
+/** The page background on each theme, for the browser's toolbar colour. */
+export const THEME_BACKGROUND = { dark: "#121212", light: "#f6f6f3" } as const;
+const THEME_KEY = "matopin:theme";
+
+/**
+ * Runs in the page head before anything is drawn, so a light-theme page never flashes dark. It reads the last mode
+ * this device used; the profile's saved mode takes over once it loads.
+ */
+export const THEME_SCRIPT = `try{var m=localStorage.getItem("${THEME_KEY}");var l=m==="light"||(m!=="dark"&&matchMedia("(prefers-color-scheme: light)").matches);document.documentElement.dataset.theme=l?"light":"dark"}catch(e){}`;
+
+const systemLight = () => window.matchMedia("(prefers-color-scheme: light)").matches;
+
+export function storedTheme(): ThemeMode {
+  try {
+    const saved = localStorage.getItem(THEME_KEY);
+    return isThemeMode(saved) ? saved : DEFAULT_THEME;
+  } catch {
+    return DEFAULT_THEME;
+  }
+}
+
+/** Switches the page to a mode and remembers it on this device for the next first paint. */
+export function applyTheme(mode: ThemeMode) {
+  try { localStorage.setItem(THEME_KEY, mode); } catch {}
+  const resolved = mode === "light" || (mode === "system" && systemLight()) ? "light" : "dark";
+  document.documentElement.dataset.theme = resolved;
+  for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) meta.content = THEME_BACKGROUND[resolved];
 }

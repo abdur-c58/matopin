@@ -43,7 +43,7 @@ export function PeoplePicker({ exclude, picked, onToggle, max }: { exclude: Set<
   const shown = (people ?? []).filter((p) => !exclude.has(p.id) && (!q || p.name.toLowerCase().includes(q)));
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <label className="flex h-10 shrink-0 items-center gap-2 rounded-full border border-line bg-porcelain pr-4 pl-3 transition focus-within:border-volt-500/60">
+      <label className="flex h-10 shrink-0 items-center gap-2 rounded-full border border-line bg-porcelain pr-4 pl-3 transition focus-within:border-volt-edge/60">
         <Search className="size-4 shrink-0 text-muted" />
         <input autoFocus className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted/80" placeholder="Find people" aria-label="Find people" value={query} onChange={(e) => setQuery(e.target.value)} />
       </label>
@@ -63,7 +63,7 @@ export function PeoplePicker({ exclude, picked, onToggle, max }: { exclude: Set<
                   <span className="block truncate font-semibold">{p.name}</span>
                   <span className="block truncate text-xs text-muted">{p.isFollowing ? "You follow them" : p.followsYou ? "Follows you" : p.bio || "Language learner"}</span>
                 </span>
-                <span className={`grid size-6 shrink-0 place-items-center rounded-full border-2 transition ${on ? "border-volt-500 bg-volt-500 text-on-volt" : "border-line"}`}>{on && <Check className="size-3.5" />}</span>
+                <span className={`grid size-6 shrink-0 place-items-center rounded-full border-2 transition ${on ? "border-volt-edge bg-volt-500 text-on-volt" : "border-line"}`}>{on && <Check className="size-3.5" />}</span>
               </button>
             </li>
           );
@@ -207,7 +207,7 @@ export function GroupInfoDialog({ group, open, onOpenChange, onGroup, onLeft }: 
                     <Link href={`/u/${m.id}`} className="flex min-w-0 flex-1 items-center gap-3">
                       <PersonAvatar person={m} className="size-10 text-sm" />
                       <span className="min-w-0">
-                        <span className="block truncate font-semibold hover:text-volt-500">{m.name}{m.id === profile && <span className="font-normal text-muted"> (you)</span>}</span>
+                        <span className="block truncate font-semibold hover:text-volt-ink">{m.name}{m.id === profile && <span className="font-normal text-muted"> (you)</span>}</span>
                         <span className="flex items-center gap-1 text-xs text-muted">
                           {m.role === "owner" && <>Owner</>}
                           {m.role !== "owner" && (m.status === "pending" ? "Invited" : "Member")}

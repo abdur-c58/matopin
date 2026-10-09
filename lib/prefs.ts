@@ -1,5 +1,5 @@
 import { DEFAULT_LANG, isLang, type Lang } from "./lang";
-import { DEFAULT_ACCENT, DEFAULT_SECOND, normalizeHex } from "./theme";
+import { DEFAULT_ACCENT, DEFAULT_SECOND, DEFAULT_THEME, isThemeMode, normalizeHex, type ThemeMode } from "./theme";
 
 /** One language, or both with a switch between them. */
 export type Learning = Lang | "both";
@@ -30,6 +30,8 @@ export type Prefs = {
   accent: string;
   /** The second colour, used by Bao, secondary buttons and badges. */
   second: string;
+  /** Light or dark, or whichever the device is set to. */
+  theme: ThemeMode;
   /** Studying shows pinyin or furigana before the answer. Off hides it until the answer is shown. */
   studyReading: boolean;
   /** Review cards come in a random order instead of by due date. New cards keep their order. */
@@ -60,7 +62,7 @@ export function aiAllowed(prefs: Pick<Prefs, "aiMode" | "aiFeatures">, feature: 
 
 export const PLAYBACK_SPEEDS = [0.5, 0.75, 1, 1.25];
 export const MAX_DICT_RECENT = 12;
-export const DEFAULT_PREFS: Prefs = { learning: null, dailyGoal: 50, playbackSpeed: 1, accent: DEFAULT_ACCENT, second: DEFAULT_SECOND, studyReading: true, studyShuffle: false, simplified: true, dictRecent: [], dictRecentJa: [], language: DEFAULT_LANG, followDeck: true, botMode: "auto", aiMode: "all", aiFeatures: [...AI_FEATURES] };
+export const DEFAULT_PREFS: Prefs = { learning: null, dailyGoal: 50, playbackSpeed: 1, accent: DEFAULT_ACCENT, second: DEFAULT_SECOND, theme: DEFAULT_THEME, studyReading: true, studyShuffle: false, simplified: true, dictRecent: [], dictRecentJa: [], language: DEFAULT_LANG, followDeck: true, botMode: "auto", aiMode: "all", aiFeatures: [...AI_FEATURES] };
 
 const recent = (raw: unknown[]) => {
   const words = raw.filter((w): w is string => typeof w === "string").map((w) => w.trim().slice(0, 64)).filter(Boolean);
@@ -77,6 +79,7 @@ function pick(raw: unknown): Partial<Prefs> {
   if (accent) out.accent = accent;
   const second = typeof o.second === "string" ? normalizeHex(o.second) : null;
   if (second) out.second = second;
+  if (isThemeMode(o.theme)) out.theme = o.theme;
   if (typeof o.simplified === "boolean") out.simplified = o.simplified;
   if (typeof o.studyReading === "boolean") out.studyReading = o.studyReading;
   if (typeof o.studyShuffle === "boolean") out.studyShuffle = o.studyShuffle;

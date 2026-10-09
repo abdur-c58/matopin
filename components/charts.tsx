@@ -2,7 +2,7 @@
 import { useId, useState } from "react";
 
 export const COLORS = {
-  volt: "var(--color-volt-500)", orange: "#ff9f43", purple: "#a78bfa", second: "var(--color-second-500)", red: "#ff5f61", green: "#46d68c", sky: "#7b93ff", track: "#2a2a2a",
+  volt: "var(--color-volt-edge)", orange: "var(--color-tone-2)", purple: "var(--color-chart-purple)", second: "var(--color-second-500)", red: "var(--color-tone-1)", green: "var(--color-tone-3)", sky: "var(--color-tone-4)", track: "var(--color-raised)",
 } as const;
 
 export type Series = { name: string; color: string; values: number[] };
@@ -128,7 +128,7 @@ export function Ring({ value, size = 96, stroke = 10, color = COLORS.volt, child
   return (
     <div className="relative grid shrink-0 place-items-center" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="absolute inset-0 -rotate-90" aria-hidden>
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={COLORS.track} strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" style={{ stroke: COLORS.track }} strokeWidth={stroke} />
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" style={{ stroke: color }} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={`${c * v} ${c}`} className="transition-[stroke-dasharray] duration-700" />
       </svg>
       <div className="relative text-center">{children}</div>
@@ -145,7 +145,7 @@ export function Donut({ parts, size = 150, stroke = 18, children }: { parts: Seg
   return (
     <div className="relative grid shrink-0 place-items-center" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="absolute inset-0 -rotate-90" aria-hidden>
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={COLORS.track} strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" style={{ stroke: COLORS.track }} strokeWidth={stroke} />
         {total > 0 && parts.map((p) => {
           if (!p.value) return null;
           const length = (p.value / total) * c;

@@ -26,7 +26,7 @@ export function RailTip({ label, zh, pinyin, lang = "zh-CN", tone = "volt", acti
           <span aria-hidden className={`absolute top-1/2 -left-4 size-1.5 -translate-y-1/2 rounded-full ${line}`} />
           {action && Icon && (
             <button type="button" aria-label={action.label}
-              className="grid size-9 animate-sprout place-items-center rounded-full bg-volt-500 text-on-volt shadow-pop ring-4 ring-volt-500/15 transition hover:scale-110 hover:ring-volt-500/30 active:scale-90"
+              className="grid size-9 animate-sprout place-items-center rounded-full bg-volt-500 text-on-volt shadow-pop ring-4 ring-volt-edge/15 transition hover:scale-110 hover:ring-volt-edge/30 active:scale-90"
               onPointerEnter={() => setHot(true)} onPointerLeave={() => setHot(false)} onFocus={() => setHot(true)} onBlur={() => setHot(false)}
               onClick={() => { setOpen(false); action.onClick(); }}>
               <Icon className="size-4" />
