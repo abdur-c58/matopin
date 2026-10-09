@@ -5,6 +5,9 @@ export const LANGS = ["zh", "ja"] as const;
 export type Lang = (typeof LANGS)[number];
 export const DEFAULT_LANG: Lang = "zh";
 export const isLang = (v: unknown): v is Lang => LANGS.includes(v as Lang);
+/** Which language Bao answers about: one picked, or "auto" to work it out from each question. */
+export type BotMode = Lang | "auto";
+export const isBotMode = (v: unknown): v is BotMode => isLang(v) || v === "auto";
 
 type LevelLabels = { beginner: string; elementary: string; intermediate: string; advanced: string };
 

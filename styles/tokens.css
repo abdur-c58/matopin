@@ -2,23 +2,23 @@
  * Corner radius tokens: the only radius values the app uses. Tailwind's rounded-* utilities read them, so
  * rounded-md is --radius-md everywhere.
  *
- *   xs   6   checkboxes, inline code, keyboard keys
- *   sm  10   small controls (32px): chips, badges
- *   md  14   controls (40-44px): buttons, fields, icon buttons, list rows
- *   lg  20   large controls (52px) and cards
- *   xl  28   pop-ups, dialogs, toasts, floating panels
- *   2xl 40   the largest shapes, and full-screen sheets (--radius-screen)
+ *   xs   8   checkboxes, inline code, keyboard keys
+ *   sm  12   small controls (32px): chips, badges
+ *   md  18   controls (40-44px): buttons, fields, icon buttons, list rows
+ *   lg  26   large controls (52px) and cards
+ *   xl  34   pop-ups, dialogs, toasts, floating panels
+ *   2xl 44   the largest shapes, and full-screen sheets (--radius-screen)
  *
  * Pills and circles use rounded-full. Browsers can't read a device's real corner radius, so --radius-screen is a
  * single overridable guess.
  */
 @theme {
-  --radius-xs: 6px;
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --radius-xl: 28px;
-  --radius-2xl: 40px;
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 26px;
+  --radius-xl: 34px;
+  --radius-2xl: 44px;
   /* Off the scale, so they fold into the largest step. */
   --radius-3xl: var(--radius-2xl);
   --radius-4xl: var(--radius-2xl);
@@ -30,6 +30,14 @@
   --radius-control-sm: var(--radius-sm);
   --radius-control-md: var(--radius-md);
   --radius-control-lg: var(--radius-lg);
+  /* Side margin of every page: iOS's 20pt on phones, a little more on large phones, 32px from tablets up. */
+  --page-x: clamp(1.25rem, 5.5vw, 1.5rem);
+}
+@media (width >= 48rem) {
+  :root { --page-x: 2rem; }
+}
+@utility px-page {
+  padding-inline: var(--page-x);
 }
 
 @layer base {

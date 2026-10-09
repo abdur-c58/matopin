@@ -146,7 +146,7 @@ function MobileBar() {
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-30 flex h-[calc(3.5rem+env(safe-area-inset-top))] items-center gap-1.5 border-b border-line bg-porcelain/95 pt-[env(safe-area-inset-top)] pr-[max(0.75rem,env(safe-area-inset-right))] pl-[max(0.5rem,env(safe-area-inset-left))] backdrop-blur-xs md:hidden">
+    <header className="fixed inset-x-0 top-0 z-30 flex h-[calc(3.5rem+env(safe-area-inset-top))] items-center gap-1.5 border-b border-line bg-porcelain/95 pt-[env(safe-area-inset-top)] pr-[max(1rem,env(safe-area-inset-right))] pl-[max(0.75rem,env(safe-area-inset-left))] backdrop-blur-xs md:hidden">
       {nested && <button type="button" className="icon-btn -mr-1" aria-label="Back" onClick={back}><ChevronLeft className="size-5" /></button>}
       <Dialog.Root open={open} onOpenChange={setOpen}>
         <Dialog.Trigger className="icon-btn relative" aria-label="Open menu"><Menu className="size-5" /><NavBadge href="/chat" className="absolute -top-1 -right-1" /></Dialog.Trigger>
@@ -275,7 +275,7 @@ function TopBar() {
     : pathname.startsWith("/join/") ? "Invite"
     : TITLES[key ?? ""] ?? "Decks";
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 px-4 pt-5 md:px-8 md:pt-7">
+    <div className="flex flex-wrap items-center justify-between gap-3 px-page pt-5 md:pt-7">
       <div className="flex min-w-0 items-center gap-3">
         <h1 className="min-w-0 truncate text-2xl font-bold tracking-tight md:text-[28px]">{title}</h1>
         <OfflineIndicator />
@@ -307,7 +307,7 @@ function GuestShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-dvh">
       <header className="sticky top-0 z-30 border-b border-line bg-porcelain/90 pt-[env(safe-area-inset-top)] backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-4 md:px-8">
+        <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-page">
           <Link href="/" className="flex items-center gap-2.5 transition hover:opacity-80">
             <LogoMark className="size-9" /><span className="text-lg font-bold">{APP_NAME}</span>
           </Link>

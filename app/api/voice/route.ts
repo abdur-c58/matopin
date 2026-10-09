@@ -1,5 +1,5 @@
 import { aiRefusal } from "@/lib/matopin-session";
-import { storeCardClip, storedCardClip } from "@/lib/card-audio";
+import { openCardClip, storeCardClip } from "@/lib/card-audio";
 import { FishError, fishSpeak } from "@/lib/fish";
 import { isLang, textLang } from "@/lib/lang";
 import { isVoice, voiceFor, type VoiceOptions } from "@/lib/voice";
@@ -9,26 +9,31 @@ export const runtime = "nodejs";
 /** Longer passages (a highlighted paragraph, say) are voiced but not kept. */
 const MAX_STORED = 200;
 
-const audio = (bytes: ArrayBuffer) => new Response(bytes, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "no-store" } });
+const audio = (body: BodyInit | null) => new Response(body, { headers: { "Content-Type": "audio/mpeg", "Cache-Control": "no-store" } });
 
 /**
  * A stored clip when there is one; otherwise Fish Audio voices it and the clip is stored for everyone.
  * `lang` picks the language's voices; without it, kana means Japanese and anything else Chinese.
+ * With `storedOnly`, a line that hasn't been voiced yet answers 204 instead, so the app can preload without generating.
  */
 export async function POST(request: Request) {
-  const refusal = await aiRefusal("voice");
-  if (refusal) return refusal;
-  const body = (await request.json().catch(() => null)) as { text?: string; lang?: unknown; voice?: unknown } | null;
+  const body = (await request.json().catch(() => null)) as { text?: string; lang?: unknown; voice?: unknown; storedOnly?: unknown } | null;
   const text = body?.text?.trim() ?? "";
-  if (!text) return Response.json({ error: "Nothing to speak." }, { status: 400 });
   const opts: VoiceOptions = {
     lang: isLang(body?.lang) ? body.lang : textLang(text, "zh"),
     voice: isVoice(body?.voice) ? body.voice : voiceFor(text),
   };
-  const keep = text.length <= MAX_STORED;
+  const keep = text.length > 0 && text.length <= MAX_STORED;
 
-  const stored = keep ? await storedCardClip(text, opts).catch(() => null) : null;
-  if (stored) return audio(stored);
+  // The account check and the storage lookup don't depend on each other, so they run together.
+  const [refusal, stored] = await Promise.all([aiRefusal("voice"), keep ? openCardClip(text, opts).catch(() => null) : null]);
+  if (refusal) {
+    void stored?.body?.cancel();
+    return refusal;
+  }
+  if (!text) return Response.json({ error: "Nothing to speak." }, { status: 400 });
+  if (stored) return audio(stored.body);
+  if (body?.storedOnly === true) return new Response(null, { status: 204 });
   try {
     const bytes = await fishSpeak(text, opts);
     if (keep) await storeCardClip(text, opts, bytes).catch((e: unknown) => console.warn("Card audio not stored:", e instanceof Error ? e.message : e));

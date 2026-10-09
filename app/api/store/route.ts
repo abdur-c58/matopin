@@ -1,6 +1,6 @@
 import { BOT_ID } from "@/lib/chat";
 import { askBot } from "@/lib/chat-bot";
-import { isLang } from "@/lib/lang";
+import { isBotMode, isLang } from "@/lib/lang";
 import { aiOffMessage, logout, matopinSession, prefsFor, withToken } from "@/lib/matopin-session";
 import { rpc, StoreError } from "@/lib/supabase";
 import { cleanCrop, DEFAULT_AVATAR_COLOR, isAvatarColor } from "@/lib/avatar";
@@ -170,7 +170,9 @@ async function handle(body: Body, token: string) {
       return Response.json({ reactions: await rpc("matopin_chat_react", { p_token: token, p_message: int(body.message), p_emoji: str(body.emoji), p_on: body.on === true }) });
     case "chatAsk":
       await needBao(token, chat);
-      return Response.json({ message: await askBot(token, chat, int(body.message), isLang(body.lang) ? body.lang : undefined) });
+      return Response.json({ message: await askBot(token, chat, int(body.message), {
+        mode: isBotMode(body.lang) ? body.lang : undefined, force: isLang(body.force) ? body.force : undefined,
+      }) });
     case "groupCreate":
       return Response.json(await rpc("matopin_group_create", { p_token: token, p_name: str(body.name), p_members: ids(body.members) }));
     case "groupAdd":

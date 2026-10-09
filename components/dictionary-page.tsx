@@ -12,6 +12,7 @@ import type { Lang } from "@/lib/lang";
 import { AUDIO_CREDITS, CEDICT_NOTE, HANDWRITING_CREDITS, STROKE_CREDITS, TATOEBA_NOTE, UNICODE_LICENSE, UNIHAN_NOTE } from "@/lib/dictionary-credits";
 import { MAX_DICT_RECENT } from "@/lib/prefs";
 import { type Card, newCard, normalizeCard } from "@/lib/cards";
+import { DictLangTabs } from "./dict-lang";
 import { FlashcardMaker } from "./flashcard-maker";
 import { HandwritingPad, RiceGrid } from "./handwriting-pad";
 import { PanelFrame } from "./panel-frame";
@@ -974,12 +975,13 @@ export function DictionaryPage({ params }: { params: URLSearchParams }) {
   };
 
   return (
-    <main className="px-4 pt-5 pb-10 md:px-8">
+    <main className="px-page pt-5 pb-10">
       <div className="grid gap-6 md:grid-cols-[minmax(18rem,24rem)_minmax(0,1fr)] md:items-start [&>*]:min-w-0">
         <section className={`md:sticky md:top-5 md:flex md:max-h-[calc(100dvh-2.5rem)] md:flex-col ${selected ? "hidden md:flex" : ""}`} aria-label="Search">
           <SearchBox s={s} input={input} drawing={pad} onDraw={() => setPad((p) => !p)} onClear={clear}
             onKeyDown={(e) => resultKeys(e, s, open, (id) => { if (isDesktop()) setSelected(id); })} />
           {pad && <HandwritingPad onClose={() => setPad(false)} onPick={(c) => { s.run(s.query + c); if (!isDesktop()) setSelected(null); }} />}
+          <DictLangTabs s={s} className="mt-3" />
           <div id="dict-results" role="listbox" aria-label="Results" aria-busy={s.loading}
             className={`mt-3 min-h-0 flex-1 transition-opacity md:-mr-2 md:overflow-y-auto md:pr-2 ${s.loading && s.shown ? "opacity-60" : ""}`}>
             <ResultsList s={s} selected={selected} recent={recent} onSearch={search} onOpen={open} />
@@ -1017,14 +1019,14 @@ export function DictionaryPage({ params }: { params: URLSearchParams }) {
 // Pop-up ------------------------------------------------------------------------------------------------------------
 
 /** The dictionary in the small pop-up window: search and results, then one entry at a time with a way back. */
-export function DictionaryMini({ initialQuery = "", onClose }: { initialQuery?: string; onClose: () => void }) {
+export function DictionaryMini({ initialQuery = "", openMatch = true, onClose }: { initialQuery?: string; openMatch?: boolean; onClose: () => void }) {
   const [selected, setSelected] = useState<number | null>(null);
   const [draft, setDraft] = useState<Card[] | null>(null);
   const [pad, setPad] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const body = useRef<HTMLDivElement>(null);
   // Something highlighted and looked up opens straight to its entry when it's an exact headword.
-  const jump = useRef(Boolean(initialQuery.trim()));
+  const jump = useRef(openMatch && Boolean(initialQuery.trim()));
   const s = useDictSearch(initialQuery.slice(0, MAX_QUERY), (data) => {
     if (!jump.current) return;
     jump.current = false;
@@ -1062,6 +1064,7 @@ export function DictionaryMini({ initialQuery = "", onClose }: { initialQuery?: 
             <SearchBox s={s} input={input} compact drawing={pad} onDraw={() => setPad((p) => !p)}
               onClear={() => { s.clear(); input.current?.focus(); }} onKeyDown={(e) => resultKeys(e, s, open)} />
             {pad && <HandwritingPad compact onClose={() => setPad(false)} onPick={(c) => s.run(s.query + c)} />}
+            <DictLangTabs s={s} className="mt-2" />
           </div>
           <div id="dict-results" role="listbox" aria-label="Results" aria-busy={s.loading}
             className={`min-h-0 flex-1 overflow-y-auto px-1.5 pb-3 transition-opacity ${s.loading && s.shown ? "opacity-60" : ""}`}>

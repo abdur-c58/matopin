@@ -12,7 +12,7 @@ function LanguageOptions({ onPicked, compact = false }: { onPicked?: () => void;
   const { decks } = useDecks();
   const count = (l: Lang) => decks?.filter((d) => d.language === l).length ?? 0;
   return (
-    <div role="radiogroup" aria-label="Language you’re learning" className="grid gap-1">
+    <div role="radiogroup" aria-label="Language to prefer when unclear" className="grid gap-1">
       {LANGS.map((l) => {
         const on = l === lang;
         const n = count(l);
@@ -37,9 +37,11 @@ function LanguageOptions({ onPicked, compact = false }: { onPicked?: () => void;
   );
 }
 
+const HINT = "Follows what you used last. Searches, Bao and decks pick the right language on their own.";
+
 /**
  * Hovering the sidebar logo opens the language picker beside it. The logo itself still goes home when clicked.
- * Decks, the dictionary and new cards follow the language picked; theme and settings are shared by both.
+ * The pick only settles what could be either language; it changes by itself as decks and searches are used.
  */
 export function RailLanguageSwitcher({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -55,10 +57,11 @@ export function RailLanguageSwitcher({ children }: { children: React.ReactNode }
           <span aria-hidden className="absolute top-5 -left-3.5 h-px w-3.5 bg-volt-500/70" />
           <span aria-hidden className="absolute top-5 -left-4 size-1.5 -translate-y-1/2 rounded-full bg-volt-500/70" />
           <div className="flex items-baseline justify-between px-2 pt-1 pb-2">
-            <p className="text-[11px] font-semibold tracking-wide text-muted uppercase">I’m learning</p>
+            <p className="text-[11px] font-semibold tracking-wide text-muted uppercase">Prefer when unclear</p>
             <p className="font-hanzi text-xs text-muted" lang={LANG_INFO[lang].speech}>{LANG_INFO[lang].native}</p>
           </div>
           <LanguageOptions onPicked={() => setOpen(false)} />
+          <p className="px-2 pt-2 pb-1 text-xs text-muted">{HINT}</p>
         </HoverCard.Content>
       </HoverCard.Portal>
     </HoverCard.Root>
@@ -71,8 +74,9 @@ export function LanguageMenu({ onPicked }: { onPicked?: () => void }) {
   if (single) return null;
   return (
     <section aria-label="Language" className="mt-5">
-      <p className="mb-1.5 px-2 text-[11px] font-semibold tracking-wide text-muted uppercase">I’m learning</p>
+      <p className="mb-1.5 px-2 text-[11px] font-semibold tracking-wide text-muted uppercase">Prefer when unclear</p>
       <LanguageOptions compact onPicked={onPicked} />
+      <p className="px-2 pt-1.5 text-xs text-muted">{HINT}</p>
     </section>
   );
 }

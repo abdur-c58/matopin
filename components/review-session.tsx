@@ -1,11 +1,11 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, LoaderCircle, RotateCcw, Shuffle } from "lucide-react";
-import { useListen, type ListenPart } from "@/lib/audio";
+import { preloadClips, useListen, type ListenPart } from "@/lib/audio";
 import { dataKey } from "@/lib/profiles";
 import { DEFAULT_LANG, type Lang } from "@/lib/lang";
-import { CARD_KIND_LABELS, deckLanguage, exampleSpoken, isCardKind, normalizeCard, wordSpoken, type Card, type CardKind, type Notetype } from "@/lib/cards";
+import { CARD_KIND_LABELS, deckLanguage, exampleSpoken, isCardKind, normalizeCard, spokenTexts, wordSpoken, type Card, type CardKind, type Notetype } from "@/lib/cards";
 import { toast } from "sonner";
 import { answer, buildSession, dayKey, DEFAULT_REVIEW, loadStore, previews, saveStore, tagLeech, waitingLearning, type QueueItem, type ReviewSettings, type Session, type Store } from "@/lib/srs";
 import { formatCountdown, type Rating } from "@/lib/fsrs";
@@ -99,6 +99,30 @@ const EARLY_PRESETS: { label: string; ms: number }[] = [
 const UNITS = { minutes: 60_000, hours: 3_600_000, days: 86_400_000 } as const;
 type Unit = keyof typeof UNITS;
 
+/**
+ * A copy read back from storage (after a sync, say) never undoes an answer given here: for each card, the schedule
+ * from the later review wins, as in the sync merge. Returns whether anything of `prev` had to be put back.
+ */
+function keepAnswers(prev: Store | null, loaded: Store): boolean {
+  if (!prev) return false;
+  let restored = false;
+  for (const [key, mine] of Object.entries(prev.cards)) {
+    const theirs = loaded.cards[key];
+    if (theirs && (mine.lastReview ?? -1) > (theirs.lastReview ?? -1)) {
+      loaded.cards[key] = mine;
+      restored = true;
+    }
+  }
+  if (!restored) return false;
+  const seen = new Set(loaded.revlog.map((e) => `${e.key}|${e.at}`));
+  loaded.revlog = [...loaded.revlog, ...prev.revlog.filter((e) => !seen.has(`${e.key}|${e.at}`))].sort((a, b) => a.at - b.at);
+  if (prev.day === loaded.day) {
+    loaded.newToday = Math.max(prev.newToday, loaded.newToday);
+    loaded.reviewsToday = Math.max(prev.reviewsToday, loaded.reviewsToday);
+  }
+  return true;
+}
+
 const kindKey = (scope: string) => `matopin:${scope}:study-kind`;
 const redoKey = (scope: string) => `matopin:${scope}:redo`;
 const midnight = (at: number) => new Date(at).setHours(0, 0, 0, 0);
@@ -181,10 +205,13 @@ export function ReviewSession({ scope, editHref, settingsHref }: { scope: string
   const [redo, setRedo] = useState<string[] | null>(null);
   const [redoneOn, setRedoneOn] = useState<string | null>(null);
 
+  const latest = useRef<Store | null>(null);
   useEffect(() => {
     // Read after mount so the server and client paint the same empty session, then show the synced deck.
     const read = () => {
       const loaded = loadStore(scope);
+      if (keepAnswers(latest.current, loaded)) saveStore(scope, loaded);
+      latest.current = loaded;
       setStored(loaded);
       setLimits(loaded.settings);
       setDeck(loadDeck(scope));
@@ -193,6 +220,7 @@ export function ReviewSession({ scope, editHref, settingsHref }: { scope: string
       setKind(saved && isCardKind(saved) ? saved : "all");
       setRedoneOn(localStorage.getItem(redoKey(scope)));
     };
+    latest.current = null;
     read();
     const stop = onRemoteChange(scope, read);
     const timer = setInterval(() => setNow(Date.now()), 1000);
@@ -245,6 +273,13 @@ export function ReviewSession({ scope, editHref, settingsHref }: { scope: string
     shownAt.current = { key: itemKey, at: Date.now() };
     stop();
   }, [itemKey, stop]);
+  const preloadUpcoming = useEffectEvent(() => {
+    const lang = deck?.language ?? DEFAULT_LANG;
+    preloadClips((session?.queue ?? []).slice(0, 3).flatMap((q) => spokenTexts(q.card, true, lang, voices)));
+  });
+  useEffect(() => {
+    if (itemKey) preloadUpcoming();
+  }, [itemKey]);
 
   const today = now ? midnight(now) : 0;
   const todayKeys = stored && deck && !session?.item
@@ -303,6 +338,7 @@ export function ReviewSession({ scope, editHref, settingsHref }: { scope: string
       else toast.warning(`${label} is a leech. It was tagged “leech”.`);
     }
     saveStore(scope, stored);
+    latest.current = stored;
     setStored({ ...stored, cards: { ...stored.cards }, settings: { ...stored.settings } });
     setLimits({ ...stored.settings });
     setShownKey(null);
@@ -336,8 +372,8 @@ export function ReviewSession({ scope, editHref, settingsHref }: { scope: string
   const reviewableCount = deck?.cards.filter((card) => card.term.trim() || card.reading.trim() || card.meaning.trim()).length ?? 0;
 
   return (
-    <DeckLangProvider lang={deck?.language ?? DEFAULT_LANG}>
-    <main className="mx-auto max-w-2xl space-y-4 px-4 py-6 md:px-8">
+    <DeckLangProvider lang={deck?.language ?? DEFAULT_LANG} known={Boolean(deck)}>
+    <main className="mx-auto max-w-2xl space-y-4 px-page py-6">
       {session && reviewableCount > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm">
           <div className="flex gap-4 tabular-nums">

@@ -101,7 +101,7 @@ export function AppSettings() {
   const cards = data?.decks.reduce((s, d) => s + d.cards.length, 0) ?? 0;
 
   return (
-    <main className="grid gap-x-8 gap-y-10 px-4 pt-6 pb-10 md:px-8 lg:grid-cols-12">
+    <main className="grid gap-x-8 gap-y-10 px-page pt-6 pb-10 lg:grid-cols-12">
       <Panel className="lg:col-span-5">
         <div className="flex items-center gap-4">
           <Avatar name={name} avatar={avatar} crop={avatarCrop} color={color} className="size-16 text-2xl" />

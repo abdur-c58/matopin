@@ -50,7 +50,7 @@ function MemberProfile({ id }: { id: string }) {
       </main>
     );
   }
-  if (!view) return <p className="px-4 pt-5 text-sm text-muted md:px-8">Loading profile…</p>;
+  if (!view) return <p className="px-page pt-5 text-sm text-muted">Loading profile…</p>;
 
   const person = self ? { ...view.person, name, avatar, avatarCrop, color, bio } : view.person;
   const changePerson = (next: Person) => setView((v) => {
@@ -82,7 +82,7 @@ function MemberProfile({ id }: { id: string }) {
   const stats: [Tab, number, string][] = [["followers", person.followers, "Followers"], ["following", person.following, "Following"], ["decks", view.decks.length, self ? "Shared decks" : "Public decks"]];
 
   return (
-    <main className="space-y-6 px-4 pt-6 pb-10 md:px-8">
+    <main className="space-y-6 px-page pt-6 pb-10">
       <section>
         <div className="flex flex-wrap items-start gap-5">
           <PersonAvatar person={person} className="size-20 text-3xl" />

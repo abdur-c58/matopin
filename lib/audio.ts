@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { speak } from "./ai-client";
+import { speak, storedVoice } from "./ai-client";
 import type { Spoken } from "./cards";
 import { isOffline } from "./connection";
 import { cachedVoice, keepVoice } from "./offline";
@@ -17,32 +17,57 @@ async function ownClip(name: string): Promise<Blob> {
   return res.blob();
 }
 
-/** Voices heard before are kept on the device, so they play offline too. */
+/** Preloads still in flight, which resolve to null when the line hasn't been voiced yet. */
+const preloads = new Map<string, Promise<Blob | null>>();
+
+const clipId = (line: Spoken) => line.clip ?? `${line.lang}${line.voice}\n${line.text}`;
+
+/** Voices heard before are kept on the device, so they play straight away, and offline too. */
 async function voiced(line: Spoken, key: string): Promise<Blob> {
-  if (isOffline()) {
-    const saved = await cachedVoice(key).catch(() => null);
-    if (saved) return saved;
-  }
-  try {
-    const blob = await speak(line.text, { lang: line.lang, voice: line.voice });
-    void keepVoice(key, blob).catch(() => {});
-    return blob;
-  } catch (e) {
-    const saved = await cachedVoice(key).catch(() => null);
-    if (saved) return saved;
-    throw e;
-  }
+  const saved = await cachedVoice(key).catch(() => null);
+  if (saved) return saved;
+  const blob = await speak(line.text, { lang: line.lang, voice: line.voice });
+  void keepVoice(key, blob).catch(() => {});
+  return blob;
+}
+
+/** This device's copy or the shared stored clip, without ever generating one. */
+async function alreadyVoiced(line: Spoken, key: string): Promise<Blob | null> {
+  const saved = await cachedVoice(key).catch(() => null);
+  if (saved || isOffline()) return saved;
+  const blob = await storedVoice(line.text, { lang: line.lang, voice: line.voice }).catch(() => null);
+  if (blob) void keepVoice(key, blob).catch(() => {});
+  return blob;
 }
 
 export function loadClip(line: Spoken): Promise<Blob> {
-  const id = line.clip ?? `${line.lang}${line.voice}\n${line.text}`;
+  const id = clipId(line);
   let clip = clips.get(id);
   if (!clip) {
-    clip = line.clip ? ownClip(line.clip) : voiced(line, id);
+    const pending = preloads.get(id);
+    clip = line.clip ? ownClip(line.clip) : pending ? pending.then((blob) => blob ?? voiced(line, id)) : voiced(line, id);
     clips.set(id, clip);
     clip.catch(() => clips.delete(id));
   }
   return clip;
+}
+
+/** Fetches lines that already have audio ahead of time, so pressing play is instant. Never generates new audio. */
+export function preloadClips(lines: Spoken[]) {
+  for (const line of lines) {
+    const id = clipId(line);
+    if (clips.has(id) || preloads.has(id)) continue;
+    if (line.clip) {
+      void loadClip(line).catch(() => {});
+      continue;
+    }
+    const pending = alreadyVoiced(line, id);
+    preloads.set(id, pending);
+    void pending.then((blob) => {
+      preloads.delete(id);
+      if (blob && !clips.has(id)) clips.set(id, Promise.resolve(blob));
+    });
+  }
 }
 
 export function audioError(e: unknown): string {

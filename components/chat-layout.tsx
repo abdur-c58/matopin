@@ -216,7 +216,7 @@ export function ChatLayout({ children }: { children: React.ReactNode }) {
   const segment = useSelectedLayoutSegment();
   const activeId = segment ? decodeURIComponent(segment) : null;
   return (
-    <main className="px-4 pt-5 pb-6 md:px-8">
+    <main className="px-page pt-5 pb-6">
       <div className="surface grid h-[calc(100dvh-13.5rem)] min-h-[26rem] overflow-hidden sm:h-[calc(100dvh-10.5rem)] md:h-[calc(100dvh-10rem)] md:grid-cols-[19rem_minmax(0,1fr)]">
         <ChatList activeId={activeId} className={`border-line md:border-r ${activeId ? "hidden md:flex" : "flex"}`} />
         <div className={`min-h-0 min-w-0 flex-col ${activeId ? "flex" : "hidden md:flex"}`}>{children}</div>

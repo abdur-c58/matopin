@@ -23,7 +23,7 @@ type DecksContext = {
   /** Makes a deck in `lang`, the filtered language, or (when every deck is shown) the language the learner picks. */
   create: (lang?: Lang) => Promise<void>;
   requestDelete: (deck: DeckSummary) => void;
-  /** Which decks the deck list shows. Follows the language being learned until the learner picks another. */
+  /** Which decks the deck list shows: all of them for learners of both, until they pick one language. */
   filter: DeckFilter;
   setFilter: (filter: DeckFilter) => void;
 };
@@ -49,13 +49,13 @@ export function DecksProvider({ children }: { children: React.ReactNode }) {
   const archived = all && single ? all.filter((d) => d.language !== single) : [];
   const [deleting, setDeleting] = useState<DeckSummary | null>(null);
   const [removing, setRemoving] = useState(false);
-  const [picked, setPicked] = useState<{ filter: DeckFilter; for: Lang } | null>(null);
+  const [picked, setPicked] = useState<DeckFilter>("all");
   const [asking, setAsking] = useState(false);
   const [choice, setChoice] = useState<Lang>(active);
   const leaving = deleting != null && deleting.role !== "owner";
-  // Switching the language being learned resets the list to that language.
-  const filter: DeckFilter = single ?? (picked && picked.for === active ? picked.filter : active);
-  const setFilter = useCallback((next: DeckFilter) => setPicked({ filter: next, for: active }), [active]);
+  // Learners of both see every deck unless they narrow it; the preferred language changes too often to follow.
+  const filter: DeckFilter = single ?? picked;
+  const setFilter = useCallback((next: DeckFilter) => setPicked(next), []);
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -116,7 +116,7 @@ export function DecksProvider({ children }: { children: React.ReactNode }) {
                   <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-raised font-hanzi text-lg">{LANG_INFO[l].badge}</span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-semibold">{LANG_INFO[l].name}</span>
-                    <span className="block text-xs text-muted">{LANG_INFO[l].native}{l === active ? " · what you’re learning now" : ""}</span>
+                    <span className="block text-xs text-muted">{LANG_INFO[l].native}{l === active ? " · used last" : ""}</span>
                   </span>
                   {choice === l && <Check className="size-4 text-volt-600" />}
                 </button>

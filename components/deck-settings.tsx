@@ -118,7 +118,7 @@ export function DeckSettings({ deckId, scope }: { deckId: string; scope: string 
   };
 
   return (
-    <main className="max-w-5xl space-y-5 px-4 pt-5 pb-10 md:px-8">
+    <main className="max-w-5xl space-y-5 px-page pt-5 pb-10">
       <Section title="Sharing" description={owner ? "Keep the deck to yourself, publish it for anyone to follow, share it only with people you send it to, or invite collaborators with a link." : "This deck belongs to someone else. Your review progress and the options below are yours alone."}>
         {owner ? <DeckSharing deckId={deckId} scope={scope} /> : deck && (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-raised p-4">

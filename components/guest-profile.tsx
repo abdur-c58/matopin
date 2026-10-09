@@ -26,7 +26,7 @@ export function GuestProfile({ view }: { view: PublicProfile | null }) {
   const stats: [number, string][] = [[person.followers, "Followers"], [person.following, "Following"], [person.publicDecks, "Public decks"]];
 
   return (
-    <main className="space-y-6 px-4 pt-6 pb-10 md:px-8">
+    <main className="space-y-6 px-page pt-6 pb-10">
       <section className="flex flex-wrap items-start gap-5">
         <PersonAvatar person={person} className="size-20 text-3xl" />
         <div className="min-w-0 flex-1">

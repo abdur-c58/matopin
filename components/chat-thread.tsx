@@ -12,7 +12,9 @@ import {
 import { dayLabel, refreshChatBadge } from "@/lib/chat-client";
 import { deckScope, notifyDecks, readMeta, writeMeta, type DeckSummary } from "@/lib/decks";
 import type { Person, PersonRef, Visibility } from "@/lib/social";
-import { hasCjk, LANG_INFO, type Lang } from "@/lib/lang";
+import { cleanNotes } from "@/lib/bot-notes";
+import { type BotMode, hasCjk, LANG_INFO, LANGS, type Lang } from "@/lib/lang";
+import { guessLang } from "@/lib/lang-resolve";
 import { store } from "@/lib/store-client";
 import { PersonAvatar } from "./avatar";
 import { NotedBody } from "./bot-notes";
@@ -20,7 +22,7 @@ import { useDecks } from "./decks-context";
 import { ReactionPicker } from "./emoji-picker";
 import { FlashcardMaker } from "./flashcard-maker";
 import { GroupAvatar, GroupInfoDialog } from "./group-chat";
-import { useBotMode } from "./lang-context";
+import { useBotMode, useLearning } from "./lang-context";
 import { useAi, useProfile } from "./profiles";
 import { DeckPreviewDialog, errorText, plural, VisibilityBadge } from "./social";
 
@@ -41,6 +43,17 @@ export function upsert(list: Local[], incoming: Message[], fresh?: { from: numbe
   }
   return [...[...real.values()].sort((a, b) => a.id - b.id), ...list.filter((m) => m.id < 0)];
 }
+
+/** After Bao answers a question again, its earlier answers stay in the chat but no longer belong to the question. */
+export const unlinkAnswers = (list: Local[], question: number) =>
+  list.map((m) => (m.kind === "ai" && m.replyTo?.id === question ? { ...m, replyTo: null } : m));
+
+/** "Answer for … instead" under Bao's reply to one of your own questions, while it isn't already answering it. */
+export const answerAgain = (m: Local, profile: string, asking: number[], ask: (question: number, force: Lang) => void) => {
+  const question = m.kind === "ai" ? m.replyTo : null;
+  if (!question || question.senderId !== profile || asking.includes(question.id)) return undefined;
+  return (lang: Lang) => ask(question.id, lang);
+};
 
 function Body({ text }: { text: string }) {
   return (
@@ -68,6 +81,13 @@ export function BotAvatar({ className = "size-8", thinking = false }: { classNam
 }
 
 const THINKING: Record<Lang, string> = { zh: "想一想…", ja: "考え中…" };
+
+/** The language Bao is probably answering in: the one picked, or else the one the latest question looks like. */
+export const typingLang = (messages: Message[], asking: number[], mode: BotMode, lean: Lang) => {
+  if (mode !== "auto") return mode;
+  const question = messages.find((m) => m.id === asking.at(-1));
+  return question ? guessLang(question.body, { fallback: lean }).lang : lean;
+};
 
 /** Bao writing: the logo's four tiles light up in turn beside a shimmering "thinking" in the mode's language. */
 export function BotTyping({ lang }: { lang: Lang }) {
@@ -129,11 +149,15 @@ type RowProps = {
   onDiscard: () => void;
   /** Shown under Bao replies that teach some Chinese. */
   onFlashcards?: () => void;
+  /** Asks Bao to answer the same question for the other language. Only for the asker's own questions. */
+  onAnswerIn?: (lang: Lang) => void;
 };
 
-export function MessageRow({ m, mine, grouped, people, showName = false, active, highlight, receipt, onActive, onReply, onReact, onJump, onOpenDeck, onRetry, onDiscard, onFlashcards }: RowProps) {
+export function MessageRow({ m, mine, grouped, people, showName = false, active, highlight, receipt, onActive, onReply, onReact, onJump, onOpenDeck, onRetry, onDiscard, onFlashcards, onAnswerIn }: RowProps) {
   const { profile } = useProfile();
   const bot = m.kind === "ai";
+  const replyLang = bot ? cleanNotes(m.notes, m.body)?.lang ?? null : null;
+  const otherLang = replyLang && replyLang !== "mixed" ? LANGS.find((l) => l !== replyLang) : undefined;
   const who = (id: string | null) => (id === profile ? "You" : id == null ? BOT_NAME : people?.get(id)?.name ?? (id === m.senderId ? m.senderName : null) ?? "Someone");
   const sender = m.senderId ? people?.get(m.senderId) : undefined;
 
@@ -162,7 +186,16 @@ export function MessageRow({ m, mine, grouped, people, showName = false, active,
         </div>
       )}
       <div className={`flex max-w-[min(34rem,78%)] min-w-0 flex-col ${mine ? "items-end" : "items-start"}`}>
-        {!grouped && bot && <span className="mb-1 ml-1 flex items-center gap-1 text-[11px] font-semibold text-second-300">{BOT_NAME}</span>}
+        {(!grouped || m.replyTo) && bot && (
+          <span className="mb-1 ml-1 flex items-center gap-1.5 text-[11px] font-semibold text-second-300">
+            {BOT_NAME}
+            {replyLang && (
+              <span className="rounded-full bg-second-500/15 px-1.5 py-px font-medium text-muted" title={replyLang === "mixed" ? "About Mandarin and Japanese" : `About ${LANG_INFO[replyLang].name}`}>
+                {replyLang === "mixed" ? "Mandarin & Japanese" : LANG_INFO[replyLang].name}
+              </span>
+            )}
+          </span>
+        )}
         {!grouped && !bot && !mine && showName && <span className="mb-1 ml-1 text-[11px] font-semibold text-muted">{who(m.senderId)}</span>}
         {m.replyTo && (
           <>
@@ -201,6 +234,13 @@ export function MessageRow({ m, mine, grouped, people, showName = false, active,
           <button type="button" onClick={onFlashcards}
             className="mt-1.5 inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium text-muted transition hover:bg-raised hover:text-ink">
             Create flashcards out of this response
+          </button>
+        )}
+        {onAnswerIn && otherLang && (
+          <button type="button" onClick={() => onAnswerIn(otherLang)}
+            className="mt-1 inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium text-muted transition hover:bg-raised hover:text-ink">
+            <span className="font-hanzi text-sm text-ink" lang={LANG_INFO[otherLang].speech}>{LANG_INFO[otherLang].badge}</span>
+            Answer for {LANG_INFO[otherLang].name} instead
           </button>
         )}
         {m.local === "failed" ? (
@@ -339,7 +379,8 @@ const targetOf = (id: string) => {
 /** One chat with a person or a group: the messages, replies and reactions, sending decks, and @ask for Bao. */
 export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) {
   const { profile, name: myName, avatar, avatarCrop, color } = useProfile();
-  const { mode: botMode } = useBotMode();
+  const { mode: botMode, lean: botLean } = useBotMode();
+  const { single } = useLearning();
   const router = useRouter();
   const target = targetOf(id);
   const [thread, setThread] = useState<{ person: Person | null; group: GroupInfo | null; chat: ChatState | null } | null>(null);
@@ -459,13 +500,13 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
   const suggestAsk = bao && askMatch != null && "ask".startsWith(askMatch[1].toLowerCase()) && askMatch[1].toLowerCase() !== "ask";
   const asksBot = bao && isAsk(text);
 
-  async function ask(messageId: number) {
+  async function ask(messageId: number, force?: Lang) {
     setAsking((a) => [...a, messageId]);
     try {
-      const { message } = await store<{ message: Message }>("chatAsk", { ...target, message: messageId, lang: botMode });
-      setMessages((list) => upsert(list, [message]));
+      const { message } = await store<{ message: Message }>("chatAsk", { ...target, message: messageId, lang: botMode, force });
+      setMessages((list) => upsert(force ? unlinkAnswers(list, messageId) : list, [message]));
     } catch (e) {
-      toast.error(errorText(e, "Bao couldn’t answer."), { action: { label: "Try again", onClick: () => void ask(messageId) } });
+      toast.error(errorText(e, "Bao couldn’t answer."), { action: { label: "Try again", onClick: () => void ask(messageId, force) } });
     } finally {
       setAsking((a) => a.filter((x) => x !== messageId));
     }
@@ -733,11 +774,12 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
                 onRetry={() => { setMessages((list) => list.filter((x) => x.id !== m.id)); if (m.payload) void send(m.payload); }}
                 onDiscard={() => setMessages((list) => list.filter((x) => x.id !== m.id))}
                 onFlashcards={ai("create") ? () => setCardsFrom(m.body) : undefined}
+                onAnswerIn={single ? undefined : answerAgain(m, profile, asking, (q, lang) => void ask(q, lang))}
               />
             </Fragment>
           );
         })}
-        {asking.length > 0 && <BotTyping lang={botMode} />}
+        {asking.length > 0 && <BotTyping lang={typingLang(messages, asking, botMode, botLean)} />}
       </div>
 
       <footer className="border-t border-line p-2.5 md:p-3">

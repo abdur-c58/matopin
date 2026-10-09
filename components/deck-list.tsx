@@ -153,14 +153,14 @@ export function DeckList() {
 
   if (archiveOpen) {
     return (
-      <main className="px-4 pt-5 pb-10 md:px-8">
+      <main className="px-page pt-5 pb-10">
         <ArchiveView decks={archived} detail={detail} onDelete={requestDelete} onBack={() => setArchiveOpen(false)} />
       </main>
     );
   }
 
   return (
-    <main className="px-4 pt-5 pb-10 md:px-8">
+    <main className="px-page pt-5 pb-10">
       {archived.length > 0 && (
         <button type="button" onClick={() => setArchiveOpen(true)}
           className="mb-4 flex w-full items-center gap-3 rounded-md border border-line bg-raised/50 px-4 py-2.5 text-left text-sm transition hover:bg-raised">

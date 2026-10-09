@@ -126,7 +126,7 @@ export function DeckEditor({ scope }: { scope: string }) {
 
   return (
     <DeckLangProvider lang={z.lang}>
-    <main className={`grid gap-6 px-4 pt-5 md:px-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:pb-6 ${toned ? "pb-20" : "pb-6"}`}>
+    <main className={`grid gap-6 px-page pt-5 lg:grid-cols-[minmax(0,1fr)_22rem] lg:pb-6 ${toned ? "pb-20" : "pb-6"}`}>
       <Tabs.Root value={tab} onValueChange={setTab} className="min-w-0">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <Tabs.List className="inline-flex rounded-lg border border-line bg-surface p-1">

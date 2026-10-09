@@ -23,6 +23,12 @@ const dirty = new Map<string, Set<Part>>();
 /** Parts on their way to Supabase. They stay in the outbox until the save lands. */
 const sending = new Map<string, Set<Part>>();
 const inflight = new Map<string, Promise<void>>();
+/**
+ * Counts local changes, and remembers when each deck last changed. A pull only takes a deck that hasn't changed here
+ * since the pull began, so a reply that left before this device's latest save can't overwrite it.
+ */
+let changes = 0;
+const changedAt = new Map<string, number>();
 /** Profiles whose outbox has been read back into memory. */
 const restored = new Set<string>();
 let listening = false;
@@ -337,6 +343,7 @@ export function queuePush(scope: string, part: Part) {
   const parts = dirty.get(scope) ?? new Set<Part>();
   parts.add(part);
   dirty.set(scope, parts);
+  changedAt.set(scope, ++changes);
   persist(profileOf(scope));
   if (!isOffline()) schedule(scope, 800);
   notifyDecks();
@@ -407,8 +414,10 @@ export function hasUnsaved(profile: string) {
  */
 export async function pullDecks(profile: string, initial = false) {
   restore(profile);
+  const started = changes;
   const deleting = new Set(readOutbox(profile).deletes);
   const decks = (await store<{ decks: RemoteDeck[] }>("decks")).decks.filter((d) => !deleting.has(d.id));
+  const changedSince = (scope: string) => (changedAt.get(scope) ?? 0) > started;
   const local = listDeckIds(profile);
   if (initial && !decks.length && local.length) {
     for (const id of local) await push(`${profile}:${id}`);
@@ -416,10 +425,10 @@ export async function pullDecks(profile: string, initial = false) {
   }
   const changed: string[] = [];
   const remoteIds = new Set(decks.map((d) => d.id));
-  const keepLocal = local.filter((id) => !remoteIds.has(id) && busy(`${profile}:${id}`));
+  const keepLocal = local.filter((id) => !remoteIds.has(id) && (busy(`${profile}:${id}`) || changedSince(`${profile}:${id}`)));
   for (const id of local) {
     const scope = `${profile}:${id}`;
-    if (remoteIds.has(id) || busy(scope)) continue;
+    if (remoteIds.has(id) || busy(scope) || changedSince(scope)) continue;
     dropLocal(scope);
     changed.push(scope);
   }
@@ -430,8 +439,11 @@ export async function pullDecks(profile: string, initial = false) {
       writeMeta(scope, meta);
       changed.push(scope);
     }
-    if (busy(scope)) continue;
-    if (!initial && readRev(scope) === deck.version) continue;
+    if (busy(scope) || changedSince(scope)) continue;
+    const rev = readRev(scope);
+    if (!initial && rev === deck.version) continue;
+    // Versions only go up, so an older one is a reply from before this device's last save.
+    if (rev != null && typeof deck.version === "number" && deck.version < rev) continue;
     const current = payload(scope);
     const differs = !same(current.deck, deck.deck ?? {}) || !same(current.srs, deck.srs) || !same(current.tags, deck.tags ?? []);
     if (differs || initial) writeLocal(scope, deck.deck, deck.srs, deck.tags);

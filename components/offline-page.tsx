@@ -28,7 +28,7 @@ export function OfflinePage() {
         : ["This page isn’t saved offline", "It opens once you’re back online."];
 
   return (
-    <main className="max-w-xl px-4 pt-8 pb-10 md:px-8">
+    <main className="max-w-xl px-page pt-8 pb-10">
       <h2 className="text-lg font-semibold">{title}</h2>
       <p className="mt-1 text-sm text-muted">{body} Your downloaded decks and the dictionary, if you’ve downloaded it, still work.</p>
       <div className="mt-5 flex flex-wrap gap-2">

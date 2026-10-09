@@ -6,7 +6,7 @@
 import { createHash } from "node:crypto";
 import { everydaySpeed, fishSpeak } from "./fish";
 import type { Lang } from "./lang";
-import { objectExists, readObject, uploadObject } from "./storage";
+import { objectExists, openObject, uploadObject } from "./storage";
 import type { VoiceOptions } from "./voice";
 
 export const CARD_AUDIO_FOLDER = "card-audio";
@@ -19,7 +19,8 @@ export function cardClipPath(text: string, { lang, voice }: VoiceOptions): strin
   return `${createHash("sha256").update(`${voiceTag(lang, voice)}\n${everydaySpeed(lang)}\n${text.trim()}`).digest("hex").slice(0, 32)}.mp3`;
 }
 
-export const storedCardClip = (text: string, opts: VoiceOptions) => readObject(CARD_AUDIO_FOLDER, cardClipPath(text, opts));
+/** The stored clip as a response to stream on, or null when this line hasn't been voiced yet. */
+export const openCardClip = (text: string, opts: VoiceOptions) => openObject(CARD_AUDIO_FOLDER, cardClipPath(text, opts));
 
 export const storeCardClip = (text: string, opts: VoiceOptions, bytes: ArrayBuffer) =>
   uploadObject(CARD_AUDIO_FOLDER, cardClipPath(text, opts), bytes, "audio/mpeg");

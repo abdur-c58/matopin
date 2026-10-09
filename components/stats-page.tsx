@@ -101,7 +101,7 @@ export function StatsPage() {
     ] }));
 
   return (
-    <main className="space-y-8 px-4 pt-6 pb-10 md:px-8">
+    <main className="space-y-8 px-page pt-6 pb-10">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line">
         <Chips<Range> label="Time range" value={range} onChange={setRange} options={RANGES} />
         <p className="pb-2 text-xs text-muted">Studied on {active} of {count} days</p>

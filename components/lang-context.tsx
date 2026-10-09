@@ -1,7 +1,7 @@
 "use client";
-import { createContext, useCallback, useContext } from "react";
+import { createContext, useCallback, useContext, useEffect } from "react";
 import { toast } from "sonner";
-import { LANG_INFO, type Lang } from "@/lib/lang";
+import { type BotMode, LANG_INFO, type Lang } from "@/lib/lang";
 import type { Learning } from "@/lib/prefs";
 import { useProfile } from "./profiles";
 
@@ -26,27 +26,37 @@ export function useActiveLang(): { lang: Lang; setLang: (lang: Lang) => void } {
   const lang = single ?? prefs.language;
   const setLang = useCallback((next: Lang) => {
     if (next === lang || single) return;
-    void setPrefs({ language: next, botMode: "auto" }).catch(() => toast.error(`Couldn’t switch to ${LANG_INFO[next].name}.`));
+    void setPrefs({ language: next }).catch(() => toast.error(`Couldn’t switch to ${LANG_INFO[next].name}.`));
   }, [lang, single, setPrefs]);
   return { lang, setLang };
 }
 
-/** The language Bao assumes when a question doesn't say. Follows the language being learned; a pick lasts until that language changes. */
-export function useBotMode(): { mode: Lang; setMode: (mode: Lang) => void } {
+/**
+ * Which language Bao answers about. "auto" (the default for learners of both) works it out from each question and
+ * the conversation; a picked language settles questions that could be about either. `lean` is the likelier language,
+ * for the starters and the typing indicator.
+ */
+export function useBotMode(): { mode: BotMode; lean: Lang; setMode: (mode: BotMode) => void } {
   const { prefs, setPrefs } = useProfile();
   const { single } = useLearning();
-  const mode = single ?? (prefs.botMode === "auto" ? prefs.language : prefs.botMode);
-  const setMode = useCallback((next: Lang) => {
+  const mode = single ?? prefs.botMode;
+  const lean = single ?? (prefs.botMode === "auto" ? prefs.language : prefs.botMode);
+  const setMode = useCallback((next: BotMode) => {
     if (next === mode) return;
-    void setPrefs({ botMode: next === prefs.language ? "auto" : next }).catch(() => toast.error(`Couldn’t switch to ${LANG_INFO[next].name} mode.`));
-  }, [mode, prefs.language, setPrefs]);
-  return { mode, setMode };
+    void setPrefs({ botMode: next }).catch(() => toast.error("Couldn’t change Bao’s language."));
+  }, [mode, setPrefs]);
+  return { mode, lean, setMode };
 }
 
 const DeckLang = createContext<Lang | null>(null);
 
-/** Cards inside a deck follow the deck's language, whatever the profile is currently learning. */
-export function DeckLangProvider({ lang, children }: { lang: Lang; children: React.ReactNode }) {
+/**
+ * Cards inside a deck follow the deck's language, whatever the profile prefers. Opening a deck also makes its language
+ * the preferred one, so look-ups afterwards lean the same way. `known` is false while the deck is still loading.
+ */
+export function DeckLangProvider({ lang, known = true, children }: { lang: Lang; known?: boolean; children: React.ReactNode }) {
+  const { setLang } = useActiveLang();
+  useEffect(() => { if (known) setLang(lang); }, [known, lang, setLang]);
   return <DeckLang.Provider value={lang}>{children}</DeckLang.Provider>;
 }
 

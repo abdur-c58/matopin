@@ -10,7 +10,8 @@ import { loadClip } from "@/lib/audio";
 import { addDeck, deckScope } from "@/lib/decks";
 import { dataKey } from "@/lib/profiles";
 import { appendCards, pushNow } from "@/lib/sync";
-import { hasCjk, LANG_INFO, type Lang, textLang } from "@/lib/lang";
+import { hasCjk, LANG_INFO, type Lang } from "@/lib/lang";
+import { guessLang } from "@/lib/lang-resolve";
 import { CARD_KIND_LABELS, CARD_KINDS, DEFAULT_SETTINGS, deckLanguage, hasExample, newCard, normalizeCard, spokenTexts, type Card, type CardField, type Fluency, type Settings, type Spoken } from "@/lib/cards";
 import { useDecks } from "./decks-context";
 import { useActiveLang, useLearning } from "./lang-context";
@@ -180,7 +181,7 @@ export function FlashcardMaker({ text, initial, lang: given, onClose }: { text: 
   const { lang: active } = useActiveLang();
   const { single } = useLearning();
   // A reply about the other language makes cards in that language, unless only one is learned.
-  const lang = given ?? single ?? textLang(text ?? initial?.map((c) => `${c.term}${c.reading}`).join(" ") ?? "", active);
+  const lang = given ?? single ?? guessLang(text ?? initial?.map((c) => `${c.term}${c.reading}`).join(" ") ?? "", { fallback: active }).lang;
   const router = useRouter();
   const [cards, setCards] = useState<Card[] | null>(null);
   const [error, setError] = useState("");

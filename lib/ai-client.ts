@@ -29,6 +29,16 @@ export async function speak(text: string, { lang, voice }: { lang: Lang; voice?:
   return res.blob();
 }
 
+/** Like `speak`, but only a clip that was already voiced: null instead of generating one. */
+export async function storedVoice(text: string, { lang, voice }: { lang: Lang; voice?: Voice }): Promise<Blob | null> {
+  const res = await fetch("/api/voice", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text, lang, voice: voice ?? voiceFor(text), storedOnly: true }),
+  });
+  return res.status === 200 ? res.blob() : null;
+}
+
 export function fillCard(card: Card, tags: string[], level: Fluency, lang: Lang): Promise<{ draft: CardDraft; kind: CardKind }> {
   return ai({ task: "fill", card, tags, level, lang }, "Could not fill this card.");
 }

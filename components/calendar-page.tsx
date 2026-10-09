@@ -121,7 +121,7 @@ export function CalendarPage() {
   const select = (key: string, at: number) => { setSelected({ key, at }); setMonth(firstOfMonth(at)); };
 
   return (
-    <main className="grid gap-x-8 gap-y-10 px-4 pt-6 pb-10 md:px-8 lg:grid-cols-12 [&>*]:min-w-0">
+    <main className="grid gap-x-8 gap-y-10 px-page pt-6 pb-10 lg:grid-cols-12 [&>*]:min-w-0">
       <div className="grid gap-x-8 gap-y-6 sm:grid-cols-3 lg:col-span-12">
         {([["Current streak", `${current} day${current === 1 ? "" : "s"}`, true], ["Longest streak", `${longest} day${longest === 1 ? "" : "s"}`, false], ["Days studied", `${days.size}`, false]] as const).map(([label, value, accent]) => (
           <div key={label}>

@@ -175,7 +175,7 @@ export function Dashboard() {
   const learning = decks.filter((d) => !away.has(d.id));
 
   return (
-    <main className="grid gap-x-8 gap-y-10 px-4 pt-6 pb-10 md:px-8 lg:grid-cols-12 [&>*]:min-w-0">
+    <main className="grid gap-x-8 gap-y-10 px-page pt-6 pb-10 lg:grid-cols-12 [&>*]:min-w-0">
       {learning.length === 0 && (
         <p className="text-sm text-muted lg:col-span-12">
           <span className="font-semibold text-ink">Start with your first deck.</span> Add words, phrases, or sentences, and your progress shows up here as you study.

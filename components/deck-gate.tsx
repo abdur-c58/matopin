@@ -59,7 +59,7 @@ export function DeckHeader() {
   const due = deck ? dueTotal(deck) : 0;
 
   return (
-    <header className="px-4 pt-5 md:px-8">
+    <header className="px-page pt-5">
       <div className="surface flex flex-wrap items-center justify-between gap-4 p-5">
         <div className="min-w-0">
           <p className="text-xs font-medium text-muted"><Link href="/decks" className="hover:text-ink">Decks</Link> <span aria-hidden>/</span></p>

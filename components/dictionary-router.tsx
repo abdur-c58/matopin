@@ -2,14 +2,16 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { isLang, type Lang } from "@/lib/lang";
+import { guessLang } from "@/lib/lang-resolve";
 import { DictionaryPage } from "./dictionary-page";
+import { DictSwitchContext } from "./dict-lang";
 import { JDictPage } from "./jdict-page";
 import { useActiveLang, useLearning } from "./lang-context";
 import { LOOKUP_EVENT, type LookupDetail } from "./quick-panels";
 
 /**
- * The dictionary for the language being learned. ?lang= opens the other one (a link from a Japanese deck, say), and
- * switching languages in the sidebar or looking up text in the other language swaps over.
+ * The dictionary for the language being learned. A learner of both gets whichever one each search is in: ?lang= or
+ * the search itself picks it, and the tabs above the results move between them without losing the search.
  */
 export function DictionaryRouter() {
   const { single } = useLearning();
@@ -26,11 +28,13 @@ function SingleDictionary({ lang, params }: { lang: Lang; params: URLSearchParam
 }
 
 function BothDictionaries({ params }: { params: URLSearchParams }) {
-  const { lang: active } = useActiveLang();
+  const { lang: active, setLang } = useActiveLang();
   const [state, setState] = useState<{ lang: Lang; run: number; params: URLSearchParams }>(() => {
     const lang = params.get("lang");
-    return { lang: isLang(lang) ? lang : active, run: 0, params };
+    const q = params.get("q")?.trim();
+    return { lang: isLang(lang) ? lang : q ? guessLang(q, { fallback: active }).lang : active, run: 0, params };
   });
+  const [manualFor, setManualFor] = useState<string | null>(null);
   const [followed, setFollowed] = useState(active);
   if (followed !== active) {
     setFollowed(active);
@@ -39,6 +43,13 @@ function BothDictionaries({ params }: { params: URLSearchParams }) {
       setState((s) => ({ lang: active, run: s.run + 1, params: new URLSearchParams({ lang: active }) }));
     }
   }
+
+  const switchTo = (lang: Lang, query: string, manual: boolean) => {
+    setManualFor(manual ? query.trim() : null);
+    setState((s) => (s.lang === lang ? s : { lang, run: s.run + 1, params: new URLSearchParams({ q: query, lang }) }));
+    // The preferred language follows what was last searched, so the next unclear search starts here.
+    setLang(lang);
+  };
 
   useEffect(() => {
     const listen = (e: Event) => {
@@ -50,7 +61,11 @@ function BothDictionaries({ params }: { params: URLSearchParams }) {
     return () => window.removeEventListener(LOOKUP_EVENT, listen);
   }, [state.lang]);
 
-  return state.lang === "ja"
-    ? <JDictPage key={`ja-${state.run}`} params={state.params} />
-    : <DictionaryPage key={`zh-${state.run}`} params={state.params} />;
+  return (
+    <DictSwitchContext value={{ lang: state.lang, switchTo, manualFor }}>
+      {state.lang === "ja"
+        ? <JDictPage key={`ja-${state.run}`} params={state.params} />
+        : <DictionaryPage key={`zh-${state.run}`} params={state.params} />}
+    </DictSwitchContext>
+  );
 }

@@ -4,7 +4,7 @@ import { writeNotes } from "./bot-notes-ai";
 import { PERSONALITY, VOICE_CHECK } from "./bot-personality";
 import { ROLE, SCOPE_RULES, WRITING_RULES } from "./bot-rules";
 import { stripAsk } from "./chat";
-import { isLang, LANG_INFO, type Lang } from "./lang";
+import { type BotMode, isLang, LANG_INFO, type Lang } from "./lang";
 import { DEFAULT_OPENAI_MODEL, generateJson } from "./openai";
 import { rpc, StoreError } from "./supabase";
 
@@ -55,6 +55,22 @@ const modeNote = (mode: Lang) => {
     + `If the message, the transcript or the memory makes clear it's about ${other}, answer about ${other} as usual. Don't mention the mode, and never refuse or redirect because of it.`;
 };
 
+/** Learners of both languages who haven't picked one: Bao works it out, and answers for both when it can't. */
+const AUTO_NOTE = "Language mode: automatic. The learner studies both Mandarin and Japanese. Work out which language the message is about: "
+  + "first from the message itself (kana, pinyin, characters only one language uses, or naming the language), then from the recent messages and the memory "
+  + "(a follow-up like \"what about the past tense?\" stays on the language being discussed). "
+  + "Only if it's still unclear (e.g. \"how do I say thank you?\", or characters both languages share with nothing else to go on), give a short answer for each: "
+  + "Mandarin first, then Japanese, each on its own line starting with its name, e.g. \"Mandarin: …\" and \"Japanese: …\". Set language to mixed then. Don't mention the mode.";
+
+/** The learner tapped "Answer for … instead" on an earlier reply to this message. */
+const forceNote = (lang: Lang) => {
+  const name = LANG_INFO[lang].name;
+  return `Language: ${name}. The learner asked for this message to be answered for ${name} specifically, after an answer about the other language. `
+    + `Answer it for ${name} only. Don't apologise or mention the earlier answer.`;
+};
+
+const UNLINK_MISSING = "Answering again needs supabase/017_bot_answer_again.sql. Run it in the Supabase SQL editor.";
+
 const transcript = (messages: Context["messages"]) => messages.map((m) => `${m.from}: ${m.body.replace(/\s+/g, " ")}`).join("\n");
 
 async function remember(key: string, model: string, memory: string, older: Context["messages"]) {
@@ -62,11 +78,26 @@ async function remember(key: string, model: string, memory: string, older: Conte
   return typeof json.memory === "string" ? json.memory.trim() : memory;
 }
 
-/** Answers an @ask message, or any message in the chat with Bao, and saves the reply. Off-topic requests only ever get a one-line brush-off. */
-export async function askBot(token: string, chat: { with: string } | { group: string }, messageId: number | null, mode?: Lang) {
+/**
+ * Answers an @ask message, or any message in the chat with Bao, and saves the reply. Off-topic requests only ever get a
+ * one-line brush-off. `force` answers again for that language: the earlier reply stays in the chat, unlinked.
+ */
+export async function askBot(
+  token: string, chat: { with: string } | { group: string }, messageId: number | null,
+  { mode, force }: { mode?: BotMode; force?: Lang } = {},
+) {
   const key = process.env.OPENAI_API_KEY?.trim();
   if (!key) throw new StoreError("Bao needs OPENAI_API_KEY in .env.local.", 500);
   const model = process.env.OPENAI_BOT_MODEL?.trim() || process.env.OPENAI_MODEL?.trim() || DEFAULT_OPENAI_MODEL;
+  if (force) {
+    try {
+      await rpc("matopin_chat_ai_unlink", { p_token: token, p_question: messageId }, { admin: true });
+    } catch (e) {
+      if (e instanceof Error && /missing the app tables|matopin_chat_ai_unlink/i.test(e.message)) throw new StoreError(UNLINK_MISSING, 500);
+      throw e;
+    }
+  }
+  const langNote = force ? forceNote(force) : mode === "auto" ? AUTO_NOTE : mode ? modeNote(mode) : null;
   const ctx = "group" in chat
     ? await rpc<Context>("matopin_group_ai_context", { p_token: token, p_chat: chat.group, p_message: messageId })
     : await rpc<Context>("matopin_chat_ai_context", { p_token: token, p_profile: chat.with, p_message: messageId });
@@ -82,7 +113,7 @@ export async function askBot(token: string, chat: { with: string } | { group: st
     const [answer, nextMemory] = await Promise.all([
       question
         ? generateJson(key, model, ANSWER_SYSTEM, [
-          ...(mode ? [modeNote(mode)] : []),
+          ...(langNote ? [langNote] : []),
           `Chat memory:\n${ctx.memory || "(none)"}`,
           `Recent messages, oldest first:\n${transcript(ctx.messages)}`,
           `Message from ${asker}:\n${question}`,
@@ -102,7 +133,7 @@ export async function askBot(token: string, chat: { with: string } | { group: st
     throw new StoreError(e instanceof Error ? `Bao couldn’t answer. ${e.message}` : "Bao couldn’t answer.", 502);
   }
 
-  const notes = await writeNotes(key, process.env.OPENAI_NOTES_MODEL?.trim() || model, reply, { lang: replyLang, mode });
+  const notes = await writeNotes(key, process.env.OPENAI_NOTES_MODEL?.trim() || model, reply, { lang: replyLang, mode: force ?? (mode === "auto" ? undefined : mode) });
   const save = {
     p_chat: ctx.chatId, p_question: messageId, p_body: reply,
     p_memory: memory, p_memory_upto: memory != null ? older.at(-1)?.id ?? ctx.memoryUpto : ctx.memoryUpto, p_viewer: ctx.viewer,

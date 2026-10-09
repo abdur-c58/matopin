@@ -6,7 +6,8 @@ import type { Translation } from "@/lib/ai";
 import { speak, translateText } from "@/lib/ai-client";
 import { audioError, playBlob } from "@/lib/audio";
 import { MAX_QUERY } from "@/lib/dictionary";
-import { hasCjk, isLang, LANG_INFO, type Lang, textLang } from "@/lib/lang";
+import { hasCjk, isLang, LANG_INFO, type Lang } from "@/lib/lang";
+import { guessLang } from "@/lib/lang-resolve";
 import { FlashcardMaker } from "./flashcard-maker";
 import { useActiveLang, useLearning } from "./lang-context";
 import { useAi, useProfile } from "./profiles";
@@ -189,8 +190,8 @@ export function SelectionMenu() {
 
   const text = picked.text.slice(0, MAX_TEXT);
   const speakable = hasCjk(text);
-  // Kana is always Japanese; hanzi alone goes with the language the page marks it as, else what the learner is studying.
-  const lang = single ?? textLang(text, picked.tagged ?? active);
+  // Kana, pinyin and characters only one language uses decide it; otherwise the language the page marks it as, else the preferred one.
+  const lang = single ?? guessLang(text, { context: picked.tagged, fallback: active }).lang;
   const translation = translated?.text === text && translated.lang === lang ? translated : null;
 
   const copy = async (value: string) => {

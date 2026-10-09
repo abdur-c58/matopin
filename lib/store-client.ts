@@ -18,6 +18,16 @@ export const OFFLINE_STATUS = 0;
 export const isOfflineError = (e: unknown) => e instanceof StoreRequestError && e.status === OFFLINE_STATUS;
 
 export async function store<T>(action: string, body: Record<string, unknown> = {}, init?: RequestInit): Promise<T> {
+  if (process.env.NODE_ENV !== "production") {
+    const preview = await import("./dev-preview");
+    if (preview.previewOn()) {
+      try {
+        return (await preview.previewStore(action, body)) as T;
+      } catch (e) {
+        throw new StoreRequestError(e instanceof Error ? e.message : "Not available in the preview.", 501);
+      }
+    }
+  }
   let res: Response;
   try {
     res = await fetch("/api/store", {

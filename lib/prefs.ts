@@ -40,9 +40,12 @@ export type Prefs = {
   dictRecent: string[];
   /** Recent Japanese dictionary lookups, newest first. */
   dictRecentJa: string[];
-  /** The language being learned: which dictionary, rail labels and deck filter the app opens with. */
+  /**
+   * For learners of both, the language to prefer when something could be either. Follows what was used last (a deck
+   * opened, a dictionary search), so it rarely needs setting by hand.
+   */
   language: Lang;
-  /** Which language Bao assumes when a question doesn't say. "auto" follows `language`. */
+  /** Which language Bao answers about. "auto" works it out from each question; a language settles unclear ones. */
   botMode: Lang | "auto";
   /** Which AI services this account uses. With "some", only those in `aiFeatures`. */
   aiMode: AiMode;
