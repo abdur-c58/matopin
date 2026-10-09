@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { BookA, MessageCircle } from "lucide-react";
 import { useChatBadge } from "@/lib/chat-client";
+import type { Stroke } from "@/lib/handwriting";
 import type { Lang } from "@/lib/lang";
 import { guessLang } from "@/lib/lang-resolve";
 import { DictSwitchContext } from "./dict-lang";
@@ -36,7 +37,10 @@ const readPins = (): PanelKind[] => {
   }
 };
 
-const onPage = (pathname: string, kind: PanelKind) => pathname === PANEL_PAGES[kind] || pathname.startsWith(`${PANEL_PAGES[kind]}/`);
+const under = (pathname: string, page: string) => pathname === page || pathname.startsWith(`${page}/`);
+const onPage = (pathname: string, kind: PanelKind) => under(pathname, PANEL_PAGES[kind]);
+/** Pages whose content the two windows would cover, so neither stays open unless pinned or under the pointer. */
+const TUCKED_PAGES = ["/app", "/social", "/calendar", "/stats", "/settings"];
 const isPhone = () => !window.matchMedia("(width >= 48rem)").matches;
 
 /** On a phone: a slim tab on the screen's right edge that opens the dictionary or chats over any page. */
@@ -68,6 +72,7 @@ export function QuickPanelsProvider({ children }: { children: React.ReactNode })
   // Each look-up starts the dictionary window afresh with that search, in the language it was written in.
   const [lookup, setLookup] = useState<{ query: string; lang: Lang | null; run: number; typed?: boolean }>({ query: "", lang: null, run: 0 });
   const [manualFor, setManualFor] = useState<string | null>(null);
+  const [pad, setPad] = useState<Stroke[] | null>(null);
   // With both windows open on a wide screen they share the space like an accordion: `focus` is the one expanded when
   // neither is pinned, and `peek` an unpinned one opened beside a pinned one, until the pointer leaves it.
   const [focus, setFocus] = useState<PanelKind>("dictionary");
@@ -86,6 +91,7 @@ export function QuickPanelsProvider({ children }: { children: React.ReactNode })
       return;
     }
     setLookup((l) => ({ query: text, lang, run: l.run + 1 }));
+    setPad(null);
     show("dictionary");
   };
   // A pop-up steps aside while its own full page is open.
@@ -93,8 +99,9 @@ export function QuickPanelsProvider({ children }: { children: React.ReactNode })
   const dictLang = single ?? lookup.lang ?? active;
   const closeDict = () => { hide("dictionary"); setManualFor(null); setLookup((l) => ({ ...l, query: "", lang: null })); };
   // Moving between the two dictionaries keeps the search but doesn't open its entry: the learner may still be typing.
-  const switchDict = (lang: Lang, query: string, manual: boolean) => {
+  const switchDict = (lang: Lang, query: string, manual: boolean, carried: Stroke[] | null = null) => {
     setManualFor(manual ? query.trim() : null);
+    setPad(carried);
     if (lang !== dictLang) setLookup((l) => ({ query, lang, run: l.run + 1, typed: true }));
     setLang(lang);
   };
@@ -104,13 +111,15 @@ export function QuickPanelsProvider({ children }: { children: React.ReactNode })
   const tabKinds = (["dictionary", "chat"] as const).filter((kind) => !onPage(pathname, kind) && !shown.includes(kind));
 
   const pinnedShown = pins.filter((kind) => shown.includes(kind));
+  // Beside a pinned window, or on a page they'd cover, an unpinned window only opens while it's under the pointer.
+  const hoverOnly = pinnedShown.length > 0 || TUCKED_PAGES.some((page) => under(pathname, page));
   // Pinned windows sit on the right, the first pinned against the screen edge, so pinning another moves nothing.
   const order = [...shown.filter((k) => !pins.includes(k)), ...pinnedShown.toReversed()];
   const dockFor = (kind: PanelKind): PanelDock => {
     const pinned = pins.includes(kind);
     return {
       pinned,
-      collapsed: shown.length > 1 && !pinned && (pinnedShown.length ? peek !== kind : focus !== kind),
+      collapsed: shown.length > 1 && !pinned && (hoverOnly ? peek !== kind : focus !== kind),
       togglePin: () => {
         const next = pinned ? pins.filter((k) => k !== kind) : [...pins, kind];
         setPins(next);
@@ -120,8 +129,8 @@ export function QuickPanelsProvider({ children }: { children: React.ReactNode })
         if (pinned) setFocus(kind);
       },
       enter: () => {
-        if (!pinnedShown.length) setFocus(kind);
-        else if (!pinned) setPeek(kind);
+        setFocus(kind);
+        if (!pinned) setPeek(kind);
       },
       leave: () => setPeek((p) => (p === kind ? null : p)),
     };
@@ -131,7 +140,7 @@ export function QuickPanelsProvider({ children }: { children: React.ReactNode })
     : single
       ? dict(single, `${kind}-${single}-${lookup.run}`)
       : (
-        <DictSwitchContext key={`${kind}-${dictLang}-${lookup.run}`} value={{ lang: dictLang, switchTo: switchDict, manualFor }}>
+        <DictSwitchContext key={`${kind}-${dictLang}-${lookup.run}`} value={{ lang: dictLang, switchTo: switchDict, manualFor, pad }}>
           {dict(dictLang, "dict")}
         </DictSwitchContext>
       ));

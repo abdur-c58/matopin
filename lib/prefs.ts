@@ -45,6 +45,8 @@ export type Prefs = {
    * opened, a dictionary search), so it rarely needs setting by hand.
    */
   language: Lang;
+  /** For learners of both, opening or studying a deck switches the app to that deck's language. */
+  followDeck: boolean;
   /** Which language Bao answers about. "auto" works it out from each question; a language settles unclear ones. */
   botMode: Lang | "auto";
   /** Which AI services this account uses. With "some", only those in `aiFeatures`. */
@@ -58,7 +60,7 @@ export function aiAllowed(prefs: Pick<Prefs, "aiMode" | "aiFeatures">, feature: 
 
 export const PLAYBACK_SPEEDS = [0.5, 0.75, 1, 1.25];
 export const MAX_DICT_RECENT = 12;
-export const DEFAULT_PREFS: Prefs = { learning: null, dailyGoal: 50, playbackSpeed: 1, accent: DEFAULT_ACCENT, second: DEFAULT_SECOND, studyReading: true, studyShuffle: false, simplified: true, dictRecent: [], dictRecentJa: [], language: DEFAULT_LANG, botMode: "auto", aiMode: "all", aiFeatures: [...AI_FEATURES] };
+export const DEFAULT_PREFS: Prefs = { learning: null, dailyGoal: 50, playbackSpeed: 1, accent: DEFAULT_ACCENT, second: DEFAULT_SECOND, studyReading: true, studyShuffle: false, simplified: true, dictRecent: [], dictRecentJa: [], language: DEFAULT_LANG, followDeck: true, botMode: "auto", aiMode: "all", aiFeatures: [...AI_FEATURES] };
 
 const recent = (raw: unknown[]) => {
   const words = raw.filter((w): w is string => typeof w === "string").map((w) => w.trim().slice(0, 64)).filter(Boolean);
@@ -81,6 +83,7 @@ function pick(raw: unknown): Partial<Prefs> {
   if (Array.isArray(o.dictRecent)) out.dictRecent = recent(o.dictRecent);
   if (Array.isArray(o.dictRecentJa)) out.dictRecentJa = recent(o.dictRecentJa);
   if (isLang(o.language)) out.language = o.language;
+  if (typeof o.followDeck === "boolean") out.followDeck = o.followDeck;
   if (isLang(o.botMode) || o.botMode === "auto") out.botMode = o.botMode;
   if (isAiMode(o.aiMode)) out.aiMode = o.aiMode;
   if (Array.isArray(o.aiFeatures)) out.aiFeatures = AI_FEATURES.filter((f) => (o.aiFeatures as unknown[]).includes(f));

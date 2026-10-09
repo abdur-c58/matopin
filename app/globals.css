@@ -189,6 +189,11 @@
   .bot-tile { animation-duration: 3s; }
 }
 
+/* The 404 page (components/not-found-page.tsx): characters drift back and forth behind the card. */
+.nf-drift { animation: nf-drift var(--nf-time, 14s) ease-in-out var(--nf-delay, 0s) infinite alternate; }
+@keyframes nf-drift { from { transform: translate(0, 0) rotate(-6deg); } to { transform: translate(var(--nf-x, 20px), var(--nf-y, -30px)) rotate(6deg); } }
+@media (prefers-reduced-motion: reduce) { .nf-drift { animation: none; } }
+
 /* The installed app's launch screen, faded out once the profile has loaded. A browser tab never shows it. */
 .splash { display: none; }
 @media (display-mode: standalone) {

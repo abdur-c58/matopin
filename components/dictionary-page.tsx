@@ -12,7 +12,7 @@ import type { Lang } from "@/lib/lang";
 import { AUDIO_CREDITS, CEDICT_NOTE, HANDWRITING_CREDITS, STROKE_CREDITS, TATOEBA_NOTE, UNICODE_LICENSE, UNIHAN_NOTE } from "@/lib/dictionary-credits";
 import { MAX_DICT_RECENT } from "@/lib/prefs";
 import { type Card, newCard, normalizeCard } from "@/lib/cards";
-import { DictLangTabs } from "./dict-lang";
+import { DictLangTabs, useDictTabKey, usePadLangSwitch, useStartPad } from "./dict-lang";
 import { FlashcardMaker } from "./flashcard-maker";
 import { HandwritingPad, RiceGrid } from "./handwriting-pad";
 import { PanelFrame } from "./panel-frame";
@@ -859,13 +859,14 @@ export function SearchBox({ s, input, compact = false, drawing, onDraw, onKeyDow
   s: SearchNav; input: React.RefObject<HTMLInputElement | null>; compact?: boolean; drawing: boolean; onDraw: () => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void; onClear: () => void; placeholder?: string; drawLabel?: string;
 }) {
+  const tabKey = useDictTabKey();
   return (
     <div className="relative">
       <Search className={`pointer-events-none absolute top-1/2 -translate-y-1/2 text-muted ${compact ? "left-3.5 size-4" : "left-4 size-5"}`} />
       <input ref={input} autoFocus type="text" role="combobox" aria-expanded={s.flat.length > 0} aria-controls="dict-results" aria-autocomplete="list"
         aria-activedescendant={s.flat.length ? `dict-option-${s.active}` : undefined} aria-label="Search the dictionary"
         className={`field pr-20 ${compact ? "h-11 rounded-full pl-10 text-base" : "h-14 rounded-md pl-12 text-lg"}`} placeholder={placeholder} maxLength={MAX_QUERY}
-        value={s.query} onChange={(e) => s.setQuery(e.target.value)} onKeyDown={onKeyDown} spellCheck={false} autoComplete="off" autoCapitalize="off" />
+        value={s.query} onChange={(e) => s.setQuery(e.target.value)} onKeyDown={(e) => { if (!tabKey(e, s.query, drawing)) onKeyDown(e); }} spellCheck={false} autoComplete="off" autoCapitalize="off" />
       <div className="absolute top-1/2 right-1 flex -translate-y-1/2 items-center">
         {s.loading && <LoaderCircle className="mr-1 size-4 animate-spin text-muted" aria-label="Searching" />}
         {s.query ? (
@@ -916,7 +917,9 @@ export function DictionaryPage({ params }: { params: URLSearchParams }) {
   const [selected, setSelected] = useState<number | null>(start.id);
   const [credits, setCredits] = useState(false);
   const [draft, setDraft] = useState<Card[] | null>(null);
-  const [pad, setPad] = useState(false);
+  const startPad = useStartPad();
+  const padLang = usePadLangSwitch();
+  const [pad, setPad] = useState(startPad != null);
   const input = useRef<HTMLInputElement>(null);
   // An entry opened from the URL stays open; after that, each new search opens its top result on wide screens.
   const autoOpen = useRef(start.id == null);
@@ -980,8 +983,9 @@ export function DictionaryPage({ params }: { params: URLSearchParams }) {
         <section className={`md:sticky md:top-5 md:flex md:max-h-[calc(100dvh-2.5rem)] md:flex-col ${selected ? "hidden md:flex" : ""}`} aria-label="Search">
           <SearchBox s={s} input={input} drawing={pad} onDraw={() => setPad((p) => !p)} onClear={clear}
             onKeyDown={(e) => resultKeys(e, s, open, (id) => { if (isDesktop()) setSelected(id); })} />
-          {pad && <HandwritingPad onClose={() => setPad(false)} onPick={(c) => { s.run(s.query + c); if (!isDesktop()) setSelected(null); }} />}
-          <DictLangTabs s={s} className="mt-3" />
+          {pad && <HandwritingPad onClose={() => setPad(false)} onPick={(c) => { s.run(s.query + c); if (!isDesktop()) setSelected(null); }}
+            initialStrokes={startPad ?? undefined} onLang={padLang && ((l, strokes) => padLang(l, strokes, s.query))} />}
+          <DictLangTabs s={s} drawing={pad} className="mt-3" />
           <div id="dict-results" role="listbox" aria-label="Results" aria-busy={s.loading}
             className={`mt-3 min-h-0 flex-1 transition-opacity md:-mr-2 md:overflow-y-auto md:pr-2 ${s.loading && s.shown ? "opacity-60" : ""}`}>
             <ResultsList s={s} selected={selected} recent={recent} onSearch={search} onOpen={open} />
@@ -1022,7 +1026,9 @@ export function DictionaryPage({ params }: { params: URLSearchParams }) {
 export function DictionaryMini({ initialQuery = "", openMatch = true, onClose }: { initialQuery?: string; openMatch?: boolean; onClose: () => void }) {
   const [selected, setSelected] = useState<number | null>(null);
   const [draft, setDraft] = useState<Card[] | null>(null);
-  const [pad, setPad] = useState(false);
+  const startPad = useStartPad();
+  const padLang = usePadLangSwitch();
+  const [pad, setPad] = useState(startPad != null);
   const input = useRef<HTMLInputElement>(null);
   const body = useRef<HTMLDivElement>(null);
   // Something highlighted and looked up opens straight to its entry when it's an exact headword.
@@ -1063,8 +1069,9 @@ export function DictionaryMini({ initialQuery = "", openMatch = true, onClose }:
           <div className="p-3">
             <SearchBox s={s} input={input} compact drawing={pad} onDraw={() => setPad((p) => !p)}
               onClear={() => { s.clear(); input.current?.focus(); }} onKeyDown={(e) => resultKeys(e, s, open)} />
-            {pad && <HandwritingPad compact onClose={() => setPad(false)} onPick={(c) => s.run(s.query + c)} />}
-            <DictLangTabs s={s} className="mt-2" />
+            {pad && <HandwritingPad compact onClose={() => setPad(false)} onPick={(c) => s.run(s.query + c)}
+              initialStrokes={startPad ?? undefined} onLang={padLang && ((l, strokes) => padLang(l, strokes, s.query))} />}
+            <DictLangTabs s={s} drawing={pad} className="mt-2" />
           </div>
           <div id="dict-results" role="listbox" aria-label="Results" aria-busy={s.loading}
             className={`min-h-0 flex-1 overflow-y-auto px-1.5 pb-3 transition-opacity ${s.loading && s.shown ? "opacity-60" : ""}`}>

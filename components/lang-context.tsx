@@ -52,11 +52,14 @@ const DeckLang = createContext<Lang | null>(null);
 
 /**
  * Cards inside a deck follow the deck's language, whatever the profile prefers. Opening a deck also makes its language
- * the preferred one, so look-ups afterwards lean the same way. `known` is false while the deck is still loading.
+ * the preferred one, so look-ups afterwards lean the same way, unless the learner turned that off. `known` is false
+ * while the deck is still loading.
  */
 export function DeckLangProvider({ lang, known = true, children }: { lang: Lang; known?: boolean; children: React.ReactNode }) {
   const { setLang } = useActiveLang();
-  useEffect(() => { if (known) setLang(lang); }, [known, lang, setLang]);
+  const { prefs } = useProfile();
+  const follow = known && prefs.followDeck;
+  useEffect(() => { if (follow) setLang(lang); }, [follow, lang, setLang]);
   return <DeckLang.Provider value={lang}>{children}</DeckLang.Provider>;
 }
 

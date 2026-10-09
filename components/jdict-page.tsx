@@ -12,7 +12,7 @@ import {
 import { furiganaPieces, hasHanChar, type RubyPiece } from "@/lib/lang";
 import { type Card, newCard, normalizeCard } from "@/lib/cards";
 import { CreditCard, errorOf, Home, isDesktop, Problem, resultKeys, ResultsSkeleton, SearchBox, SpeakButton, TAB_CLASS, useDictRecent, useDictSearch } from "./dictionary-page";
-import { DictLangTabs } from "./dict-lang";
+import { DictLangTabs, usePadLangSwitch, useStartPad } from "./dict-lang";
 import { FlashcardMaker } from "./flashcard-maker";
 import { HandwritingPad, RiceGrid } from "./handwriting-pad";
 import { PanelFrame } from "./panel-frame";
@@ -547,7 +547,9 @@ export function JDictPage({ params }: { params: URLSearchParams }) {
   const [selected, setSelected] = useState<number | null>(start.id);
   const [credits, setCredits] = useState(false);
   const [draft, setDraft] = useState<Card[] | null>(null);
-  const [pad, setPad] = useState(false);
+  const startPad = useStartPad();
+  const padLang = usePadLangSwitch();
+  const [pad, setPad] = useState(startPad != null);
   const input = useRef<HTMLInputElement>(null);
   const autoOpen = useRef(start.id == null);
   const s = useDictSearch<JDictSearch>(start.q, (data) => {
@@ -610,8 +612,9 @@ export function JDictPage({ params }: { params: URLSearchParams }) {
         <section className={`md:sticky md:top-5 md:flex md:max-h-[calc(100dvh-2.5rem)] md:flex-col ${selected ? "hidden md:flex" : ""}`} aria-label="Search">
           <SearchBox s={s} input={input} drawing={pad} onDraw={() => setPad((p) => !p)} onClear={clear} placeholder={PLACEHOLDER} drawLabel="Draw a kanji or kana"
             onKeyDown={(e) => resultKeys(e, s, open, (id) => { if (isDesktop()) setSelected(id); })} />
-          {pad && <HandwritingPad lang="ja" onClose={() => setPad(false)} onPick={(c) => { s.run(s.query + c); if (!isDesktop()) setSelected(null); }} />}
-          <DictLangTabs s={s} className="mt-3" />
+          {pad && <HandwritingPad lang="ja" onClose={() => setPad(false)} onPick={(c) => { s.run(s.query + c); if (!isDesktop()) setSelected(null); }}
+            initialStrokes={startPad ?? undefined} onLang={padLang && ((l, strokes) => padLang(l, strokes, s.query))} />}
+          <DictLangTabs s={s} drawing={pad} className="mt-3" />
           <div id="dict-results" role="listbox" aria-label="Results" aria-busy={s.loading}
             className={`mt-3 min-h-0 flex-1 transition-opacity md:-mr-2 md:overflow-y-auto md:pr-2 ${s.loading && s.shown ? "opacity-60" : ""}`}>
             <ResultsList s={s} selected={selected} recent={recent} onSearch={search} onOpen={open} />
@@ -651,7 +654,9 @@ export function JDictPage({ params }: { params: URLSearchParams }) {
 export function JDictMini({ initialQuery = "", openMatch = true, onClose }: { initialQuery?: string; openMatch?: boolean; onClose: () => void }) {
   const [selected, setSelected] = useState<number | null>(null);
   const [draft, setDraft] = useState<Card[] | null>(null);
-  const [pad, setPad] = useState(false);
+  const startPad = useStartPad();
+  const padLang = usePadLangSwitch();
+  const [pad, setPad] = useState(startPad != null);
   const input = useRef<HTMLInputElement>(null);
   const body = useRef<HTMLDivElement>(null);
   const jump = useRef(openMatch && Boolean(initialQuery.trim()));
@@ -690,8 +695,9 @@ export function JDictMini({ initialQuery = "", openMatch = true, onClose }: { in
           <div className="p-3">
             <SearchBox s={s} input={input} compact drawing={pad} onDraw={() => setPad((p) => !p)} placeholder={PLACEHOLDER} drawLabel="Draw a kanji or kana"
               onClear={() => { s.clear(); input.current?.focus(); }} onKeyDown={(e) => resultKeys(e, s, open)} />
-            {pad && <HandwritingPad lang="ja" compact onClose={() => setPad(false)} onPick={(c) => s.run(s.query + c)} />}
-            <DictLangTabs s={s} className="mt-2" />
+            {pad && <HandwritingPad lang="ja" compact onClose={() => setPad(false)} onPick={(c) => s.run(s.query + c)}
+              initialStrokes={startPad ?? undefined} onLang={padLang && ((l, strokes) => padLang(l, strokes, s.query))} />}
+            <DictLangTabs s={s} drawing={pad} className="mt-2" />
           </div>
           <div id="dict-results" role="listbox" aria-label="Results" aria-busy={s.loading}
             className={`min-h-0 flex-1 overflow-y-auto px-1.5 pb-3 transition-opacity ${s.loading && s.shown ? "opacity-60" : ""}`}>

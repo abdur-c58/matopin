@@ -1,6 +1,7 @@
 "use client";
 import { createContext, useContext, useEffect, useState } from "react";
 import { isAbort, searchDictionary, searchJdict } from "@/lib/dictionary-client";
+import type { Stroke } from "@/lib/handwriting";
 import { LANG_INFO, LANGS, type Lang } from "@/lib/lang";
 import { guessLang } from "@/lib/lang-resolve";
 
@@ -10,13 +11,45 @@ import { guessLang } from "@/lib/lang-resolve";
  */
 export type DictSwitch = {
   lang: Lang;
-  /** Opens the other dictionary with `query`. `manual` when the learner picked it, so it isn't switched back. */
-  switchTo: (lang: Lang, query: string, manual: boolean) => void;
+  /**
+   * Opens the other dictionary with `query`. `manual` when the learner picked it, so it isn't switched back. `pad` keeps
+   * the drawing pad open there, with the strokes drawn so far; null closes it.
+   */
+  switchTo: (lang: Lang, query: string, manual: boolean, pad?: Stroke[] | null) => void;
   /** The search the learner last picked a dictionary for by hand. */
   manualFor: string | null;
+  /** The drawing pad carried over from the other dictionary, or null when it wasn't open. */
+  pad: Stroke[] | null;
 };
 
 export const DictSwitchContext = createContext<DictSwitch | null>(null);
+
+const otherOf = (lang: Lang) => LANGS.find((l) => l !== lang) ?? lang;
+
+/** The drawing pad a dictionary opens with: carried over from the other dictionary, or closed. */
+export const useStartPad = () => useContext(DictSwitchContext)?.pad ?? null;
+
+/** For the drawing pad's language switch: opens the other dictionary with the pad and its strokes. Missing for learners of one language. */
+export function usePadLangSwitch() {
+  const ctx = useContext(DictSwitchContext);
+  if (!ctx) return undefined;
+  return (lang: Lang, strokes: Stroke[], query: string) => { if (lang !== ctx.lang) ctx.switchTo(lang, query, true, strokes); };
+}
+
+/** Plain Tab in a search or message box swaps the language. Shift+Tab and the rest still move focus as usual. */
+export const isLangSwitchKey = (e: React.KeyboardEvent) =>
+  e.key === "Tab" && !e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey && !e.nativeEvent.isComposing;
+
+/** Tab in the dictionary's search box opens the other dictionary with the same search, and the pad if it's open. True when it did. */
+export function useDictTabKey() {
+  const ctx = useContext(DictSwitchContext);
+  return (e: React.KeyboardEvent, query: string, drawing = false) => {
+    if (!ctx || !isLangSwitchKey(e)) return false;
+    e.preventDefault();
+    ctx.switchTo(otherOf(ctx.lang), query, true, drawing ? [] : null);
+    return true;
+  };
+}
 
 const SEARCH: Record<Lang, (q: string, signal?: AbortSignal) => Promise<{ groups: { results: unknown[] }[] }>> = {
   zh: searchDictionary,
@@ -32,8 +65,10 @@ type Count = number | "loading" | "failed";
  * A tab per language with how many results each has, above the results. Switches to the other dictionary on its own
  * when the search is certainly in it (kana, tone marks, characters only it uses), or when only it has results.
  */
-export function DictLangTabs({ s, className = "" }: { s: Search; className?: string }) {
+export function DictLangTabs({ s, drawing = false, className = "" }: { s: Search; drawing?: boolean; className?: string }) {
   const ctx = useContext(DictSwitchContext);
+  // An open drawing pad comes along, empty: whatever was drawn is already in the search.
+  const pad = drawing ? [] : null;
   const [other, setOther] = useState<{ q: string; count: Count } | null>(null);
   const lang = ctx?.lang;
   const otherLang = LANGS.find((l) => l !== lang) ?? null;
@@ -59,11 +94,11 @@ export function DictLangTabs({ s, className = "" }: { s: Search; className?: str
     if (!ctx || !lang || !otherLang || !q || ctx.manualFor === q) return;
     const guess = guessLang(q, { fallback: lang });
     if (guess.sure) {
-      if (guess.lang !== lang) ctx.switchTo(guess.lang, query, false);
+      if (guess.lang !== lang) ctx.switchTo(guess.lang, query, false, drawing ? [] : null);
       return;
     }
-    if (fresh && !s.shown?.error && count === 0 && otherCount > 0) ctx.switchTo(otherLang, query, false);
-  }, [ctx, lang, otherLang, q, query, fresh, s.shown?.error, count, otherCount]);
+    if (fresh && !s.shown?.error && count === 0 && otherCount > 0) ctx.switchTo(otherLang, query, false, drawing ? [] : null);
+  }, [ctx, lang, otherLang, q, query, fresh, s.shown?.error, count, otherCount, drawing]);
 
   if (!ctx || !lang || !q) return null;
   return (
@@ -72,7 +107,8 @@ export function DictLangTabs({ s, className = "" }: { s: Search; className?: str
         const on = l === lang;
         const n = on ? counts.this : counts.other;
         return (
-          <button key={l} type="button" role="tab" aria-selected={on} onClick={() => { if (!on) ctx.switchTo(l, query, true); }}
+          <button key={l} type="button" role="tab" aria-selected={on} onClick={() => { if (!on) ctx.switchTo(l, query, true, pad); }}
+            title={on ? undefined : `Search ${LANG_INFO[l].name} (Tab)`}
             className={`chip gap-1.5 ${on ? "chip-on" : ""}`}>
             <span className="font-hanzi" lang={LANG_INFO[l].speech}>{LANG_INFO[l].badge}</span>
             {LANG_INFO[l].name}

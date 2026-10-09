@@ -1,8 +1,8 @@
 "use client";
 import { Eraser, LoaderCircle, Undo2, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { recognize, type Point, type Recognized, type Stroke } from "@/lib/handwriting";
-import type { Lang } from "@/lib/lang";
+import { LANG_INFO, LANGS, type Lang } from "@/lib/lang";
 
 /** Recognition waits for a short pause so a character isn't read after every stroke. */
 const SETTLE_MS = 350;
@@ -44,14 +44,20 @@ function paint(el: HTMLCanvasElement | null, strokes: Stroke[]) {
   }
 }
 
-/** A square to write characters in by finger, pen or mouse. Picking a candidate hands it over and clears the square. */
-export function HandwritingPad({ onPick, onClose, compact = false, lang = "zh" }: { onPick: (text: string) => void; onClose: () => void; compact?: boolean; lang?: Lang }) {
+/**
+ * A square to write characters in by finger, pen or mouse. Picking a candidate hands it over and clears the square.
+ * With `onLang`, a 中/日 switch hands the strokes so far to the other language's pad, which reads them again.
+ */
+export function HandwritingPad({ onPick, onClose, compact = false, lang = "zh", initialStrokes, onLang }: {
+  onPick: (text: string) => void; onClose: () => void; compact?: boolean; lang?: Lang;
+  initialStrokes?: Stroke[]; onLang?: (lang: Lang, strokes: Stroke[]) => void;
+}) {
   const canvas = useRef<HTMLCanvasElement>(null);
-  const strokes = useRef<Stroke[]>([]);
+  const strokes = useRef<Stroke[]>(initialStrokes ?? []);
   const drawing = useRef<Stroke | null>(null);
   const timer = useRef<number | undefined>(undefined);
   const request = useRef<AbortController | null>(null);
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(initialStrokes?.length ?? 0);
   const [result, setResult] = useState<Recognized | null>(null);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -84,6 +90,14 @@ export function HandwritingPad({ onPick, onClose, compact = false, lang = "zh" }
       () => { if (!ctrl.signal.aborted) { setFailed(true); setBusy(false); } },
     );
   };
+
+  // Strokes carried over from the other language's pad are read again in this one.
+  const readCarried = useEffectEvent(() => read());
+  useEffect(() => {
+    if (!strokes.current.length) return;
+    const t = window.setTimeout(readCarried, 0);
+    return () => clearTimeout(t);
+  }, []);
 
   const reset = () => {
     clearTimeout(timer.current);
@@ -167,6 +181,17 @@ export function HandwritingPad({ onPick, onClose, compact = false, lang = "zh" }
           {busy && <LoaderCircle className="size-3.5 shrink-0 animate-spin" aria-hidden />}
           {result?.offline && !busy && (lang === "ja" ? "Offline recognition: one kanji at a time" : "Offline recognition: one character at a time")}
         </span>
+        {onLang && (
+          <div role="radiogroup" aria-label="Handwriting language" className="flex shrink-0 rounded-full bg-porcelain p-0.5">
+            {LANGS.map((l) => (
+              <button key={l} type="button" role="radio" aria-checked={l === lang} onClick={() => onLang(l, strokes.current)}
+                aria-label={`Read as ${LANG_INFO[l].name}`} title={l === lang ? `Reading as ${LANG_INFO[l].name}` : `Read as ${LANG_INFO[l].name}`}
+                className={`grid h-7 min-w-8 place-items-center rounded-full px-2 font-hanzi text-sm transition-colors ${l === lang ? "bg-ink text-porcelain" : "text-muted hover:text-ink"}`}>
+                <span lang={LANG_INFO[l].speech}>{LANG_INFO[l].badge}</span>
+              </button>
+            ))}
+          </div>
+        )}
         <button type="button" className="icon-btn" aria-label="Close drawing pad" title="Close" onClick={onClose}><X className="size-4" /></button>
       </div>
     </div>

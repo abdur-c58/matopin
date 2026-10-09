@@ -9,6 +9,7 @@ import { dayLabel } from "@/lib/chat-client";
 import { LANG_INFO, LANGS, type Lang } from "@/lib/lang";
 import { store } from "@/lib/store-client";
 import { answerAgain, BotAvatar, BotTyping, MessageRow, ReplyBar, typingLang, unlinkAnswers, upsert, type Local } from "./chat-thread";
+import { isLangSwitchKey } from "./dict-lang";
 import { FlashcardMaker } from "./flashcard-maker";
 import { useBotMode, useLearning } from "./lang-context";
 import { useAi, useProfile } from "./profiles";
@@ -211,6 +212,8 @@ export function BotThread({ onBack }: { onBack?: () => void } = {}) {
   }
 
   const onKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Tab flips between preferring Mandarin and Japanese; from Auto it starts at Mandarin.
+    if (!single && isLangSwitchKey(e)) { e.preventDefault(); setMode(mode === "zh" ? "ja" : "zh"); return; }
     if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); submit(); return; }
     if (e.key === "Escape" && replyTo) setReplyTo(null);
   };
@@ -229,7 +232,7 @@ export function BotThread({ onBack }: { onBack?: () => void } = {}) {
           </span>
         </div>
         <div role="radiogroup" aria-label="Which language Bao answers about" className={`ml-auto flex shrink-0 rounded-full bg-porcelain p-0.5 ${single ? "hidden" : ""}`}
-          title="Auto works out the language from each question. Pick one to settle questions that could be about either.">
+          title="Auto works out the language from each question. Pick one to settle questions that could be about either. Tab in the message box switches between Mandarin and Japanese.">
           {(["auto", ...LANGS] as const).map((l) => (
             <button key={l} type="button" role="radio" aria-checked={mode === l} aria-label={l === "auto" ? "Automatic" : `Prefer ${LANG_INFO[l].name}`} onClick={() => setMode(l)}
               className={`flex h-7 items-center gap-1 rounded-full px-2.5 text-xs font-semibold transition-colors ${mode === l ? "bg-second-500 text-on-second" : "text-muted hover:text-ink"}`}>

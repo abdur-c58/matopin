@@ -7,7 +7,7 @@
  * Supabase, and the preview profile's local data is kept apart from real profiles'.
  */
 import { DEFAULT_AVATAR_COLOR } from "./avatar";
-import { DEFAULT_PREFS, type Prefs } from "./prefs";
+import { cleanPrefs, DEFAULT_PREFS, type Prefs } from "./prefs";
 import { clearLocal } from "./profiles";
 import { DEFAULT_SETTINGS } from "./cards";
 import type { ProfileInfo, RemoteDeck } from "./store-client";
@@ -92,7 +92,7 @@ const botMessage = (senderId: string | null, kind: Message["kind"], text: string
 function restore() {
   try {
     const saved = JSON.parse(localStorage.getItem(DB) ?? "null") as { me: ProfileInfo; decks: RemoteDeck[] } | null;
-    if (saved) { me = saved.me; decks.splice(0, decks.length, ...saved.decks); }
+    if (saved) { me = { ...saved.me, prefs: cleanPrefs(saved.me.prefs) }; decks.splice(0, decks.length, ...saved.decks); }
   } catch {}
 }
 let restored = false;

@@ -68,12 +68,34 @@ function useLogout() {
 const RAIL_BUTTON = 44;
 const RAIL_STEP = RAIL_BUTTON + 24;
 const RAIL_MOVE_MS = 300;
+const RAIL_PAD = 4;
+const RAIL_GLOW = 480;
+const RAIL_GLOW_OPACITY = 0.6;
 
 function Rail() {
   const pathname = usePathname();
   const activeIndex = NAV.findIndex(({ href }) => isActive(pathname, href));
   const openPanel = useOpenPanel();
   const { lang } = useActiveLang();
+  const glow = useRef<HTMLSpanElement>(null);
+  const lastIndex = useRef(activeIndex);
+
+  // While the glow slides to the new page it dims, then swells back, never brighter than at rest.
+  useEffect(() => {
+    const from = lastIndex.current;
+    lastIndex.current = activeIndex;
+    if (from === activeIndex || from < 0 || activeIndex < 0) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    glow.current?.animate(
+      [
+        { opacity: RAIL_GLOW_OPACITY, transform: "scale(1)" },
+        { opacity: 0.25, transform: "scale(0.85)", offset: 0.35 },
+        { opacity: RAIL_GLOW_OPACITY, transform: "scale(1.15)", offset: 0.7 },
+        { opacity: RAIL_GLOW_OPACITY, transform: "scale(1)" },
+      ],
+      { duration: RAIL_MOVE_MS, easing: "ease-in-out" },
+    );
+  }, [activeIndex]);
 
   return (
     <aside className="fixed top-[calc(0.75rem+env(safe-area-inset-top))] bottom-3 left-[calc(0.75rem+env(safe-area-inset-left))] z-30 hidden w-[72px] flex-col items-center py-2 md:flex">
@@ -83,7 +105,14 @@ function Rail() {
         </Link>
       </RailLanguageSwitcher>
       <div className="relative mt-6">
-        <nav className="relative flex flex-col gap-6 rounded-full border border-line bg-surface p-1" aria-label="Main">
+        <span
+          aria-hidden
+          className={`pointer-events-none absolute top-0 left-1/2 transition-[transform,opacity] ease-in-out ${activeIndex < 0 ? "opacity-0" : ""}`}
+          style={{ width: RAIL_GLOW, height: RAIL_GLOW, transitionDuration: `${RAIL_MOVE_MS}ms`, transform: `translate(-50%, ${RAIL_PAD + Math.max(0, activeIndex) * RAIL_STEP + RAIL_BUTTON / 2 - RAIL_GLOW / 2}px)` }}
+        >
+          <span ref={glow} className="absolute inset-0 rounded-full bg-volt-500/25 blur-[120px]" style={{ opacity: RAIL_GLOW_OPACITY }} />
+        </span>
+        <nav className="relative flex flex-col gap-6 rounded-full border border-line/60 bg-surface/40 p-1 backdrop-blur-xl" aria-label="Main">
           <span
             aria-hidden
             className={`absolute top-1 left-1 size-11 rounded-full bg-volt-500 transition-[transform,opacity] ease-in-out ${activeIndex < 0 ? "opacity-0" : ""}`}

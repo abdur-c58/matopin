@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import type { Stroke } from "@/lib/handwriting";
 import { isLang, type Lang } from "@/lib/lang";
 import { guessLang } from "@/lib/lang-resolve";
 import { DictionaryPage } from "./dictionary-page";
@@ -35,17 +36,20 @@ function BothDictionaries({ params }: { params: URLSearchParams }) {
     return { lang: isLang(lang) ? lang : q ? guessLang(q, { fallback: active }).lang : active, run: 0, params };
   });
   const [manualFor, setManualFor] = useState<string | null>(null);
+  const [pad, setPad] = useState<Stroke[] | null>(null);
   const [followed, setFollowed] = useState(active);
   if (followed !== active) {
     setFollowed(active);
     if (state.lang !== active) {
       // The other dictionary starts empty: the old query and entry id belong to this one.
       setState((s) => ({ lang: active, run: s.run + 1, params: new URLSearchParams({ lang: active }) }));
+      setPad(null);
     }
   }
 
-  const switchTo = (lang: Lang, query: string, manual: boolean) => {
+  const switchTo = (lang: Lang, query: string, manual: boolean, carried: Stroke[] | null = null) => {
     setManualFor(manual ? query.trim() : null);
+    setPad(carried);
     setState((s) => (s.lang === lang ? s : { lang, run: s.run + 1, params: new URLSearchParams({ q: query, lang }) }));
     // The preferred language follows what was last searched, so the next unclear search starts here.
     setLang(lang);
@@ -56,13 +60,14 @@ function BothDictionaries({ params }: { params: URLSearchParams }) {
       const { text, lang } = (e as CustomEvent<LookupDetail>).detail;
       if (lang === state.lang) return;
       setState((s) => ({ lang, run: s.run + 1, params: new URLSearchParams({ q: text, lang }) }));
+      setPad(null);
     };
     window.addEventListener(LOOKUP_EVENT, listen);
     return () => window.removeEventListener(LOOKUP_EVENT, listen);
   }, [state.lang]);
 
   return (
-    <DictSwitchContext value={{ lang: state.lang, switchTo, manualFor }}>
+    <DictSwitchContext value={{ lang: state.lang, switchTo, manualFor, pad }}>
       {state.lang === "ja"
         ? <JDictPage key={`ja-${state.run}`} params={state.params} />
         : <DictionaryPage key={`zh-${state.run}`} params={state.params} />}

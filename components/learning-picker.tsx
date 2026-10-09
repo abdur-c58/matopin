@@ -8,6 +8,8 @@ import { LANG_INFO, LANGS } from "@/lib/lang";
 import type { Learning } from "@/lib/prefs";
 import { useDecks } from "./decks-context";
 import { useLearning } from "./lang-context";
+import { useProfile } from "./profiles";
+import { Toggle } from "./ui";
 
 const OPTIONS: { value: Learning; label: string; native: string; badge: string; detail: string }[] = [
   ...LANGS.map((l) => ({ value: l, label: LANG_INFO[l].name, native: LANG_INFO[l].native, badge: LANG_INFO[l].badge, detail: `Decks, the dictionary and Bao all stay in ${LANG_INFO[l].name}.` })),
@@ -75,6 +77,11 @@ export function LearningPanel({ id, className = "" }: { id?: string; className?:
   const { learning, setLearning } = useLearning();
   const { allDecks, archived } = useDecks();
   const [busy, setBusy] = useState<Learning | null>(null);
+  const { prefs, setPrefs } = useProfile();
+
+  function followDeck(on: boolean) {
+    void setPrefs({ followDeck: on }).catch(() => toast.error("Couldn’t save that. Try again."));
+  }
 
   async function pick(next: Learning) {
     const moving = next === "both" ? 0 : (allDecks ?? []).filter((d) => d.language !== next).length;
@@ -98,6 +105,10 @@ export function LearningPanel({ id, className = "" }: { id?: string; className?:
         Learning one language keeps decks, the dictionary and Bao on it and hides the language switch. Swapping or dropping a language never deletes anything: its decks wait in the archive.
       </p>
       <div className="mt-4"><LearningOptions value={learning} busy={busy} onPick={(next) => void pick(next)} /></div>
+      {learning === "both" && (
+        <Toggle className="mt-3 -ml-2" checked={prefs.followDeck} onChange={followDeck}
+          label="Switch to a deck’s language when you open or study it" />
+      )}
       {archived.length > 0 && (
         <Link href="/decks?archive" className="btn btn-ghost mt-3">Open the archive · {archived.length}</Link>
       )}
