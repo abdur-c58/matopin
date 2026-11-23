@@ -233,7 +233,7 @@ export function DeckEditor({ scope }: { scope: string }) {
         <Preview card={previewCard} listening={z.listening} onListen={(part) => void z.listen(previewCard, part)} speed={prefs.playbackSpeed} speeds={PLAYBACK_SPEEDS} onSpeed={changeSpeed} />
         {toned && <ToneLegend className="surface hidden px-4 py-3 lg:flex" />}
       </aside>
-      {toned && <ToneLegend className="fixed inset-x-0 bottom-0 z-20 md:left-[96px] flex justify-center border-t border-line bg-surface/95 px-3 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] backdrop-blur lg:hidden" />}
+      {toned && <ToneLegend className="fixed inset-x-0 bottom-(--tabbar-h) z-20 md:left-[96px] flex justify-center border-t border-line bg-surface/95 px-3 pt-2 pb-[max(0.5rem,calc(env(safe-area-inset-bottom)+0.5rem-var(--tabbar-h)))] backdrop-blur lg:hidden" />}
 
       {check.dialog}
       <DeckSplit open={splitting} onOpenChange={setSplitting} deckId={deckId} lang={z.lang} cards={z.filled} readOnly={readOnly} onMoved={z.removeMany} />

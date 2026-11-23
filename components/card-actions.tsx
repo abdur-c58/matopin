@@ -107,7 +107,7 @@ export function CardActions({ deckId, lang, cards, total, readOnly, raised, onSe
   const finish = (ids: string[]) => { onRemove(ids); onExit(); };
   return (
     <>
-      <div className={`popup sticky z-20 mt-3 flex flex-wrap items-center gap-2 p-2 pl-4 ${raised ? "bottom-[calc(4.5rem+env(safe-area-inset-bottom))] lg:bottom-4" : "bottom-[calc(1rem+env(safe-area-inset-bottom))]"}`}>
+      <div className={`popup sticky z-20 mt-3 flex flex-wrap items-center gap-2 p-2 pl-4 ${raised ? "bottom-[calc(4.5rem+max(env(safe-area-inset-bottom),var(--tabbar-h)))] lg:bottom-4" : "bottom-[calc(1rem+max(env(safe-area-inset-bottom),var(--tabbar-h)))]"}`}>
         <span className="text-sm font-semibold tabular-nums">{cards.length} selected</span>
         <button type="button" className="text-xs font-medium text-muted hover:text-ink" onClick={cards.length === total ? onClear : onSelectAll}>
           {cards.length === total ? "Select none" : "Select all"}

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState, ViewTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Dialog } from "radix-ui";
-import { BookA, BookOpen, CalendarDays, ChevronLeft, ChartColumn, House, Layers, LogOut, Menu, MessageCircle, PictureInPicture2, Rows3, Search, Settings, Settings2, Users, X } from "lucide-react";
+import { BookA, BookOpen, CalendarDays, ChevronLeft, ChevronRight, ChartColumn, Ellipsis, House, Layers, LogOut, MessageCircle, PictureInPicture2, Rows3, Search, Settings, Settings2, Users, X } from "lucide-react";
 import { APP_NAME } from "@/lib/brand";
 import { useChatBadge } from "@/lib/chat-client";
 import { LANG_INFO, type Lang } from "@/lib/lang";
@@ -157,18 +157,51 @@ function AccountDock() {
   );
 }
 
-function MobileBar() {
+/*
+ * Phones get iOS's layout: a slim navigation bar on top (back button, a centred title once the page's large title
+ * scrolls under it), and a floating tab bar for the four main places plus More, which opens a sheet with the rest.
+ */
+const TAB_HREFS = ["/app", "/decks", "/dictionary", "/chat"];
+const TAB_LABELS: Record<string, string> = { "/app": "Home" };
+const TABS = TAB_HREFS.map((href) => NAV.find((item) => item.href === href)!);
+const MORE = NAV.filter((item) => !TAB_HREFS.includes(item.href));
+/** Settings-style icon tiles in the More sheet. */
+const MORE_TINT: Record<string, string> = { "/social": "bg-tone-4", "/calendar": "bg-tone-1", "/stats": "bg-tone-3", "/settings": "bg-tone-5" };
+/** Studying and a chat thread fill the screen, the way iOS hides the tab bar inside a pushed view. */
+const hidesTabBar = (pathname: string) => /^\/decks\/[^/]+\/review/.test(pathname) || /^\/chat\/[^/]+/.test(pathname);
+
+function usePageTitle() {
+  const pathname = usePathname();
+  const { name } = useProfile();
+  const key = Object.keys(TITLES).find((k) => isActive(pathname, k));
+  return pathname === "/app" ? `Hello, ${name}`
+    : pathname.startsWith("/u/") ? "Profile"
+    : pathname.startsWith("/join/") ? "Invite"
+    : TITLES[key ?? ""] ?? "Decks";
+}
+
+function MobileChrome() {
   const pathname = usePathname();
   const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const { leaving, logout } = useLogout();
+  const [more, setMore] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [titleIn, setTitleIn] = useState(false);
   const { lang } = useActiveLang();
+  const title = usePageTitle();
+
   useEffect(() => {
     const desktop = window.matchMedia("(width >= 48rem)");
-    const close = () => { if (desktop.matches) setOpen(false); };
+    const close = () => { if (desktop.matches) setMore(false); };
     desktop.addEventListener("change", close);
     return () => desktop.removeEventListener("change", close);
   }, []);
+  useEffect(() => {
+    const onScroll = () => { setScrolled(window.scrollY > 2); setTitleIn(window.scrollY > 40); };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [pathname]);
+
   const current = NAV.find((item) => isActive(pathname, item.href));
   const nested = !NAV.some((item) => item.href === pathname);
   const back = () => {
@@ -177,47 +210,106 @@ function MobileBar() {
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-30 flex h-[calc(3.5rem+env(safe-area-inset-top))] items-center gap-1.5 border-b border-line bg-porcelain/95 pt-[env(safe-area-inset-top)] pr-[max(1rem,env(safe-area-inset-right))] pl-[max(0.75rem,env(safe-area-inset-left))] backdrop-blur-xs md:hidden">
-      {nested && <button type="button" className="icon-btn -mr-1" aria-label="Back" onClick={back}><ChevronLeft className="size-5" /></button>}
-      <Dialog.Root open={open} onOpenChange={setOpen}>
-        <Dialog.Trigger className="icon-btn relative" aria-label="Open menu"><Menu className="size-5" /><NavBadge href="/chat" className="absolute -top-1 -right-1" /></Dialog.Trigger>
-        <Dialog.Portal>
-          <Dialog.Overlay className="overlay" />
-          <Dialog.Content className="fixed inset-y-0 left-0 z-50 flex w-[min(18rem,85vw)] flex-col border-r border-line bg-surface p-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))] shadow-pop data-[state=open]:animate-slide" aria-describedby={undefined}>
-            <Dialog.Title className="sr-only">Menu</Dialog.Title>
-            <Dialog.Close className="icon-btn absolute top-[calc(1rem+env(safe-area-inset-top))] right-3" aria-label="Close menu"><X className="size-4" /></Dialog.Close>
-            <Link href="/app" onClick={() => setOpen(false)} className="flex items-center gap-2.5 transition hover:opacity-80">
-              <LogoMark className="size-9" active={lang} /><span className="text-base font-bold">{APP_NAME}</span>
+    <>
+      <header className={`fixed inset-x-0 top-0 z-30 border-b pt-[env(safe-area-inset-top)] pr-[max(0.5rem,env(safe-area-inset-right))] pl-[max(0.25rem,env(safe-area-inset-left))] transition-[background-color,border-color] duration-300 select-none md:hidden ${scrolled ? "border-line/70 bg-porcelain/80 backdrop-blur-xl backdrop-saturate-150" : "border-transparent bg-porcelain"}`}>
+        <div className="relative flex h-(--navbar-h) items-center">
+          {nested ? (
+            <button type="button" className="press flex h-11 min-w-0 items-center pr-2 text-[17px] text-volt-ink" aria-label="Back" onClick={back}>
+              <ChevronLeft className="size-7 shrink-0" strokeWidth={2.4} />
+              <span className="-ml-0.5 max-w-28 truncate">{TAB_LABELS[current?.href ?? ""] ?? current?.label ?? "Back"}</span>
+            </button>
+          ) : (
+            <Link href="/app" className="press grid size-11 place-items-center" aria-label={`${APP_NAME} home`}>
+              <LogoMark className="size-7" active={lang} />
             </Link>
-            <LanguageMenu onPicked={() => setOpen(false)} />
-            <nav className="mt-5 flex-1 space-y-1 overflow-y-auto" aria-label="Main">
-              {NAV.map(({ href, label, icon: Icon }) => {
-                const active = isActive(pathname, href);
-                return (
-                  <Link key={href} href={href} onClick={() => setOpen(false)} aria-current={active ? "page" : undefined}
-                    className={`flex h-11 items-center gap-3 rounded-full px-4 text-sm font-semibold transition ${active ? "bg-volt-500 text-on-volt hover:bg-volt-hover" : "text-muted hover:bg-raised hover:text-ink"}`}>
-                    <Icon className="size-4" />{label}
-                    <NavBadge href={href} className="ml-auto" />
-                  </Link>
-                );
-              })}
-            </nav>
-            <div className="flex items-center gap-2 border-t border-line pt-4">
-              <AccountMenu />
-              <button type="button" className="btn btn-ghost ml-auto" disabled={leaving} onClick={() => void logout()}>Log out</button>
-            </div>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog.Root>
-      <Link href="/app" className="flex min-w-0 items-center gap-2 transition hover:opacity-80">
-        <LogoMark className="size-7" active={lang} />
-        <span className="truncate text-sm font-bold">{current?.label ?? APP_NAME}</span>
-      </Link>
-      <button type="button" onClick={() => setOpen(true)} aria-label={`Learning ${LANG_INFO[lang].name}. Change language`}
-        className="ml-auto inline-flex h-8 items-center gap-1.5 rounded-full border border-line px-2.5 text-xs font-semibold text-muted transition hover:text-ink">
-        <span className="font-hanzi text-sm text-ink" lang={LANG_INFO[lang].speech}>{LANG_INFO[lang].badge}</span>{LANG_INFO[lang].name}
-      </button>
-    </header>
+          )}
+          <span aria-hidden={!titleIn} className={`pointer-events-none absolute inset-x-32 truncate text-center text-[17px] font-semibold transition-[opacity,translate] duration-300 ${titleIn ? "opacity-100" : "translate-y-1.5 opacity-0"}`}>
+            {title}
+          </span>
+          <button type="button" onClick={() => setMore(true)} aria-label={`Learning ${LANG_INFO[lang].name}. Change language`}
+            className="press ml-auto inline-flex h-8 items-center gap-1.5 rounded-full bg-raised px-3 text-[13px] font-semibold text-muted">
+            <span className="font-hanzi text-sm text-ink" lang={LANG_INFO[lang].speech}>{LANG_INFO[lang].badge}</span>{LANG_INFO[lang].name}
+          </button>
+        </div>
+      </header>
+      <TabBar moreOpen={more} onMore={() => setMore(true)} />
+      <MoreSheet open={more} onOpenChange={setMore} />
+    </>
+  );
+}
+
+function TabBar({ moreOpen, onMore }: { moreOpen: boolean; onMore: () => void }) {
+  const pathname = usePathname();
+  if (hidesTabBar(pathname)) return null;
+  const tab = TABS.findIndex(({ href }) => isActive(pathname, href));
+  const active = moreOpen ? TABS.length : tab >= 0 ? tab : MORE.some(({ href }) => isActive(pathname, href)) ? TABS.length : -1;
+  const item = "press relative z-10 flex flex-col items-center justify-center gap-[3px] rounded-full text-[10px] font-semibold tracking-tight";
+  return (
+    <nav aria-label="Main" className="tabbar fixed inset-x-0 bottom-(--tabbar-bottom) z-30 mx-auto w-[min(calc(100%-2rem),26rem)] select-none md:hidden">
+      <div className="relative grid h-[3.875rem] grid-cols-5 rounded-full border border-line/60 bg-surface/75 p-1 shadow-[0_10px_30px_-8px_rgb(0_0_0/0.4)] backdrop-blur-xl backdrop-saturate-150">
+        {/* The selection: a soft pill that springs between tabs. */}
+        <span aria-hidden
+          className={`absolute inset-y-1 left-1 w-[calc((100%-0.5rem)/5)] rounded-full bg-ink/8 transition-[translate,opacity] duration-600 ease-(--ease-spring) ${active < 0 ? "opacity-0" : ""}`}
+          style={{ translate: `${Math.max(0, active) * 100}% 0` }}
+        />
+        {TABS.map(({ href, label, icon: Icon }, i) => {
+          const on = i === active;
+          return (
+            <Link key={href} href={href} aria-current={on ? "page" : undefined} className={`${item} ${on ? "text-volt-ink" : "text-muted"}`}
+              onClick={() => { if (pathname === href) window.scrollTo({ top: 0, behavior: "smooth" }); }}>
+              <Icon className="size-[22px]" strokeWidth={on ? 2.4 : 2} />
+              {TAB_LABELS[href] ?? label}
+              <NavBadge href={href} className="absolute top-1 left-[calc(50%+0.25rem)] ring-surface" />
+            </Link>
+          );
+        })}
+        <button type="button" onClick={onMore} aria-haspopup="dialog" className={`${item} ${active === TABS.length ? "text-volt-ink" : "text-muted"}`}>
+          <Ellipsis className="size-[22px]" strokeWidth={active === TABS.length ? 2.6 : 2.2} />
+          More
+        </button>
+      </div>
+    </nav>
+  );
+}
+
+function MoreSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const pathname = usePathname();
+  const { leaving, logout } = useLogout();
+  const close = () => onOpenChange(false);
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="overlay" />
+        <Dialog.Content className="popup fixed top-1/2 left-1/2 flex max-h-[calc(100dvh-1.5rem)] w-[min(24rem,calc(100vw-1.5rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto p-4" aria-describedby={undefined}>
+          <div className="flex items-center justify-between px-1">
+            <Dialog.Title className="text-[22px] font-bold tracking-tight">{APP_NAME}</Dialog.Title>
+            <Dialog.Close className="press grid size-8 place-items-center rounded-full bg-raised text-muted" aria-label="Close"><X className="size-4" strokeWidth={2.6} /></Dialog.Close>
+          </div>
+          <LanguageMenu onPicked={close} />
+          {/* An iOS inset-grouped list: icon tiles, separators that start at the text, a chevron on each row. */}
+          <ul className="squircle mt-5 overflow-hidden rounded-lg bg-raised/70 [--sq-r:var(--radius-lg)]">
+            {MORE.map(({ href, label, icon: Icon }, i) => (
+              <li key={href}>
+                <Link href={href} onClick={close} aria-current={isActive(pathname, href) ? "page" : undefined}
+                  className="flex h-12 items-center gap-3 pl-3.5 transition-colors duration-150 active:bg-ink/8 active:duration-0">
+                  <span className={`squircle grid size-[30px] shrink-0 place-items-center rounded-[8px] text-white [--sq-r:8px] ${MORE_TINT[href] ?? "bg-tone-5"}`}>
+                    <Icon className="size-[17px]" strokeWidth={2.2} />
+                  </span>
+                  <span className={`flex flex-1 items-center gap-2 self-stretch pr-3.5 text-[17px] ${i < MORE.length - 1 ? "border-b border-line/80" : ""}`}>
+                    {label}
+                    <ChevronRight className="ml-auto size-[18px] text-muted/70" strokeWidth={2.4} />
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-5 flex items-center gap-2 px-1">
+            <AccountMenu />
+            <button type="button" className="btn btn-ghost ml-auto text-tone-1 hover:text-tone-1" disabled={leaving} onClick={() => void logout()}>Log out</button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 
@@ -297,18 +389,13 @@ const TITLES: Record<string, string> = {
 };
 
 function TopBar() {
-  const pathname = usePathname();
-  const { name } = useProfile();
   const { create } = useDecks();
-  const key = Object.keys(TITLES).find((k) => isActive(pathname, k));
-  const title = pathname === "/app" ? `Hello, ${name}`
-    : pathname.startsWith("/u/") ? "Profile"
-    : pathname.startsWith("/join/") ? "Invite"
-    : TITLES[key ?? ""] ?? "Decks";
+  const title = usePageTitle();
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 px-page pt-5 md:pt-7">
+    <div className="flex flex-wrap items-center justify-between gap-3 px-page pt-1 md:pt-7">
       <div className="flex min-w-0 items-center gap-3">
-        <h1 className="min-w-0 truncate text-2xl font-bold tracking-tight md:text-[28px]">{title}</h1>
+        {/* On phones, iOS's large title: 34pt bold, handing over to the navigation bar's title as it scrolls away. */}
+        <h1 className="min-w-0 truncate text-[34px] leading-[41px] font-bold tracking-tight md:text-[28px] md:leading-tight">{title}</h1>
         <OfflineIndicator />
       </div>
       <div className="flex w-full items-center gap-2 sm:w-auto">
@@ -361,11 +448,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <DecksProvider>
       <QuickPanelsProvider>
         <SignedInSetup />
-        <div className="min-h-dvh pt-[calc(3.5rem+env(safe-area-inset-top))] pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] md:pt-[env(safe-area-inset-top)] md:pl-[calc(96px+env(safe-area-inset-left))]">
+        <div className="min-h-dvh pt-[calc(var(--navbar-h)+env(safe-area-inset-top))] pr-[env(safe-area-inset-right)] pb-[max(env(safe-area-inset-bottom),var(--tabbar-h))] md:pt-[env(safe-area-inset-top)] md:pl-[calc(96px+env(safe-area-inset-left))]">
           <RailTipProvider>
             <Rail />
             <AccountDock />
-            <MobileBar />
+            <MobileChrome />
           </RailTipProvider>
           <SelectionMenu />
           <LearningOnboarding />

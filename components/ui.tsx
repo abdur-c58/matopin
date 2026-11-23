@@ -30,9 +30,12 @@ export function Chips<T extends string>({ value, onChange, options, label }: { v
 export function Toggle({ checked, onChange, label, className = "" }: { checked: boolean; onChange: (on: boolean) => void; label: string; className?: string }) {
   return (
     <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)}
-      className={`inline-flex h-9 items-center gap-2 rounded-full px-2 text-sm font-medium text-muted transition hover:text-ink ${className}`}>
-      <span className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${checked ? "bg-volt-500" : "bg-line"}`}>
-        <span className={`absolute top-0.5 left-0.5 size-4 rounded-full bg-white shadow transition-transform ${checked ? "translate-x-4" : ""}`} />
+      className={`group inline-flex h-11 items-center gap-2.5 rounded-full px-2 text-sm font-medium text-muted transition hover:text-ink ${className}`}>
+      {/* iOS's switch: 51x31 with a 27pt knob that stretches while pressed and springs across. */}
+      <span className={`relative h-[31px] w-[51px] shrink-0 rounded-full transition-colors duration-300 ${checked ? "bg-volt-500" : "bg-ghost"}`}>
+        <span
+          className={`absolute top-0.5 left-0.5 h-[27px] w-[27px] rounded-full bg-white shadow-[0_3px_8px_rgb(0_0_0/0.15),0_1px_1px_rgb(0_0_0/0.16)] transition-[translate,width] duration-500 ease-(--ease-bounce) group-active:w-[33px] ${checked ? "translate-x-5 group-active:translate-x-[14px]" : ""}`}
+        />
       </span>
       {label}
     </button>

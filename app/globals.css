@@ -139,7 +139,9 @@
   /* Nothing on the page should ever scroll it sideways; clip (unlike hidden) keeps sticky headers working. */
   html, body { overflow-x: clip; }
   /* Keeps things scrolled into view clear of the fixed mobile top bar. */
-  @media (width < 48rem) { html { scroll-padding-top: calc(4rem + env(safe-area-inset-top)); } }
+  @media (width < 48rem) { html { scroll-padding-top: calc(var(--navbar-h) + 1rem + env(safe-area-inset-top)); scroll-padding-bottom: var(--tabbar-h); } }
+  /* Taps show the control's own pressed state, not the browser's grey flash. */
+  html { -webkit-tap-highlight-color: transparent; }
   html { @apply bg-porcelain; }
   body { @apply bg-porcelain font-sans text-ink antialiased; }
   /* The installed app has no browser around it, so links shouldn't open the browser's long-press preview. */
@@ -219,6 +221,61 @@
   .popup { @apply z-50 rounded-xl border border-line bg-surface shadow-pop data-[state=open]:animate-pop; }
   /* On a wrapper around a coloured glow, so it lights up the dark theme and only tints the light one. */
   .theme-glow { opacity: var(--theme-glow); }
+
+  /*
+   * Touch screens follow iOS: 44pt targets, 17pt text in fields (which also stops Safari zooming into them), filled
+   * grey secondary buttons, borderless cards, and controls that dip when pressed and spring back when let go.
+   */
+  @media (pointer: coarse) {
+    .btn { @apply h-11 text-[15px]; }
+    /* Icon buttons keep their size, so rows of them still fit, and reach out invisibly to a 44pt target. */
+    .icon-btn { position: relative; }
+    .icon-btn::before { content: ""; position: absolute; inset: -4px; }
+    .field { @apply h-11 text-base; }
+    .btn-secondary { @apply border-transparent bg-raised; }
+    .surface { border-color: transparent; }
+    .btn, .icon-btn, .chip, .tab, .press {
+      transition-property: color, background-color, border-color, opacity, scale;
+      transition-duration: 150ms, 150ms, 150ms, 150ms, 700ms;
+      transition-timing-function: ease, ease, ease, ease, var(--ease-bounce);
+    }
+    :is(.btn, .icon-btn, .chip, .press):active:not(:disabled) { scale: 0.95; transition-duration: 150ms, 150ms, 150ms, 150ms, 90ms; transition-timing-function: ease-out; }
+    .tab:active { opacity: 0.6; transition-duration: 0ms; }
+  }
+}
+
+/*
+ * Phones: every dialog is an iOS sheet. It floats a little in from the screen's edges with corners that follow the
+ * screen's, slides up on a spring, shows a grabber, and can be dragged down to close (components/app-feel.tsx).
+ * Unlayered, so it beats each dialog's own centring utilities. Pop-overs (menus, pickers) aren't .fixed and stay put.
+ */
+@media (width < 48rem) {
+  .popup.fixed:is([role="dialog"], [role="alertdialog"]) {
+    --sq-r: calc(var(--radius-screen) - 0.5rem);
+    inset: auto 0.5rem calc(0.5rem + var(--keyboard, 0px)) 0.5rem;
+    width: auto;
+    translate: none;
+    max-height: calc(100dvh - env(safe-area-inset-top) - 1.5rem - var(--keyboard, 0px));
+    border-radius: var(--sq-r);
+    padding-top: 1.75rem;
+    padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+    -webkit-mask-box-image: var(--squircle-mask) 154 fill / calc(var(--sq-r) * 1.54);
+  }
+  .popup.fixed:is([role="dialog"], [role="alertdialog"])[data-state="open"] { animation: sheet-in 600ms var(--ease-spring) both; }
+  .popup.fixed:is([role="dialog"], [role="alertdialog"])[data-state="closed"] { animation: sheet-out 360ms var(--ease-smooth) both; }
+  .popup.fixed:is([role="dialog"], [role="alertdialog"])::before {
+    content: ""; position: absolute; top: 0.5rem; left: 50%; translate: -50% 0; width: 2.25rem; height: 0.3125rem;
+    border-radius: 9999px; background: color-mix(in srgb, var(--color-ink) 22%, transparent);
+  }
+  .overlay[data-state="closed"] { animation: fade-out 300ms ease both; }
+}
+:root[data-keyboard] .tabbar { display: none; }
+@keyframes sheet-in { from { transform: translateY(calc(100% + 1rem)); } }
+@keyframes sheet-out { to { transform: translateY(calc(100% + 1rem)); } }
+@keyframes fade-out { to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .popup.fixed:is([role="dialog"], [role="alertdialog"])[data-state] { animation-name: fade; animation-duration: 200ms; }
+  .popup.fixed:is([role="dialog"], [role="alertdialog"])[data-state="closed"] { animation-name: fade-out; }
 }
 
 /* Japanese text gets Japanese glyph shapes (Chinese fonts draw kanji like 直 or 骨 differently). Outside the

@@ -49,5 +49,5 @@ export function ThemeSync() {
 
 export function ThemedToaster() {
   const theme = useResolvedTheme();
-  return <Toaster theme={theme} position="bottom-right" toastOptions={{ classNames: { toast: "!rounded-xl !border-line !bg-surface !text-ink !shadow-pop" } }} />;
+  return <Toaster theme={theme} position="bottom-right" mobileOffset={{ bottom: "calc(max(env(safe-area-inset-bottom), var(--tabbar-h)) + 12px)" }} toastOptions={{ classNames: { toast: "!rounded-xl !border-line !bg-surface !text-ink !shadow-pop" } }} />;
 }
