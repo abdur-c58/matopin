@@ -9,7 +9,7 @@ import { isDeckRole, isVisibility, type DeckRole } from "@/lib/social";
 import { DEFAULT_FLUENCY, isFluency } from "@/lib/cards";
 
 type ProfileRow = { id: string; name: string; email?: string | null; fluency: string; prefs?: unknown; avatar?: string | null; color?: string; avatar_crop?: unknown; bio?: string | null };
-type DeckRow = { id: string; deck: unknown; srs: unknown; tags: unknown; version: number; role?: string; visibility?: string; owner_id?: string; owner_name?: string | null };
+type DeckRow = { id: string; deck: unknown; srs: unknown; tags: unknown; version: number; unchanged?: boolean; role?: string; visibility?: string; owner_id?: string; owner_name?: string | null };
 type Body = Record<string, unknown>;
 
 const profile = (row: ProfileRow) => ({
@@ -24,11 +24,20 @@ const profile = (row: ProfileRow) => ({
   bio: typeof row.bio === "string" ? row.bio : "",
 });
 const deck = (row: DeckRow) => ({
-  id: row.id, deck: row.deck, srs: row.srs, tags: row.tags, version: row.version,
+  id: row.id, deck: row.deck, srs: row.srs, tags: row.tags, version: row.version, ...(row.unchanged ? { unchanged: true } : {}),
   role: isDeckRole(row.role) ? row.role : ("owner" satisfies DeckRole),
   visibility: isVisibility(row.visibility) ? row.visibility : "private",
   ownerId: row.owner_id ?? "", ownerName: row.owner_name ?? null,
 });
+/** { deck id: version } from the device, or null when it sent none. */
+const knownVersions = (v: unknown) => {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return null;
+  const out: Record<string, number> = {};
+  for (const [id, version] of Object.entries(v).slice(0, 500)) {
+    if (uuid(id) && typeof version === "number" && Number.isSafeInteger(version)) out[id] = version;
+  }
+  return out;
+};
 const str = (v: unknown) => (typeof v === "string" ? v : "");
 const int = (v: unknown) => (typeof v === "number" && Number.isSafeInteger(v) ? v : null);
 const uuid = (v: unknown) => (typeof v === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v) ? v : null);
@@ -96,7 +105,16 @@ async function handle(body: Body, token: string) {
       return Response.json({ prefs: cleanPrefs(prefs) });
     }
     case "decks": {
-      const rows = await rpc<DeckRow[]>("matopin_decks_list", { p_token: token });
+      const known = knownVersions(body.known);
+      let rows: DeckRow[];
+      try {
+        // Decks the device already has at their current version come back without their contents.
+        rows = known ? await rpc<DeckRow[]>("matopin_decks_sync", { p_token: token, p_known: known }) : await rpc<DeckRow[]>("matopin_decks_list", { p_token: token });
+      } catch (e) {
+        // Until supabase/018_deck_sync_versions.sql has been run, the full list still works.
+        if (!known || !(e instanceof StoreError) || !e.message.includes("missing the app tables")) throw e;
+        rows = await rpc<DeckRow[]>("matopin_decks_list", { p_token: token });
+      }
       return Response.json({ decks: rows.map(deck) });
     }
     case "saveDeck": {

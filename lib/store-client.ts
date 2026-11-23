@@ -5,7 +5,8 @@ import type { Fluency } from "./cards";
 import { reportOffline, reportOnline } from "./connection";
 
 export type ProfileInfo = { id: string; name: string; email: string | null; fluency: Fluency; prefs: Prefs; avatar: string | null; avatarCrop: AvatarCrop | null; color: AvatarColor; bio: string };
-export type RemoteDeck = DeckMeta & { id: string; deck: unknown; srs: unknown; tags: unknown; version: number };
+/** `unchanged`: the device already has this version, so deck, srs and tags were left out (null). */
+export type RemoteDeck = DeckMeta & { id: string; deck: unknown; srs: unknown; tags: unknown; version: number; unchanged?: boolean };
 
 export class StoreRequestError extends Error {
   constructor(message: string, readonly status: number) {

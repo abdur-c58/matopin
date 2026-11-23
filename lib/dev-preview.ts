@@ -111,7 +111,11 @@ function answer(action: string, body: Record<string, unknown>): unknown {
     case "updateProfile": me = { ...me, ...(body as Partial<ProfileInfo>) }; return { me };
     case "setFluency": me = { ...me, fluency: body.fluency as ProfileInfo["fluency"] }; return { ok: true };
     case "setPrefs": me = { ...me, prefs: { ...me.prefs, ...(body.prefs as Partial<Prefs>) } }; return { prefs: me.prefs };
-    case "decks": return { decks };
+    case "decks": {
+      // Like matopin_decks_sync: decks the device already has at this version come back without their contents.
+      const known = (body.known ?? {}) as Record<string, unknown>;
+      return { decks: decks.map((d) => (known[d.id] === d.version ? { ...d, deck: null, srs: null, tags: null, unchanged: true } : d)) };
+    }
     case "saveDeck": {
       const d = decks.find((x) => x.id === body.id);
       if (d) { d.version += 1; d.deck = body.deck; d.srs = body.srs; d.tags = body.tags; return { version: d.version }; }

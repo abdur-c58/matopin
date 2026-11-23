@@ -416,9 +416,12 @@ export async function pullDecks(profile: string, initial = false) {
   restore(profile);
   const started = changes;
   const deleting = new Set(readOutbox(profile).deletes);
-  const decks = (await store<{ decks: RemoteDeck[] }>("decks")).decks.filter((d) => !deleting.has(d.id));
-  const changedSince = (scope: string) => (changedAt.get(scope) ?? 0) > started;
   const local = listDeckIds(profile);
+  // Tell the server which version of each deck this browser has, so unchanged decks come back without their contents.
+  const known: Record<string, number> = {};
+  if (!initial) for (const id of local) { const rev = readRev(`${profile}:${id}`); if (rev != null) known[id] = rev; }
+  const decks = (await store<{ decks: RemoteDeck[] }>("decks", initial ? {} : { known })).decks.filter((d) => !deleting.has(d.id));
+  const changedSince = (scope: string) => (changedAt.get(scope) ?? 0) > started;
   if (initial && !decks.length && local.length) {
     for (const id of local) await push(`${profile}:${id}`);
     return;
@@ -439,7 +442,7 @@ export async function pullDecks(profile: string, initial = false) {
       writeMeta(scope, meta);
       changed.push(scope);
     }
-    if (busy(scope) || changedSince(scope)) continue;
+    if (busy(scope) || changedSince(scope) || deck.unchanged) continue;
     const rev = readRev(scope);
     if (!initial && rev === deck.version) continue;
     // Versions only go up, so an older one is a reply from before this device's last save.
