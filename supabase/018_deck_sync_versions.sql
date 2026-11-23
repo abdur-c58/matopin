@@ -21,4 +21,14 @@ $$;
 revoke execute on function public.matopin_decks_sync(text, jsonb) from public, anon, authenticated;
 grant execute on function public.matopin_decks_sync(text, jsonb) to anon;
 
+-- The daily keep-alive (app/api/keepalive) calls this so the free project never counts as inactive and pauses.
+-- It touches the database but reads nothing private.
+create or replace function public.matopin_ping()
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from matopin_profiles limit 1) or true
+$$;
+
+revoke execute on function public.matopin_ping() from public, anon, authenticated;
+grant execute on function public.matopin_ping() to anon;
+
 notify pgrst, 'reload schema';

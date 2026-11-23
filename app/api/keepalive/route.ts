@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
   try {
-    await rpc("matopin_reaction_emojis");
+    await rpc("matopin_ping");
     return Response.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
   } catch (e) {
     const status = e instanceof StoreError ? e.status : 500;
