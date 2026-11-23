@@ -151,7 +151,8 @@
   /* The installed app behaves like an app: no pinch or double-tap zoom, and no sideways swipe between pages. */
   html, body { overscroll-behavior-x: none; }
   @media (display-mode: standalone) {
-    html { touch-action: pan-x pan-y; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    /* The page itself only ever scrolls up and down; rows that scroll sideways are their own scrollers and still do. */
+    html { touch-action: pan-y; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   }
   /* Japanese written in ordinary text (not font-hanzi) also gets Japanese glyph shapes. */
   :where(:lang(ja)) { font-family: var(--font-pinyin), var(--font-urbanist), var(--font-noto-jp), ui-sans-serif, system-ui, sans-serif; }
@@ -270,6 +271,26 @@
   .overlay[data-state="closed"] { animation: fade-out 300ms ease both; }
 }
 :root[data-keyboard] .tabbar { display: none; }
+/*
+ * Phones: page changes without a view transition (see PageTransition in components/app-shell.tsx). The new page
+ * animates in as it mounts: a quick fade between tabs, a short slide when going deeper (push) or back (pop).
+ * No fill after it ends, so the page never stays transformed (that would trap its fixed children).
+ */
+@media (width < 48rem) {
+  .page { animation: page-tab 160ms ease-out backwards; }
+  .page[data-nav="push"] { animation: page-push 380ms var(--ease-smooth) backwards; }
+  .page[data-nav="pop"] { animation: page-pop 380ms var(--ease-smooth) backwards; }
+  /* An open chat slides in over the list, like a pushed screen. */
+  .chat-open:not(:empty) { animation: page-push 380ms var(--ease-smooth) backwards; }
+  /* The chats are the page itself, not a card on it. */
+  .chat-frame { border: 0; border-radius: 0; background: transparent; -webkit-mask-box-image: none; }
+}
+@keyframes page-tab { from { opacity: 0; } }
+@keyframes page-push { from { opacity: 0; transform: translateX(1.75rem); } }
+@keyframes page-pop { from { opacity: 0; transform: translateX(-1.75rem); } }
+@media (prefers-reduced-motion: reduce) {
+  .page, .page[data-nav], .chat-open:not(:empty) { animation: page-tab 120ms ease-out backwards; }
+}
 @keyframes sheet-in { from { transform: translateY(calc(100% + 1rem)); } }
 @keyframes sheet-out { to { transform: translateY(calc(100% + 1rem)); } }
 @keyframes fade-out { to { opacity: 0; } }

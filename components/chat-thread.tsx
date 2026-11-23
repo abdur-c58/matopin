@@ -701,10 +701,10 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
 
   return (
     <>
-      <header className="flex items-center gap-2 border-b border-line px-2 py-2.5 md:px-4">
+      <header className="flex items-center gap-2 border-b border-line px-3 py-2.5 md:px-4">
         {onBack
           ? <button type="button" className="icon-btn" aria-label="Back to chats" onClick={onBack}><ArrowLeft className="size-5" /></button>
-          : <Link href="/chat" className="icon-btn md:hidden" aria-label="Back to chats"><ArrowLeft className="size-5" /></Link>}
+          : null}
         {person
           ? <Link href={`/u/${person.id}`} className={headerClass}>{headerFace}{headerLabel}</Link>
           : <button type="button" className={headerClass} onClick={() => setInfo(true)}>{headerFace}{headerLabel}</button>}
@@ -737,7 +737,7 @@ export function ChatThread({ id, onBack }: { id: string; onBack?: () => void }) 
         </DropdownMenu.Root>
       </header>
 
-      <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto pt-2 pb-4" onScroll={(e) => { const el = e.currentTarget; stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; }}>
+      <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto overscroll-contain pt-2 pb-4" onScroll={(e) => { const el = e.currentTarget; stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; }}>
         {hasMore && (
           <div className="flex justify-center py-2">
             <button type="button" className="btn btn-ghost h-8 text-xs" disabled={loadingEarlier} onClick={() => void loadEarlier()}>

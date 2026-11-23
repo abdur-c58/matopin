@@ -35,7 +35,7 @@ export function AppFeel() {
     };
   }, []);
 
-  // The on-screen keyboard: its height as --keyboard, so sheets sit above it, and data-keyboard while it's up.
+  // The on-screen keyboard: its height as --keyboard, so sheets sit above it; --vvh and data-keyboard while it's up.
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
@@ -44,6 +44,9 @@ export function AppFeel() {
       const covered = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
       const up = covered > 120;
       root.style.setProperty("--keyboard", `${up ? covered : 0}px`);
+      // What's left of the screen above the keyboard, for full-screen pages (a chat) that keep their box in view.
+      if (up) root.style.setProperty("--vvh", `${Math.round(vv.height)}px`);
+      else root.style.removeProperty("--vvh");
       root.toggleAttribute("data-keyboard", up);
     };
     vv.addEventListener("resize", update);
@@ -52,6 +55,7 @@ export function AppFeel() {
       vv.removeEventListener("resize", update);
       vv.removeEventListener("scroll", update);
       root.style.removeProperty("--keyboard");
+      root.style.removeProperty("--vvh");
       root.removeAttribute("data-keyboard");
     };
   }, []);

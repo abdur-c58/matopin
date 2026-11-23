@@ -180,8 +180,8 @@ function ChatList({ activeId, className, onPick }: { activeId: string | null; cl
   return (
     <aside className={`min-h-0 flex-col ${className}`}>
       {!onPick && (
-        <div className="flex items-center justify-between gap-2 px-4 pt-4 pb-2">
-          <h2 className="flex items-center gap-2 text-base font-semibold">Chats</h2>
+        <div className="flex items-center justify-between gap-2 px-4 pt-4 pb-2 max-md:justify-end max-md:px-3 max-md:pt-1">
+          <h2 className="flex items-center gap-2 text-base font-semibold max-md:hidden">Chats</h2>
           <NewChat />
         </div>
       )}
@@ -216,10 +216,12 @@ export function ChatLayout({ children }: { children: React.ReactNode }) {
   const segment = useSelectedLayoutSegment();
   const activeId = segment ? decodeURIComponent(segment) : null;
   return (
-    <main className="px-page pt-5 pb-6">
-      <div className="surface grid h-[calc(100dvh-11.5rem-env(safe-area-inset-top)-var(--tabbar-h))] min-h-[22rem] overflow-hidden sm:h-[calc(100dvh-10.5rem)] md:h-[calc(100dvh-10rem)] md:grid-cols-[19rem_minmax(0,1fr)]">
+    // Phones follow iOS Messages: the list is the page itself, and an open chat takes the whole screen under the
+    // navigation bar (shrinking to what the keyboard leaves, --vvh) with no card around it. Desktop keeps both in a card.
+    <main className="md:px-page md:pt-5 md:pb-6">
+      <div className={`chat-frame surface grid md:h-[calc(100dvh-10rem)] md:min-h-[26rem] md:overflow-hidden md:grid-cols-[19rem_minmax(0,1fr)] ${activeId ? "max-md:h-[calc(var(--vvh,100dvh)-var(--navbar-h)-env(safe-area-inset-top)-env(safe-area-inset-bottom))] max-md:overflow-hidden" : ""}`}>
         <ChatList activeId={activeId} className={`border-line md:border-r ${activeId ? "hidden md:flex" : "flex"}`} />
-        <div className={`min-h-0 min-w-0 flex-col ${activeId ? "flex" : "hidden md:flex"}`}>{children}</div>
+        <div className={`chat-open min-h-0 min-w-0 flex-col ${activeId ? "flex" : "hidden md:flex"}`}>{children}</div>
       </div>
     </main>
   );

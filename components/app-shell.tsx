@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useRef, useState, ViewTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, ViewTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Dialog } from "radix-ui";
@@ -168,7 +168,7 @@ const MORE = NAV.filter((item) => !TAB_HREFS.includes(item.href));
 /** Settings-style icon tiles in the More sheet. */
 const MORE_TINT: Record<string, string> = { "/social": "bg-tone-4", "/calendar": "bg-tone-1", "/stats": "bg-tone-3", "/settings": "bg-tone-5" };
 /** Studying and a chat thread fill the screen, the way iOS hides the tab bar inside a pushed view. */
-const hidesTabBar = (pathname: string) => /^\/decks\/[^/]+\/review/.test(pathname) || /^\/chat\/[^/]+/.test(pathname);
+const isFullScreen = (pathname: string) => /^\/decks\/[^/]+\/review/.test(pathname) || /^\/chat\/[^/]+/.test(pathname);
 
 function usePageTitle() {
   const pathname = usePathname();
@@ -204,6 +204,8 @@ function MobileChrome() {
 
   const current = NAV.find((item) => isActive(pathname, item.href));
   const nested = !NAV.some((item) => item.href === pathname);
+  // Full-screen pages have no large title to hand over from, so the bar names the page itself; a chat names itself.
+  const showTitle = isFullScreen(pathname) ? !pathname.startsWith("/chat/") : titleIn;
   const back = () => {
     if (window.history.length > 1) router.back();
     else router.push(current?.href ?? "/app");
@@ -211,7 +213,7 @@ function MobileChrome() {
 
   return (
     <>
-      <header className={`fixed inset-x-0 top-0 z-30 border-b pt-[env(safe-area-inset-top)] pr-[max(0.5rem,env(safe-area-inset-right))] pl-[max(0.25rem,env(safe-area-inset-left))] transition-[background-color,border-color] duration-300 select-none md:hidden ${scrolled ? "border-line/70 bg-porcelain/80 backdrop-blur-xl backdrop-saturate-150" : "border-transparent bg-porcelain"}`}>
+      <header className={`fixed inset-x-0 top-0 z-30 border-b pt-[env(safe-area-inset-top)] pr-[max(0.5rem,env(safe-area-inset-right))] pl-[max(0.25rem,env(safe-area-inset-left))] transition-[border-color] duration-200 select-none md:hidden bg-porcelain ${scrolled ? "border-line" : "border-transparent"}`}>
         <div className="relative flex h-(--navbar-h) items-center">
           {nested ? (
             <button type="button" className="press flex h-11 min-w-0 items-center pr-2 text-[17px] text-volt-ink" aria-label="Back" onClick={back}>
@@ -223,7 +225,7 @@ function MobileChrome() {
               <LogoMark className="size-7" active={lang} />
             </Link>
           )}
-          <span aria-hidden={!titleIn} className={`pointer-events-none absolute inset-x-32 truncate text-center text-[17px] font-semibold transition-[opacity,translate] duration-300 ${titleIn ? "opacity-100" : "translate-y-1.5 opacity-0"}`}>
+          <span aria-hidden={!showTitle} className={`pointer-events-none absolute inset-x-32 truncate text-center text-[17px] font-semibold transition-[opacity,translate] duration-200 ${showTitle ? "opacity-100" : "translate-y-1.5 opacity-0"}`}>
             {title}
           </span>
           <button type="button" onClick={() => setMore(true)} aria-label={`Learning ${LANG_INFO[lang].name}. Change language`}
@@ -240,13 +242,16 @@ function MobileChrome() {
 
 function TabBar({ moreOpen, onMore }: { moreOpen: boolean; onMore: () => void }) {
   const pathname = usePathname();
-  if (hidesTabBar(pathname)) return null;
-  const tab = TABS.findIndex(({ href }) => isActive(pathname, href));
-  const active = moreOpen ? TABS.length : tab >= 0 ? tab : MORE.some(({ href }) => isActive(pathname, href)) ? TABS.length : -1;
+  // The tapped tab lights up at once instead of waiting for its page to load.
+  const [tapped, setTapped] = useState<{ href: string; from: string } | null>(null);
+  if (isFullScreen(pathname)) return null;
+  const shown = tapped && tapped.from === pathname ? tapped.href : pathname;
+  const tab = TABS.findIndex(({ href }) => isActive(shown, href));
+  const active = moreOpen ? TABS.length : tab >= 0 ? tab : MORE.some(({ href }) => isActive(shown, href)) ? TABS.length : -1;
   const item = "press relative z-10 flex flex-col items-center justify-center gap-[3px] rounded-full text-[10px] font-semibold tracking-tight";
   return (
     <nav aria-label="Main" className="tabbar fixed inset-x-0 bottom-(--tabbar-bottom) z-30 mx-auto w-[min(calc(100%-2rem),26rem)] select-none md:hidden">
-      <div className="relative grid h-[3.875rem] grid-cols-5 rounded-full border border-line/60 bg-surface/75 p-1 shadow-[0_10px_30px_-8px_rgb(0_0_0/0.4)] backdrop-blur-xl backdrop-saturate-150">
+      <div className="relative grid h-[3.875rem] grid-cols-5 rounded-full border border-line bg-surface p-1 shadow-[0_10px_30px_-8px_rgb(0_0_0/0.4)]">
         {/* The selection: a soft pill that springs between tabs. */}
         <span aria-hidden
           className={`absolute inset-y-1 left-1 w-[calc((100%-0.5rem)/5)] rounded-full bg-ink/8 transition-[translate,opacity] duration-600 ease-(--ease-spring) ${active < 0 ? "opacity-0" : ""}`}
@@ -256,7 +261,7 @@ function TabBar({ moreOpen, onMore }: { moreOpen: boolean; onMore: () => void })
           const on = i === active;
           return (
             <Link key={href} href={href} aria-current={on ? "page" : undefined} className={`${item} ${on ? "text-volt-ink" : "text-muted"}`}
-              onClick={() => { if (pathname === href) window.scrollTo({ top: 0, behavior: "smooth" }); }}>
+              onClick={() => { if (pathname === href) window.scrollTo({ top: 0, behavior: "smooth" }); else setTapped({ href, from: pathname }); }}>
               <Icon className="size-[22px]" strokeWidth={on ? 2.4 : 2} />
               {TAB_LABELS[href] ?? label}
               <NavBadge href={href} className="absolute top-1 left-[calc(50%+0.25rem)] ring-surface" />
@@ -391,8 +396,9 @@ const TITLES: Record<string, string> = {
 function TopBar() {
   const { create } = useDecks();
   const title = usePageTitle();
+  const fullScreen = isFullScreen(usePathname());
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 px-page pt-1 md:pt-7">
+    <div className={`flex-wrap items-center justify-between gap-3 px-page pt-1 md:flex md:pt-7 ${fullScreen ? "hidden" : "flex"}`}>
       <div className="flex min-w-0 items-center gap-3">
         {/* On phones, iOS's large title: 34pt bold, handing over to the navigation bar's title as it scrolls away. */}
         <h1 className="min-w-0 truncate text-[34px] leading-[41px] font-bold tracking-tight md:text-[28px] md:leading-tight">{title}</h1>
@@ -406,18 +412,36 @@ function TopBar() {
   );
 }
 
+const PHONE = "(width < 48rem)";
+const watchPhone = (onChange: () => void) => {
+  const query = window.matchMedia(PHONE);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+};
+const depth = (path: string) => path.split("/").filter(Boolean).length;
+
 /**
- * Fades the old page out and the new one in on navigation. A deck's tabs and the chats share a layout that loads
- * their data, so moving within one of those keeps the same key and doesn't remount it.
+ * Animates page changes. A deck's tabs and the chats share a layout that loads their data, so moving within one of
+ * those keeps the same key and doesn't remount it.
+ * Desktop cross-fades with a view transition. Phones don't: its snapshot of the page is drawn over the fixed
+ * navigation and tab bars and freezes the screen while it runs. There the new page just animates in as it mounts
+ * (the .page rules in globals.css): a quick fade between tabs, a short slide when going deeper or back.
  */
 function PageTransition({ children }: { children: React.ReactNode }) {
-  const parts = usePathname().split("/").filter(Boolean);
+  const pathname = usePathname();
+  const phone = useSyncExternalStore(watchPhone, () => window.matchMedia(PHONE).matches, () => false);
+  const parts = pathname.split("/").filter(Boolean);
   const key = `/${parts.slice(0, parts[0] === "chat" ? 1 : 2).join("/")}`;
-  return (
-    <ViewTransition key={key} enter="page-in" exit="page-out" default="none">
-      <div>{children}</div>
-    </ViewTransition>
-  );
+  // Going deeper slides in from the right, coming back from the left, and a move at the same level (a tab) fades.
+  const [move, setMove] = useState({ path: pathname, nav: "tab" });
+  if (move.path !== pathname) {
+    const by = depth(pathname) - depth(move.path);
+    setMove({ path: pathname, nav: by > 0 ? "push" : by < 0 ? "pop" : "tab" });
+  }
+  const page = <div key={key} className="page" data-nav={move.nav}>{children}</div>;
+  // Even with its animations set to "none", a ViewTransition still snapshots the screen, so phones get none at all.
+  if (phone) return page;
+  return <ViewTransition key={key} enter="page-in" exit="page-out" default="none">{page}</ViewTransition>;
 }
 
 /** For a visitor who isn't signed in: the brand and a way to sign in, none of the app. */
@@ -448,7 +472,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <DecksProvider>
       <QuickPanelsProvider>
         <SignedInSetup />
-        <div className="min-h-dvh pt-[calc(var(--navbar-h)+env(safe-area-inset-top))] pr-[env(safe-area-inset-right)] pb-[max(env(safe-area-inset-bottom),var(--tabbar-h))] md:pt-[env(safe-area-inset-top)] md:pl-[calc(96px+env(safe-area-inset-left))]">
+        <div className="min-h-dvh overflow-x-clip pt-[calc(var(--navbar-h)+env(safe-area-inset-top))] pr-[env(safe-area-inset-right)] pb-[max(env(safe-area-inset-bottom),var(--tabbar-h))] md:pt-[env(safe-area-inset-top)] md:pl-[calc(96px+env(safe-area-inset-left))]">
           <RailTipProvider>
             <Rail />
             <AccountDock />
