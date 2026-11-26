@@ -1,9 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Dialog } from "radix-ui";
 import { toast } from "sonner";
 import {
-  DEFAULT_REVIEW, formatSteps, loadStore, parseSteps, patchSettings, recomputeMemory, repositionNew, reviewable, saveStore, unsuspend,
+  DEFAULT_REVIEW, formatSteps, loadStore, parseSteps, patchSettings, recomputeMemory, repositionNew, resetProgress, reviewable, saveStore, unsuspend,
   type EasyDay, type ReviewSettings, type Store,
 } from "@/lib/srs";
 import { onRemoteChange } from "@/lib/sync";
@@ -110,6 +111,17 @@ export function DeckSettings({ deckId, scope }: { deckId: string; scope: string 
     commit(patch, (store) => recomputeMemory(store));
     toast.success("Memory states recomputed from review history.");
   }
+
+  const [resetting, setResetting] = useState(false);
+  function reset() {
+    if (!stored) return;
+    const fresh = resetProgress(stored);
+    saveStore(scope, fresh);
+    setStored(fresh);
+    setResetting(false);
+    toast.success("Review progress reset. Every card is new again.");
+  }
+  const started = stored ? Object.values(stored.cards).filter((s) => s.state !== "new").length : 0;
 
   const suspended = stored ? Object.values(stored.cards).filter((s) => s.suspended) : [];
   const cardLabel = (cardId: string) => {
@@ -258,11 +270,34 @@ export function DeckSettings({ deckId, scope }: { deckId: string; scope: string 
 
       <Section title="Danger zone" description={owner ? "Deleting removes the deck’s cards and review progress for you and everyone following or collaborating." : "Leaving removes the deck and your review progress from this profile. The owner’s deck stays."}>
         <div>
+          <button type="button" className="btn border border-tone-1/40 text-tone-1 hover:bg-tone-1/10" disabled={!stored} onClick={() => setResetting(true)}>
+            Reset progress
+          </button>
+          <Hint>Makes every card new again and clears this deck’s review history, for you only. The cards and options stay.</Hint>
+        </div>
+        <div>
           <button type="button" className="btn border border-tone-1/40 text-tone-1 hover:bg-tone-1/10" disabled={!deck} onClick={() => deck && requestDelete(deck)}>
             {owner ? <>Delete deck</> : <>Leave deck</>}
           </button>
         </div>
       </Section>
+
+      <Dialog.Root open={resetting} onOpenChange={setResetting}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="overlay" />
+          <Dialog.Content className="popup fixed top-1/2 left-1/2 w-[min(24rem,calc(100vw-1.5rem))] -translate-x-1/2 -translate-y-1/2 p-5">
+            <Dialog.Title className="text-lg font-semibold">Reset progress in “{z.settings.deck}”?</Dialog.Title>
+            <Dialog.Description className="mt-2 text-sm text-muted">
+              {started > 0 ? `${started} card ${started === 1 ? "side you’ve started goes" : "sides you’ve started go"} back to new, ` : "Every card goes back to new, "}
+              and the deck’s review history is cleared, so its statistics start over. The cards and options stay. This can’t be undone.
+            </Dialog.Description>
+            <div className="mt-5 flex justify-end gap-2">
+              <Dialog.Close className="btn btn-secondary">Cancel</Dialog.Close>
+              <button type="button" className="btn btn-danger" onClick={reset}>Reset progress</button>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </main>
   );
 }

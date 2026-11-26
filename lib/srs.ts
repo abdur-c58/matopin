@@ -162,6 +162,11 @@ function emptyStore(): Store {
   return { cards: {}, settings: cleanSettings(undefined), day: dayKey(), newToday: 0, reviewsToday: 0, nextPosition: 0, revlog: [] };
 }
 
+/** Forgets every card's schedule and the review history, keeping the deck's review options. Every card is new again. */
+export function resetProgress(store: Store): Store {
+  return { ...emptyStore(), settings: store.settings };
+}
+
 export function loadStore(scope: string): Store {
   try {
     const raw = JSON.parse(localStorage.getItem(dataKey(scope, "srs")) ?? "null") as Partial<Store> | null;
